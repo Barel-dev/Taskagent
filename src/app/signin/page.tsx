@@ -7,7 +7,7 @@ import { CinematicBackground } from '@/components/cinematic-bg'
 export default function SignInPage() {
   return (
     <div
-      className="dark relative isolate flex min-h-screen flex-col overflow-x-clip text-foreground"
+      className="dark relative isolate flex min-h-screen flex-col overflow-hidden text-foreground"
       style={{ backgroundColor: '#0a0a0f' }}
     >
       <CinematicBackground />

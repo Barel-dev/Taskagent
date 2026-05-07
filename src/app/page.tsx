@@ -19,7 +19,7 @@ export default async function Landing() {
 
   return (
     <div
-      className="dark relative isolate min-h-screen overflow-x-clip text-foreground"
+      className="dark relative isolate min-h-screen overflow-hidden text-foreground"
       style={{ backgroundColor: '#0a0a0f' }}
     >
       {/* Layered animated background */}
