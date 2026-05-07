@@ -48,16 +48,74 @@ export function CinematicBackground() {
         }}
       />
 
-      {/* Distant cyan accent (slow, calm) */}
+      {/* Mid-page cyan accent (slow, calm) */}
       <div
         aria-hidden
-        className="pointer-events-none absolute top-[60%] left-[40%] z-0 h-[700px] w-[800px] rounded-full opacity-40 blur-3xl"
+        className="pointer-events-none absolute top-[40%] left-[35%] z-0 h-[700px] w-[800px] rounded-full opacity-45 blur-3xl"
         style={{
-          background: 'radial-gradient(circle, rgba(56,189,248,0.30), transparent 70%)',
+          background: 'radial-gradient(circle, rgba(56,189,248,0.32), transparent 70%)',
           animation: 'orbit-violet 50s ease-in-out infinite',
           animationDelay: '4s',
         }}
       />
+
+      {/* Mid-low violet orb */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute top-[58%] right-[5%] z-0 h-[700px] w-[700px] rounded-full opacity-55 blur-3xl"
+        style={{
+          background: 'radial-gradient(circle, rgba(139,92,246,0.40), transparent 70%)',
+          animation: 'orbit-pink 42s ease-in-out infinite',
+          animationDelay: '6s',
+        }}
+      />
+
+      {/* Lower pink orb */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute top-[78%] left-[10%] z-0 h-[650px] w-[750px] rounded-full opacity-55 blur-3xl"
+        style={{
+          background: 'radial-gradient(circle, rgba(244,114,182,0.40), transparent 70%)',
+          animation: 'orbit-violet 46s ease-in-out infinite, glow-pulse 8s ease-in-out infinite',
+          animationDelay: '8s',
+        }}
+      />
+
+      {/* Bottom violet orb (mirrors the top one for symmetry) */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute bottom-[-10%] right-[20%] z-0 h-[700px] w-[700px] rounded-full opacity-60 blur-3xl"
+        style={{
+          background: 'radial-gradient(circle, rgba(139,92,246,0.50), transparent 70%)',
+          animation: 'orbit-pink 36s ease-in-out infinite, glow-pulse 7s ease-in-out infinite',
+          animationDelay: '3s',
+        }}
+      />
+
+      {/* Bottom aurora ribbons — mirror of the top */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[50vh] overflow-hidden"
+      >
+        <div
+          className="absolute inset-x-[-20%] bottom-0 h-[40%] blur-3xl"
+          style={{
+            background:
+              'linear-gradient(60deg, transparent 0%, rgba(139,92,246,0.35) 30%, rgba(244,114,182,0.35) 60%, transparent 100%)',
+            animation: 'aurora-shift 16s ease-in-out infinite',
+            animationDelay: '3s',
+          }}
+        />
+        <div
+          className="absolute inset-x-[-20%] bottom-[20%] h-[40%] blur-3xl"
+          style={{
+            background:
+              'linear-gradient(120deg, transparent 0%, rgba(56,189,248,0.25) 40%, rgba(139,92,246,0.30) 70%, transparent 100%)',
+            animation: 'aurora-shift 20s ease-in-out infinite reverse',
+            animationDelay: '5s',
+          }}
+        />
+      </div>
 
       {/* Flowing energy beams (SVG curved paths) */}
       <FlowingBeams />
