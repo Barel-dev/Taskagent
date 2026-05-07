@@ -166,6 +166,22 @@
   66%      { transform: translate3d(6%, -5%, 0); }
 }
 
+@keyframes pulse-node {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 1; }
+}
+
+@keyframes pulse-line {
+  0%, 100% { opacity: 0.12; }
+  50%      { opacity: 0.55; }
+}
+
+@keyframes pulse-data {
+  0%   { stroke-dashoffset: 12; opacity: 0; }
+  20%  { opacity: 0.9; }
+  100% { stroke-dashoffset: -12; opacity: 0; }
+}
+
 @keyframes shimmer {
   0% {
     transform: translateX(-100%);

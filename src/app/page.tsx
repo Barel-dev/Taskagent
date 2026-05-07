@@ -11,6 +11,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import { Spotlight } from '@/components/spotlight'
+import { NeuralGraph } from '@/components/neural-graph'
 
 export default async function Landing() {
   const session = await auth()
@@ -183,11 +184,10 @@ export default async function Landing() {
 function BackgroundLayers() {
   return (
     <>
-      {/* Drifting grid */}
-      <div
-        aria-hidden
-        className="bg-grid bg-grid-radial-mask animate-drift pointer-events-none absolute inset-0 z-0"
-      />
+      {/* Neural network constellation */}
+      <div className="bg-grid-radial-mask pointer-events-none absolute inset-0 z-0">
+        <NeuralGraph className="h-full w-full" />
+      </div>
 
       {/* Animated violet blob */}
       <div

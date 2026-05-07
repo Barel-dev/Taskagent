@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { signIn } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Sparkles } from 'lucide-react'
+import { NeuralGraph } from '@/components/neural-graph'
 
 export default function SignInPage() {
   return (
@@ -9,11 +10,10 @@ export default function SignInPage() {
       className="dark relative isolate flex min-h-screen flex-col overflow-hidden text-foreground"
       style={{ backgroundColor: '#0a0a0f' }}
     >
-      {/* Drifting grid */}
-      <div
-        aria-hidden
-        className="bg-grid bg-grid-radial-mask animate-drift pointer-events-none absolute inset-0 z-0"
-      />
+      {/* Neural network constellation */}
+      <div className="bg-grid-radial-mask pointer-events-none absolute inset-0 z-0">
+        <NeuralGraph className="h-full w-full" />
+      </div>
       {/* Animated violet blob */}
       <div
         aria-hidden
