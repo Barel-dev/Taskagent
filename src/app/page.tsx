@@ -11,7 +11,6 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import { Spotlight } from '@/components/spotlight'
-import { NeuralGraph } from '@/components/neural-graph'
 
 export default async function Landing() {
   const session = await auth()
@@ -360,58 +359,55 @@ function Step({ n, title, body }: { n: string; title: string; body: string }) {
 function BackgroundLayers() {
   return (
     <>
-      {/* Neural network constellation */}
-      <div className="bg-grid-radial-mask pointer-events-none absolute inset-0 z-0">
-        <NeuralGraph className="h-full w-full" />
-      </div>
-
-      {/* Animated violet blob */}
+      {/* Hero aurora — single soft violet wash at the top */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-32 left-1/2 z-0 h-[600px] w-[800px] -translate-x-1/2 rounded-full opacity-90 blur-3xl"
-        style={{
-          background: 'radial-gradient(closest-side, rgba(139,92,246,0.55), transparent 70%)',
-          animation: 'blob-1 18s ease-in-out infinite, glow-pulse 6s ease-in-out infinite',
-        }}
-      />
-
-      {/* Animated cyan blob */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute right-[-10%] top-[20%] z-0 h-[500px] w-[600px] rounded-full opacity-80 blur-3xl"
-        style={{
-          background: 'radial-gradient(closest-side, rgba(56,189,248,0.35), transparent 70%)',
-          animation: 'blob-2 22s ease-in-out infinite',
-        }}
-      />
-
-      {/* Animated pink blob */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute bottom-[10%] left-[-10%] z-0 h-[500px] w-[600px] rounded-full opacity-80 blur-3xl"
-        style={{
-          background: 'radial-gradient(closest-side, rgba(244,114,182,0.35), transparent 70%)',
-          animation: 'blob-1 26s ease-in-out infinite',
-        }}
-      />
-
-      {/* Bottom horizon glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[45%]"
+        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[90vh]"
         style={{
           background:
-            'radial-gradient(80% 100% at 50% 100%, rgba(139,92,246,0.30), transparent 65%)',
+            'radial-gradient(ellipse 80% 70% at 50% -10%, rgba(139,92,246,0.30), transparent 60%)',
+          animation: 'glow-pulse 12s ease-in-out infinite',
         }}
       />
 
-      {/* Vignette to focus the eye */}
+      {/* Distant violet accent — far right, very slow */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-[-25%] top-[35%] z-0 h-[800px] w-[1000px] rounded-full opacity-50 blur-3xl"
+        style={{
+          background: 'radial-gradient(closest-side, rgba(139,92,246,0.18), transparent 70%)',
+          animation: 'blob-2 50s ease-in-out infinite',
+        }}
+      />
+
+      {/* Distant pink accent — far left, very slow */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-[-25%] top-[70%] z-0 h-[800px] w-[1000px] rounded-full opacity-45 blur-3xl"
+        style={{
+          background: 'radial-gradient(closest-side, rgba(244,114,182,0.15), transparent 70%)',
+          animation: 'blob-1 60s ease-in-out infinite',
+        }}
+      />
+
+      {/* Subtle grain noise — adds film-like depth, very low opacity */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0 opacity-[0.05] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.6'/></svg>\")",
+          backgroundSize: '180px 180px',
+        }}
+      />
+
+      {/* Vignette to focus the eye toward center */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-0"
         style={{
           background:
-            'radial-gradient(120% 80% at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%)',
+            'radial-gradient(140% 90% at 50% 30%, transparent 55%, rgba(0,0,0,0.5) 100%)',
         }}
       />
     </>
