@@ -60,7 +60,7 @@ export default async function Landing() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
             </span>
-            Powered by Anthropic Claude
+            5 specialized agents at your service
           </div>
 
           <h1 className="max-w-5xl text-balance bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-6xl font-semibold leading-[1.05] tracking-tight text-transparent sm:text-7xl md:text-8xl">
