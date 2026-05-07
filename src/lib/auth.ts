@@ -1,17 +1,32 @@
-// TEMPORARY STUB — Task 5 will replace this with the real NextAuth implementation.
-// Returns null in all environments for now so route handlers compile and respond 401.
+import NextAuth from 'next-auth'
+import Google from 'next-auth/providers/google'
+import { PrismaAdapter } from '@auth/prisma-adapter'
+import { prisma } from '@/lib/prisma'
 
-type StubSession = { user: { id: string; email?: string | null } } | null
-
-export async function auth(): Promise<StubSession> {
-  return null
-}
-
-// Placeholders so other imports compile. Task 5 will provide real values.
-export const handlers: { GET: never; POST: never } = {} as never
-export const signIn = async (..._args: unknown[]) => {
-  throw new Error('signIn stub — Task 5 not run yet')
-}
-export const signOut = async (..._args: unknown[]) => {
-  throw new Error('signOut stub — Task 5 not run yet')
-}
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  adapter: PrismaAdapter(prisma),
+  session: { strategy: 'database' },
+  providers: [
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      authorization: {
+        params: {
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code',
+          scope: 'openid email profile',
+        },
+      },
+    }),
+  ],
+  pages: {
+    signIn: '/signin',
+  },
+  callbacks: {
+    session({ session, user }) {
+      session.user.id = user.id
+      return session
+    },
+  },
+})
