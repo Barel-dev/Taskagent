@@ -105,22 +105,6 @@ export default async function Landing() {
           <p className="mt-5 text-xs text-white/40">
             Free for personal use · No credit card required
           </p>
-
-          {/* Tech stack strip */}
-          <div className="mt-20 w-full">
-            <p className="mb-4 text-center text-[11px] font-medium uppercase tracking-widest text-white/40">
-              Built with
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-white/50">
-              <TechBadge>Next.js 15</TechBadge>
-              <TechBadge>TypeScript</TechBadge>
-              <TechBadge>PostgreSQL</TechBadge>
-              <TechBadge>Anthropic Claude</TechBadge>
-              <TechBadge>NextAuth</TechBadge>
-              <TechBadge>Prisma</TechBadge>
-              <TechBadge>Tailwind</TechBadge>
-            </div>
-          </div>
         </section>
 
         {/* Features section */}
@@ -172,11 +156,203 @@ export default async function Landing() {
           </div>
         </section>
 
-        <footer className="relative z-10 border-t border-white/10 py-10 text-center text-xs text-white/40">
-          Built with Next.js 15, Postgres, NextAuth, Anthropic Claude · ©{' '}
-          {new Date().getFullYear()} TaskAgent
+        {/* See it in action — mocked previews */}
+        <section className="relative pb-32">
+          <div className="mb-16 text-center">
+            <h2 className="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+              See it in action
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-base text-white/60">
+              Real interactions, like the day you’ll have once an agent has your back.
+            </p>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Chat demo */}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur">
+              <div className="mb-4 flex items-center gap-2 text-xs text-white/50">
+                <Sparkles className="h-3.5 w-3.5 text-violet-300" />
+                Chat with your tasks
+              </div>
+              <div className="space-y-3 font-mono text-[13px]">
+                <ChatBubble role="user">
+                  what’s still left for finals week?
+                </ChatBubble>
+                <ChatBubble role="assistant">
+                  You have 4 open items: read CS162 ch.7, finish DB project,
+                  meet study group Wed, submit research draft Thu. Want me to
+                  schedule them?
+                </ChatBubble>
+                <ChatBubble role="user">yes, around my classes</ChatBubble>
+                <ChatBubble role="assistant" muted>
+                  ✓ Scheduled 4 tasks across Mon–Thu evenings.
+                </ChatBubble>
+              </div>
+            </div>
+
+            {/* Breakdown demo */}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur">
+              <div className="mb-4 flex items-center gap-2 text-xs text-white/50">
+                <ListChecks className="h-3.5 w-3.5 text-violet-300" />
+                Breakdown agent
+              </div>
+              <div className="mb-3 rounded-lg bg-white/[0.04] px-3 py-2 text-sm text-white/80">
+                Plan trip to Lisbon
+              </div>
+              <div className="text-xs uppercase tracking-widest text-white/40">
+                Generated subtasks
+              </div>
+              <ul className="mt-2 space-y-2 text-sm">
+                <SubtaskRow time="2h">Book flights & hotel</SubtaskRow>
+                <SubtaskRow time="30m">Renew passport check</SubtaskRow>
+                <SubtaskRow time="1h">Plan day-by-day itinerary</SubtaskRow>
+                <SubtaskRow time="20m">Notify bank of travel</SubtaskRow>
+                <SubtaskRow time="45m">Pack & download offline maps</SubtaskRow>
+              </ul>
+            </div>
+
+            {/* Daily briefing demo */}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur">
+              <div className="mb-4 flex items-center gap-2 text-xs text-white/50">
+                <Sun className="h-3.5 w-3.5 text-violet-300" />
+                Today’s briefing · 7:00 AM
+              </div>
+              <div className="space-y-3 text-sm leading-relaxed text-white/80">
+                <p className="font-medium text-white">Good morning, Barel.</p>
+                <p>
+                  Today you’ve got <span className="text-violet-300">3 tasks due</span>, and one
+                  thing slipping from yesterday: <em className="not-italic text-white">Send invoice to client X</em>.
+                </p>
+                <p>
+                  Your calendar opens up after 4pm — that’s the best window for the database
+                  project. I’ll keep you on track.
+                </p>
+                <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-3 text-xs text-white/40">
+                  <Mail className="h-3 w-3" />
+                  Sent to barel57000@gmail.com
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="relative pb-32">
+          <div className="mb-16 text-center">
+            <h2 className="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+              Three steps to your{' '}
+              <span className="bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">
+                quietest week
+              </span>
+            </h2>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            <Step
+              n="01"
+              title="Drop in your tasks"
+              body="Type them in. Or paste a brain dump. Or talk to the chat. Whatever feels natural — the app figures out structure."
+            />
+            <Step
+              n="02"
+              title="Agents do the work"
+              body="Breakdown, prioritization, scheduling, drafting — the five agents run quietly in the background while you focus."
+            />
+            <Step
+              n="03"
+              title="You stay in flow"
+              body="Each morning a calm briefing arrives in your inbox. Each evening, more is done than you expected."
+            />
+          </div>
+        </section>
+
+        {/* Bottom CTA */}
+        <section className="relative pb-32">
+          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-violet-500/10 via-fuchsia-500/5 to-transparent px-8 py-16 text-center backdrop-blur sm:px-16">
+            <h2 className="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+              Ready to let the agents work?
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-base text-white/60">
+              Free for personal use. Sign in with Google and you’re in.
+            </p>
+            <div className="mt-8 flex justify-center">
+              {isAuthed ? (
+                <Button asChild size="lg" className="group h-12 px-7 text-base">
+                  <Link href="/tasks">
+                    Open your tasks
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  size="lg"
+                  className="group h-12 px-7 text-base shadow-[0_0_40px_rgba(139,92,246,0.4)]"
+                >
+                  <Link href="/signin">
+                    Sign in with Google
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </Button>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <footer className="relative z-10 flex flex-col items-center gap-2 border-t border-white/10 py-10 text-center text-xs text-white/40 sm:flex-row sm:justify-between">
+          <span>© {new Date().getFullYear()} TaskAgent</span>
+          <span>Built with Next.js, Postgres, NextAuth, Anthropic Claude</span>
         </footer>
       </main>
+    </div>
+  )
+}
+
+function ChatBubble({
+  role,
+  muted,
+  children,
+}: {
+  role: 'user' | 'assistant'
+  muted?: boolean
+  children: React.ReactNode
+}) {
+  if (role === 'user') {
+    return (
+      <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-violet-500/20 px-3 py-2 text-white/90 ring-1 ring-violet-400/20">
+        {children}
+      </div>
+    )
+  }
+  return (
+    <div
+      className={`max-w-[90%] rounded-2xl rounded-bl-md bg-white/[0.04] px-3 py-2 ring-1 ring-white/5 ${muted ? 'text-emerald-300/80' : 'text-white/80'}`}
+    >
+      {children}
+    </div>
+  )
+}
+
+function SubtaskRow({ time, children }: { time: string; children: React.ReactNode }) {
+  return (
+    <li className="flex items-center justify-between gap-3 rounded-md bg-white/[0.02] px-3 py-2 text-white/80 ring-1 ring-white/5">
+      <span className="flex items-center gap-2">
+        <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
+        {children}
+      </span>
+      <span className="text-xs text-white/40">{time}</span>
+    </li>
+  )
+}
+
+function Step({ n, title, body }: { n: string; title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur">
+      <div className="mb-4 inline-block rounded-lg bg-gradient-to-br from-violet-500/30 to-fuchsia-500/30 px-2.5 py-1 font-mono text-xs text-violet-200 ring-1 ring-white/10">
+        {n}
+      </div>
+      <h3 className="text-lg font-semibold text-white">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-white/60">{body}</p>
     </div>
   )
 }
@@ -239,14 +415,6 @@ function BackgroundLayers() {
         }}
       />
     </>
-  )
-}
-
-function TechBadge({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[12px] font-medium text-white/70 backdrop-blur">
-      {children}
-    </span>
   )
 }
 
