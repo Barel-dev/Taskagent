@@ -34,6 +34,29 @@ export default async function Landing() {
           </span>
           <span className="text-lg font-semibold tracking-tight text-white">TaskAgent</span>
         </Link>
+
+        {/* Centered nav */}
+        <nav className="hidden items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-1.5 py-1.5 text-sm text-white/70 backdrop-blur md:flex">
+          <Link
+            href="#agents"
+            className="rounded-full px-3 py-1.5 transition-colors hover:bg-white/[0.06] hover:text-white"
+          >
+            Agents
+          </Link>
+          <Link
+            href="#examples"
+            className="rounded-full px-3 py-1.5 transition-colors hover:bg-white/[0.06] hover:text-white"
+          >
+            Examples
+          </Link>
+          <Link
+            href="#how"
+            className="rounded-full px-3 py-1.5 transition-colors hover:bg-white/[0.06] hover:text-white"
+          >
+            How it works
+          </Link>
+        </nav>
+
         <nav className="flex items-center gap-3">
           {isAuthed ? (
             <Button asChild size="sm">
@@ -108,7 +131,7 @@ export default async function Landing() {
         </section>
 
         {/* Features section */}
-        <section className="relative pb-32">
+        <section id="agents" className="relative scroll-mt-24 pb-32">
           <div className="mb-16 text-center">
             <h2 className="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl">
               Five agents,{' '}
@@ -157,7 +180,7 @@ export default async function Landing() {
         </section>
 
         {/* See it in action — mocked previews */}
-        <section className="relative pb-32">
+        <section id="examples" className="relative scroll-mt-24 pb-32">
           <div className="mb-16 text-center">
             <h2 className="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl">
               See it in action
@@ -237,7 +260,7 @@ export default async function Landing() {
         </section>
 
         {/* How it works */}
-        <section className="relative pb-32">
+        <section id="how" className="relative scroll-mt-24 pb-32">
           <div className="mb-16 text-center">
             <h2 className="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl">
               Three steps to your{' '}
