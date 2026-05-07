@@ -14,7 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${GeistMono.variable} scroll-smooth`}
+      className={`dark ${GeistSans.variable} ${GeistMono.variable} scroll-smooth`}
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground min-h-screen font-sans antialiased">
