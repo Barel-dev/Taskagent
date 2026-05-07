@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`dark ${GeistSans.variable} ${GeistMono.variable} scroll-smooth`}
       suppressHydrationWarning
     >
-      <body className="bg-background text-foreground min-h-screen font-sans antialiased">
+      <body className="bg-background text-foreground font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>
