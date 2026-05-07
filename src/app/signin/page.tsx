@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { signIn } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Sparkles } from 'lucide-react'
+import { CinematicBackground } from '@/components/cinematic-bg'
 
 export default function SignInPage() {
   return (
@@ -9,44 +10,7 @@ export default function SignInPage() {
       className="dark relative isolate flex min-h-screen flex-col overflow-hidden text-foreground"
       style={{ backgroundColor: '#0a0a0f' }}
     >
-      {/* Soft violet aurora at top */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[90vh]"
-        style={{
-          background:
-            'radial-gradient(ellipse 80% 70% at 50% -10%, rgba(139,92,246,0.28), transparent 60%)',
-          animation: 'glow-pulse 12s ease-in-out infinite',
-        }}
-      />
-      {/* Distant pink accent — far right, very slow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute right-[-25%] bottom-[-10%] z-0 h-[700px] w-[900px] rounded-full opacity-45 blur-3xl"
-        style={{
-          background: 'radial-gradient(closest-side, rgba(244,114,182,0.16), transparent 70%)',
-          animation: 'blob-1 60s ease-in-out infinite',
-        }}
-      />
-      {/* Subtle grain noise */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 opacity-[0.05] mix-blend-overlay"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.6'/></svg>\")",
-          backgroundSize: '180px 180px',
-        }}
-      />
-      {/* Vignette */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{
-          background:
-            'radial-gradient(140% 90% at 50% 40%, transparent 55%, rgba(0,0,0,0.55) 100%)',
-        }}
-      />
+      <CinematicBackground />
 
       <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
         <Link href="/" className="flex items-center gap-2">
