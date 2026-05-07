@@ -12,7 +12,7 @@ export default function SignInPage() {
     >
       <CinematicBackground />
 
-      <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
+      <header className="relative z-10 flex w-full items-center justify-between px-8 py-6 sm:px-12">
         <Link href="/" className="flex items-center gap-2">
           <span className="grid h-8 w-8 place-items-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_0_20px_rgba(139,92,246,0.4)]">
             <Sparkles className="h-4 w-4" />

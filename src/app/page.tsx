@@ -27,7 +27,7 @@ export default async function Landing() {
       <Spotlight />
 
       {/* Top nav */}
-      <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+      <header className="relative z-10 flex w-full items-center justify-between px-8 py-6 sm:px-12">
         <Link href="/" className="flex items-center gap-2">
           <span className="grid h-8 w-8 place-items-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_0_20px_rgba(139,92,246,0.4)]">
             <Sparkles className="h-4 w-4" />
@@ -55,12 +55,12 @@ export default async function Landing() {
       {/* Hero — full viewport */}
       <main className="relative z-10 mx-auto max-w-6xl px-6">
         <section className="flex min-h-[calc(100vh-7rem)] flex-col items-center justify-center pt-12 pb-24 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/70 backdrop-blur">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/80 backdrop-blur">
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
             </span>
-            5 AI agents working for you
+            Powered by Anthropic Claude
           </div>
 
           <h1 className="max-w-5xl text-balance bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-6xl font-semibold leading-[1.05] tracking-tight text-transparent sm:text-7xl md:text-8xl">
