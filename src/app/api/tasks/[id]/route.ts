@@ -23,7 +23,10 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const body = await req.json().catch(() => null)
   const parsed = updateTaskSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid input', issues: parsed.error.flatten() }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Invalid input', issues: parsed.error.flatten() },
+      { status: 400 },
+    )
   }
 
   const task = await updateTaskForUser(session.user.id, id, parsed.data)

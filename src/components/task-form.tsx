@@ -61,7 +61,13 @@ export function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) 
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="title">Title</Label>
-        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} />
+        <Input
+          id="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          maxLength={200}
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>

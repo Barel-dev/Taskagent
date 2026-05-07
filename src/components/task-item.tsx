@@ -27,7 +27,10 @@ export function TaskItem({ task, onEdit }: { task: Task; onEdit: (t: Task) => vo
       const res = await fetch(`/api/tasks/${task.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: next, completedAt: next === 'DONE' ? new Date().toISOString() : null }),
+        body: JSON.stringify({
+          status: next,
+          completedAt: next === 'DONE' ? new Date().toISOString() : null,
+        }),
       })
       if (!res.ok) {
         setOptimisticDone(optimisticDone) // rollback
@@ -65,9 +68,9 @@ export function TaskItem({ task, onEdit }: { task: Task; onEdit: (t: Task) => vo
           {task.title}
         </div>
         {task.description && (
-          <p className="mt-1 text-sm text-muted-foreground">{task.description}</p>
+          <p className="text-muted-foreground mt-1 text-sm">{task.description}</p>
         )}
-        <div className="mt-2 flex gap-2 text-xs text-muted-foreground">
+        <div className="text-muted-foreground mt-2 flex gap-2 text-xs">
           <span>{task.priority}</span>
           {task.dueDate && <span>· due {new Date(task.dueDate).toLocaleDateString()}</span>}
         </div>

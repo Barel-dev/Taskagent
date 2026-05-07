@@ -9,7 +9,7 @@ export async function Header() {
       <h1 className="text-lg font-semibold">TaskAgent</h1>
       {session?.user && (
         <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">{session.user.email}</span>
+          <span className="text-muted-foreground text-sm">{session.user.email}</span>
           <form
             action={async () => {
               'use server'

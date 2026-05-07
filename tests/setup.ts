@@ -9,9 +9,7 @@ loadEnv({ path: path.resolve(__dirname, '../.env.local') })
 
 const testUrl = process.env.TEST_DATABASE_URL
 if (!testUrl) {
-  throw new Error(
-    'TEST_DATABASE_URL must be set in .env.local for the test suite to run.',
-  )
+  throw new Error('TEST_DATABASE_URL must be set in .env.local for the test suite to run.')
 }
 
 // Override DATABASE_URL so any code path that reads env at runtime sees the test DB.
