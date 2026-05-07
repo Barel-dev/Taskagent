@@ -18,12 +18,14 @@ export default async function Landing() {
   const isAuthed = !!session?.user
 
   return (
-    <div
-      className="dark relative isolate min-h-screen overflow-hidden text-foreground"
-      style={{ backgroundColor: '#0a0a0f' }}
-    >
-      {/* Layered animated background */}
-      <BackgroundLayers />
+    <div className="relative text-foreground">
+      {/* Background — FIXED to viewport, always covers the screen, never affects layout */}
+      <div
+        className="fixed inset-0 -z-10 overflow-hidden"
+        style={{ backgroundColor: '#0a0a0f' }}
+      >
+        <BackgroundLayers />
+      </div>
       <Spotlight />
 
       {/* Top nav — sticky so it follows the user as they scroll */}

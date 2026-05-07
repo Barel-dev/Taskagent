@@ -6,11 +6,14 @@ import { CinematicBackground } from '@/components/cinematic-bg'
 
 export default function SignInPage() {
   return (
-    <div
-      className="dark relative isolate flex min-h-screen flex-col overflow-hidden text-foreground"
-      style={{ backgroundColor: '#0a0a0f' }}
-    >
-      <CinematicBackground />
+    <div className="relative flex min-h-screen flex-col text-foreground">
+      {/* Background — fixed to viewport */}
+      <div
+        className="fixed inset-0 -z-10 overflow-hidden"
+        style={{ backgroundColor: '#0a0a0f' }}
+      >
+        <CinematicBackground />
+      </div>
 
       <header className="relative z-10 flex w-full items-center justify-between px-8 py-6 sm:px-12">
         <Link href="/" className="flex items-center gap-2">
