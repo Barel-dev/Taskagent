@@ -17,7 +17,10 @@ export default async function Landing() {
   const isAuthed = !!session?.user
 
   return (
-    <div className="dark relative min-h-screen overflow-hidden bg-[#0a0a0f] text-foreground">
+    <div
+      className="dark relative isolate min-h-screen overflow-hidden text-foreground"
+      style={{ backgroundColor: '#0a0a0f' }}
+    >
       {/* Layered animated background */}
       <BackgroundLayers />
       <Spotlight />
@@ -180,33 +183,59 @@ export default async function Landing() {
 function BackgroundLayers() {
   return (
     <>
-      {/* Animated grid */}
-      <div className="bg-grid bg-grid-radial-mask animate-drift pointer-events-none absolute inset-0 -z-10" />
-      {/* Aurora gradient */}
+      {/* Drifting grid */}
       <div
         aria-hidden
-        className="animate-glow-pulse pointer-events-none absolute inset-0 -z-10"
+        className="bg-grid bg-grid-radial-mask animate-drift pointer-events-none absolute inset-0 z-0"
+      />
+
+      {/* Animated violet blob */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-32 left-1/2 z-0 h-[600px] w-[800px] -translate-x-1/2 rounded-full opacity-90 blur-3xl"
         style={{
-          background:
-            'radial-gradient(60% 50% at 50% 0%, rgba(139,92,246,0.22), transparent 65%), radial-gradient(45% 40% at 80% 30%, rgba(56,189,248,0.10), transparent 65%), radial-gradient(45% 40% at 20% 70%, rgba(244,114,182,0.10), transparent 65%)',
+          background: 'radial-gradient(closest-side, rgba(139,92,246,0.55), transparent 70%)',
+          animation: 'blob-1 18s ease-in-out infinite, glow-pulse 6s ease-in-out infinite',
         }}
       />
+
+      {/* Animated cyan blob */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-[-10%] top-[20%] z-0 h-[500px] w-[600px] rounded-full opacity-80 blur-3xl"
+        style={{
+          background: 'radial-gradient(closest-side, rgba(56,189,248,0.35), transparent 70%)',
+          animation: 'blob-2 22s ease-in-out infinite',
+        }}
+      />
+
+      {/* Animated pink blob */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute bottom-[10%] left-[-10%] z-0 h-[500px] w-[600px] rounded-full opacity-80 blur-3xl"
+        style={{
+          background: 'radial-gradient(closest-side, rgba(244,114,182,0.35), transparent 70%)',
+          animation: 'blob-1 26s ease-in-out infinite',
+        }}
+      />
+
       {/* Bottom horizon glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[40%]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[45%]"
         style={{
           background:
-            'radial-gradient(70% 100% at 50% 100%, rgba(139,92,246,0.15), transparent 60%)',
+            'radial-gradient(80% 100% at 50% 100%, rgba(139,92,246,0.30), transparent 65%)',
         }}
       />
-      {/* Vignette */}
+
+      {/* Vignette to focus the eye */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
+        className="pointer-events-none absolute inset-0 z-0"
         style={{
           background:
-            'radial-gradient(120% 80% at 50% 50%, transparent 50%, rgba(0,0,0,0.6) 100%)',
+            'radial-gradient(120% 80% at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%)',
         }}
       />
     </>

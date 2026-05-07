@@ -5,20 +5,37 @@ import { Sparkles } from 'lucide-react'
 
 export default function SignInPage() {
   return (
-    <div className="dark relative flex min-h-screen flex-col overflow-hidden bg-[#0a0a0f] text-foreground">
-      {/* Layered background */}
-      <div className="bg-grid bg-grid-radial-mask animate-drift pointer-events-none absolute inset-0 -z-10" />
+    <div
+      className="dark relative isolate flex min-h-screen flex-col overflow-hidden text-foreground"
+      style={{ backgroundColor: '#0a0a0f' }}
+    >
+      {/* Drifting grid */}
       <div
         aria-hidden
-        className="animate-glow-pulse pointer-events-none absolute inset-0 -z-10"
+        className="bg-grid bg-grid-radial-mask animate-drift pointer-events-none absolute inset-0 z-0"
+      />
+      {/* Animated violet blob */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-40 left-1/2 z-0 h-[600px] w-[800px] -translate-x-1/2 rounded-full opacity-90 blur-3xl"
         style={{
-          background:
-            'radial-gradient(60% 50% at 50% 0%, rgba(139,92,246,0.20), transparent 65%), radial-gradient(40% 50% at 80% 80%, rgba(56,189,248,0.10), transparent 60%)',
+          background: 'radial-gradient(closest-side, rgba(139,92,246,0.50), transparent 70%)',
+          animation: 'blob-1 18s ease-in-out infinite, glow-pulse 6s ease-in-out infinite',
         }}
       />
+      {/* Animated cyan blob */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
+        className="pointer-events-none absolute right-[-15%] bottom-[5%] z-0 h-[500px] w-[600px] rounded-full opacity-80 blur-3xl"
+        style={{
+          background: 'radial-gradient(closest-side, rgba(56,189,248,0.30), transparent 70%)',
+          animation: 'blob-2 22s ease-in-out infinite',
+        }}
+      />
+      {/* Vignette */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0"
         style={{
           background:
             'radial-gradient(120% 80% at 50% 50%, transparent 55%, rgba(0,0,0,0.65) 100%)',
