@@ -144,6 +144,11 @@ export default async function Landing() {
                 check off.
               </>
             }
+            bullets={[
+              'Realistic time estimates for each subtask',
+              'Smart priority ordering, not alphabetical',
+              'One click sends them to the schedule agent',
+            ]}
             visual={<BreakdownVisual />}
           />
         </section>
@@ -160,6 +165,11 @@ export default async function Landing() {
                 it, tweak a word, send. The dread is gone.
               </>
             }
+            bullets={[
+              'Learns your tone from past replies',
+              'Always shows the draft before sending',
+              'Sends through your real Gmail account',
+            ]}
             visual={<EmailVisual />}
             reverse
           />
@@ -178,6 +188,11 @@ export default async function Landing() {
                 approve.
               </>
             }
+            bullets={[
+              'Reads your real Google Calendar',
+              'Respects deep-work blocks and meetings',
+              'Confirms before adding anything',
+            ]}
             visual={<ScheduleVisual />}
           />
         </section>
@@ -405,17 +420,19 @@ function FeatureSpotlight({
   eyebrow,
   title,
   body,
+  bullets,
   visual,
   reverse,
 }: {
   eyebrow: string
   title: string
   body: React.ReactNode
+  bullets?: string[]
   visual: React.ReactNode
   reverse?: boolean
 }) {
   return (
-    <div className="grid items-center gap-12 py-32 md:grid-cols-2 md:gap-16">
+    <div className="grid items-center gap-12 py-20 md:grid-cols-2 md:gap-16">
       <div className={reverse ? 'order-2 md:order-2' : 'order-2 md:order-1'}>
         <p className="mb-4 text-sm font-medium tracking-wide text-violet-300">
           {eyebrow}
@@ -426,6 +443,16 @@ function FeatureSpotlight({
         <p className="mt-5 max-w-md text-base leading-relaxed text-white/55">
           {body}
         </p>
+        {bullets && bullets.length > 0 && (
+          <ul className="mt-8 space-y-3 text-sm">
+            {bullets.map((b) => (
+              <li key={b} className="flex items-start gap-3 text-white/70">
+                <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-violet-400" />
+                <span>{b}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       <div className={reverse ? 'order-1 md:order-1' : 'order-1 md:order-2'}>
         {visual}
