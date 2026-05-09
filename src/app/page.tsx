@@ -11,6 +11,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import { LandingBg } from '@/components/landing-bg'
+import { Reveal } from '@/components/reveal'
 
 export default async function Landing() {
   const session = await auth()
@@ -133,6 +134,7 @@ export default async function Landing() {
 
         {/* Section 1 — Breakdown agent */}
         <section id="agents" className="mx-auto max-w-6xl scroll-mt-24 px-6">
+          <Reveal>
           <FeatureSpotlight
             eyebrow="Breakdown"
             title="From a single sentence to a real plan."
@@ -151,10 +153,12 @@ export default async function Landing() {
             ]}
             visual={<BreakdownVisual />}
           />
+          </Reveal>
         </section>
 
         {/* Section 2 — Email agent */}
         <section className="mx-auto max-w-6xl px-6">
+          <Reveal>
           <FeatureSpotlight
             eyebrow="Email"
             title="Drafts the email you’ve been putting off."
@@ -173,10 +177,12 @@ export default async function Landing() {
             visual={<EmailVisual />}
             reverse
           />
+          </Reveal>
         </section>
 
         {/* Section 3 — Schedule agent */}
         <section className="mx-auto max-w-6xl px-6">
+          <Reveal>
           <FeatureSpotlight
             eyebrow="Schedule"
             title="Books the work into the week, around real life."
@@ -195,6 +201,7 @@ export default async function Landing() {
             ]}
             visual={<ScheduleVisual />}
           />
+          </Reveal>
         </section>
 
         {/* The 5 agents grid */}
@@ -202,6 +209,7 @@ export default async function Landing() {
           id="examples"
           className="mx-auto max-w-6xl scroll-mt-24 px-6 pt-32 pb-32"
         >
+          <Reveal>
           <div className="mb-16 text-center">
             <h2 className="text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
               Five agents,{' '}
@@ -247,6 +255,7 @@ export default async function Landing() {
               body="A chat sidebar that knows your todos. ‘What’s left for the website?’ just works."
             />
           </div>
+          </Reveal>
         </section>
 
         {/* How it works */}
@@ -254,6 +263,7 @@ export default async function Landing() {
           id="how"
           className="mx-auto max-w-6xl scroll-mt-24 px-6 pb-32"
         >
+          <Reveal>
           <div className="mb-16 text-center">
             <h2 className="text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
               Three steps to your{' '}
@@ -280,10 +290,12 @@ export default async function Landing() {
               body="Each morning a calm briefing arrives in your inbox. Each evening, more is done than you expected."
             />
           </div>
+          </Reveal>
         </section>
 
         {/* Bottom CTA */}
         <section className="mx-auto max-w-6xl px-6 pb-24">
+          <Reveal>
           <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-violet-500/10 via-fuchsia-500/[0.04] to-transparent px-8 py-16 text-center backdrop-blur-sm sm:px-16">
             <h2 className="text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
               Ready to let the agents work?
@@ -309,6 +321,7 @@ export default async function Landing() {
               )}
             </div>
           </div>
+          </Reveal>
         </section>
 
         <footer className="mx-auto flex max-w-6xl flex-col items-center gap-2 border-t border-white/10 px-6 py-10 text-center text-xs text-white/40 sm:flex-row sm:justify-between">
