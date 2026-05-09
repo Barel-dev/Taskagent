@@ -10,8 +10,7 @@ import {
   ListChecks,
   ArrowRight,
 } from 'lucide-react'
-import { Spotlight } from '@/components/spotlight'
-import { CinematicBackground } from '@/components/cinematic-bg'
+import { LandingBg } from '@/components/landing-bg'
 
 export default async function Landing() {
   const session = await auth()
@@ -19,41 +18,36 @@ export default async function Landing() {
 
   return (
     <div className="relative text-foreground">
-      {/* Background — FIXED to viewport, always covers the screen, never affects layout */}
-      <div
-        className="fixed inset-0 -z-10 overflow-hidden"
-        style={{ backgroundColor: '#0a0a0f' }}
-      >
-        <BackgroundLayers />
-      </div>
-      <Spotlight />
+      <LandingBg />
 
-      {/* Top nav — sticky so it follows the user as they scroll */}
-      <header className="sticky top-0 z-30 flex w-full items-center justify-between border-b border-white/5 bg-[#0a0a0f]/70 px-8 py-4 backdrop-blur-md sm:px-12">
+      {/* Sticky header */}
+      <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-white/5 bg-[#0a0a0a]/80 px-8 backdrop-blur-xl sm:px-12">
         <Link href="/" className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_0_20px_rgba(139,92,246,0.4)]">
-            <Sparkles className="h-4 w-4" />
+          <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_0_18px_rgba(139,92,246,0.35)]">
+            <Sparkles className="h-3.5 w-3.5" />
           </span>
-          <span className="text-lg font-semibold tracking-tight text-white">TaskAgent</span>
+          <span className="text-[15px] font-semibold tracking-tight text-white">
+            TaskAgent
+          </span>
         </Link>
 
         {/* Centered nav */}
-        <nav className="hidden items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-1.5 py-1.5 text-sm text-white/70 backdrop-blur md:flex">
+        <nav className="hidden items-center gap-6 text-sm text-white/60 md:flex">
           <Link
             href="#agents"
-            className="rounded-full px-3 py-1.5 transition-colors hover:bg-white/[0.06] hover:text-white"
+            className="transition-colors hover:text-white"
           >
             Agents
           </Link>
           <Link
             href="#examples"
-            className="rounded-full px-3 py-1.5 transition-colors hover:bg-white/[0.06] hover:text-white"
+            className="transition-colors hover:text-white"
           >
             Examples
           </Link>
           <Link
             href="#how"
-            className="rounded-full px-3 py-1.5 transition-colors hover:bg-white/[0.06] hover:text-white"
+            className="transition-colors hover:text-white"
           >
             How it works
           </Link>
@@ -77,10 +71,10 @@ export default async function Landing() {
         </nav>
       </header>
 
-      {/* Hero — full viewport */}
-      <main className="relative z-10 mx-auto max-w-6xl px-6">
-        <section className="flex min-h-[calc(100vh-7rem)] flex-col items-center justify-center pt-12 pb-24 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/80 backdrop-blur">
+      <main className="relative z-10">
+        {/* Hero */}
+        <section className="mx-auto flex min-h-[90vh] max-w-6xl flex-col items-center px-6 pt-28 pb-24 text-center">
+          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/70 backdrop-blur">
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -88,32 +82,33 @@ export default async function Landing() {
             5 specialized agents at your service
           </div>
 
-          <h1 className="max-w-5xl text-balance bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-6xl font-semibold leading-[1.05] tracking-tight text-transparent sm:text-7xl md:text-8xl">
+          <h1 className="max-w-5xl text-balance text-5xl font-semibold leading-[1.02] tracking-[-0.03em] text-white sm:text-6xl md:text-7xl">
             Your AI task manager.
             <br />
-            <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-violet-300 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
               Let agents do the work.
             </span>
           </h1>
 
-          <p className="mt-8 max-w-2xl text-pretty text-base text-white/60 sm:text-lg">
-            TaskAgent breaks down what you need to do, schedules it into your week, drafts the
-            emails you&apos;ve been avoiding, and briefs you every morning — so you actually finish.
+          <p className="mt-7 max-w-2xl text-pretty text-base leading-relaxed text-white/55 sm:text-lg">
+            TaskAgent breaks down what you need to do, schedules it into your week,
+            drafts the emails you’ve been avoiding, and briefs you every morning —
+            so you actually finish.
           </p>
 
           <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
             {isAuthed ? (
-              <Button asChild size="lg" className="group h-12 px-7 text-base">
+              <Button asChild size="lg" className="group h-11 px-6 text-sm">
                 <Link href="/tasks">
                   Go to your tasks
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </Button>
             ) : (
-              <Button asChild size="lg" className="group h-12 px-7 text-base shadow-[0_0_40px_rgba(139,92,246,0.4)]">
+              <Button asChild size="lg" className="group h-11 px-6 text-sm">
                 <Link href="/signin">
                   Sign in with Google
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </Button>
             )}
@@ -121,158 +116,139 @@ export default async function Landing() {
               asChild
               size="lg"
               variant="outline"
-              className="h-12 border-white/10 bg-white/[0.03] px-6 text-base text-white hover:bg-white/[0.07]"
+              className="h-11 border-white/10 bg-transparent px-6 text-sm text-white hover:bg-white/[0.06]"
             >
-              <Link href="https://github.com/" target="_blank">View on GitHub</Link>
+              <Link href="https://github.com/" target="_blank">
+                View on GitHub
+              </Link>
             </Button>
           </div>
 
-          <p className="mt-5 text-xs text-white/40">
+          <p className="mt-5 text-xs text-white/35">
             Free for personal use · No credit card required
           </p>
+
+          <ProductMockup />
         </section>
 
-        {/* Features section */}
-        <section id="agents" className="relative scroll-mt-24 pb-32">
+        {/* Section 1 — Breakdown agent */}
+        <section id="agents" className="mx-auto max-w-6xl scroll-mt-24 px-6">
+          <FeatureSpotlight
+            eyebrow="Breakdown"
+            title="From a single sentence to a real plan."
+            body={
+              <>
+                Drop in something vague like “study for finals” or “plan trip to
+                Lisbon.” The breakdown agent turns it into ordered subtasks with
+                time estimates and priorities — ready to schedule, ready to
+                check off.
+              </>
+            }
+            visual={<BreakdownVisual />}
+          />
+        </section>
+
+        {/* Section 2 — Email agent */}
+        <section className="mx-auto max-w-6xl px-6">
+          <FeatureSpotlight
+            eyebrow="Email"
+            title="Drafts the email you’ve been putting off."
+            body={
+              <>
+                Tell it the goal — “email Sarah about next quarter’s budget” —
+                and the email agent writes the message in your voice. You read
+                it, tweak a word, send. The dread is gone.
+              </>
+            }
+            visual={<EmailVisual />}
+            reverse
+          />
+        </section>
+
+        {/* Section 3 — Schedule agent */}
+        <section className="mx-auto max-w-6xl px-6">
+          <FeatureSpotlight
+            eyebrow="Schedule"
+            title="Books the work into the week, around real life."
+            body={
+              <>
+                The schedule agent reads your calendar, finds the gaps between
+                meetings, and slots in your tasks where they actually fit.
+                Deep-work blocks in the morning, errands in the cracks. You
+                approve.
+              </>
+            }
+            visual={<ScheduleVisual />}
+          />
+        </section>
+
+        {/* The 5 agents grid */}
+        <section
+          id="examples"
+          className="mx-auto max-w-6xl scroll-mt-24 px-6 pt-32 pb-32"
+        >
           <div className="mb-16 text-center">
-            <h2 className="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+            <h2 className="text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
               Five agents,{' '}
-              <span className="bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-violet-300 to-fuchsia-400 bg-clip-text text-transparent">
                 one inbox of done
               </span>
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-base text-white/60">
-              Each agent is specialized for a single job and runs in the background while you
-              live your life.
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/55">
+              Each agent is specialized for a single job and runs in the
+              background while you live your life.
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <FeatureCard
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <AgentCard
               icon={<ListChecks className="h-5 w-5" />}
               title="Breakdown agent"
-              body="Turn 'study for finals' into a real plan. Subtasks, time estimates, priorities — generated."
+              body="Turn ‘study for finals’ into a real plan. Subtasks, time estimates, priorities — generated."
             />
-            <FeatureCard
+            <AgentCard
               icon={<Bot className="h-5 w-5" />}
               title="Smart prioritizer"
               body="Asks what matters, weighs urgency vs importance, then reorders your day."
             />
-            <FeatureCard
+            <AgentCard
               icon={<CalendarClock className="h-5 w-5" />}
               title="Schedule agent"
               body="Reads your Google Calendar, finds the gaps, books the work in. You just confirm."
             />
-            <FeatureCard
+            <AgentCard
               icon={<Mail className="h-5 w-5" />}
               title="Email agent"
-              body="‘Email Sarah about the budget review.' Drafts, shows it to you, sends on approval."
+              body="‘Email Sarah about the budget review.’ Drafts, shows it to you, sends on approval."
             />
-            <FeatureCard
+            <AgentCard
               icon={<Sun className="h-5 w-5" />}
               title="Daily briefing"
-              body="A friendly summary in your inbox at 7am — what's due, what's overdue, what to focus on."
+              body="A friendly summary in your inbox at 7am — what’s due, what’s overdue, what to focus on."
             />
-            <FeatureCard
+            <AgentCard
               icon={<Sparkles className="h-5 w-5" />}
               title="Talk to your tasks"
-              body="A chat sidebar that knows your todos. ‘What's left for the website?' just works."
+              body="A chat sidebar that knows your todos. ‘What’s left for the website?’ just works."
             />
-          </div>
-        </section>
-
-        {/* See it in action — mocked previews */}
-        <section id="examples" className="relative scroll-mt-24 pb-32">
-          <div className="mb-16 text-center">
-            <h2 className="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-              See it in action
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-base text-white/60">
-              Real interactions, like the day you’ll have once an agent has your back.
-            </p>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Chat demo */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur">
-              <div className="mb-4 flex items-center gap-2 text-xs text-white/50">
-                <Sparkles className="h-3.5 w-3.5 text-violet-300" />
-                Chat with your tasks
-              </div>
-              <div className="space-y-3 font-mono text-[13px]">
-                <ChatBubble role="user">
-                  what’s still left for finals week?
-                </ChatBubble>
-                <ChatBubble role="assistant">
-                  You have 4 open items: read CS162 ch.7, finish DB project,
-                  meet study group Wed, submit research draft Thu. Want me to
-                  schedule them?
-                </ChatBubble>
-                <ChatBubble role="user">yes, around my classes</ChatBubble>
-                <ChatBubble role="assistant" muted>
-                  ✓ Scheduled 4 tasks across Mon–Thu evenings.
-                </ChatBubble>
-              </div>
-            </div>
-
-            {/* Breakdown demo */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur">
-              <div className="mb-4 flex items-center gap-2 text-xs text-white/50">
-                <ListChecks className="h-3.5 w-3.5 text-violet-300" />
-                Breakdown agent
-              </div>
-              <div className="mb-3 rounded-lg bg-white/[0.04] px-3 py-2 text-sm text-white/80">
-                Plan trip to Lisbon
-              </div>
-              <div className="text-xs uppercase tracking-widest text-white/40">
-                Generated subtasks
-              </div>
-              <ul className="mt-2 space-y-2 text-sm">
-                <SubtaskRow time="2h">Book flights & hotel</SubtaskRow>
-                <SubtaskRow time="30m">Renew passport check</SubtaskRow>
-                <SubtaskRow time="1h">Plan day-by-day itinerary</SubtaskRow>
-                <SubtaskRow time="20m">Notify bank of travel</SubtaskRow>
-                <SubtaskRow time="45m">Pack & download offline maps</SubtaskRow>
-              </ul>
-            </div>
-
-            {/* Daily briefing demo */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur">
-              <div className="mb-4 flex items-center gap-2 text-xs text-white/50">
-                <Sun className="h-3.5 w-3.5 text-violet-300" />
-                Today’s briefing · 7:00 AM
-              </div>
-              <div className="space-y-3 text-sm leading-relaxed text-white/80">
-                <p className="font-medium text-white">Good morning, Barel.</p>
-                <p>
-                  Today you’ve got <span className="text-violet-300">3 tasks due</span>, and one
-                  thing slipping from yesterday: <em className="not-italic text-white">Send invoice to client X</em>.
-                </p>
-                <p>
-                  Your calendar opens up after 4pm — that’s the best window for the database
-                  project. I’ll keep you on track.
-                </p>
-                <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-3 text-xs text-white/40">
-                  <Mail className="h-3 w-3" />
-                  Sent to barel57000@gmail.com
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 
         {/* How it works */}
-        <section id="how" className="relative scroll-mt-24 pb-32">
+        <section
+          id="how"
+          className="mx-auto max-w-6xl scroll-mt-24 px-6 pb-32"
+        >
           <div className="mb-16 text-center">
-            <h2 className="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+            <h2 className="text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
               Three steps to your{' '}
-              <span className="bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-violet-300 to-fuchsia-400 bg-clip-text text-transparent">
                 quietest week
               </span>
             </h2>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-3">
             <Step
               n="01"
               title="Drop in your tasks"
@@ -292,31 +268,27 @@ export default async function Landing() {
         </section>
 
         {/* Bottom CTA */}
-        <section className="relative pb-32">
-          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-violet-500/10 via-fuchsia-500/5 to-transparent px-8 py-16 text-center backdrop-blur sm:px-16">
-            <h2 className="text-balance text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+        <section className="mx-auto max-w-6xl px-6 pb-24">
+          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-violet-500/10 via-fuchsia-500/[0.04] to-transparent px-8 py-16 text-center backdrop-blur-sm sm:px-16">
+            <h2 className="text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
               Ready to let the agents work?
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-base text-white/60">
+            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/55">
               Free for personal use. Sign in with Google and you’re in.
             </p>
-            <div className="mt-8 flex justify-center">
+            <div className="mt-9 flex justify-center">
               {isAuthed ? (
-                <Button asChild size="lg" className="group h-12 px-7 text-base">
+                <Button asChild size="lg" className="group h-11 px-6 text-sm">
                   <Link href="/tasks">
                     Open your tasks
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                   </Link>
                 </Button>
               ) : (
-                <Button
-                  asChild
-                  size="lg"
-                  className="group h-12 px-7 text-base shadow-[0_0_40px_rgba(139,92,246,0.4)]"
-                >
+                <Button asChild size="lg" className="group h-11 px-6 text-sm">
                   <Link href="/signin">
                     Sign in with Google
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                   </Link>
                 </Button>
               )}
@@ -324,11 +296,222 @@ export default async function Landing() {
           </div>
         </section>
 
-        <footer className="relative z-10 flex flex-col items-center gap-2 border-t border-white/10 py-10 text-center text-xs text-white/40 sm:flex-row sm:justify-between">
+        <footer className="mx-auto flex max-w-6xl flex-col items-center gap-2 border-t border-white/10 px-6 py-10 text-center text-xs text-white/40 sm:flex-row sm:justify-between">
           <span>© {new Date().getFullYear()} TaskAgent</span>
           <span>Built with Next.js, Postgres, NextAuth, Anthropic Claude</span>
         </footer>
       </main>
+    </div>
+  )
+}
+
+/* ───── Hero product mockup ───── */
+
+function ProductMockup() {
+  return (
+    <div className="mx-auto mt-16 w-full max-w-3xl">
+      <div className="overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5),0_0_60px_-30px_rgba(139,92,246,0.4)] backdrop-blur">
+        {/* Window chrome */}
+        <div className="flex items-center gap-1.5 border-b border-white/10 bg-white/[0.02] px-4 py-3">
+          <span className="h-3 w-3 rounded-full bg-red-500/70" />
+          <span className="h-3 w-3 rounded-full bg-yellow-500/70" />
+          <span className="h-3 w-3 rounded-full bg-green-500/70" />
+          <span className="ml-3 font-mono text-[11px] text-white/40">
+            taskagent.app/tasks
+          </span>
+        </div>
+        {/* Task list */}
+        <div className="space-y-2 p-6">
+          <MockTask done title="Submit research draft" priority="HIGH" due="Today" />
+          <MockTask title="Review PR #247" priority="MEDIUM" due="Tomorrow" />
+          <MockTask title="Plan trip to Lisbon" priority="LOW" subtasks={5} />
+          <MockTask title="Prep finals study guide" priority="URGENT" due="Wed" />
+          <MockTask title="Email Sarah about budget" priority="MEDIUM" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const PRIORITY_DOT: Record<string, string> = {
+  URGENT: 'bg-red-400',
+  HIGH: 'bg-orange-400',
+  MEDIUM: 'bg-violet-400',
+  LOW: 'bg-white/30',
+}
+
+function MockTask({
+  done,
+  title,
+  priority,
+  due,
+  subtasks,
+}: {
+  done?: boolean
+  title: string
+  priority: 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW'
+  due?: string
+  subtasks?: number
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-white/5 bg-white/[0.02] px-3.5 py-2.5 transition-colors hover:bg-white/[0.04]">
+      <span
+        className={`grid h-4 w-4 shrink-0 place-items-center rounded-[5px] border ${
+          done
+            ? 'border-violet-400/60 bg-violet-500/30 text-white'
+            : 'border-white/15 bg-white/[0.03]'
+        }`}
+      >
+        {done ? (
+          <svg
+            viewBox="0 0 12 12"
+            className="h-2.5 w-2.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M2.5 6.5l2.5 2.5L9.5 3.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ) : null}
+      </span>
+      <span
+        className={`h-1.5 w-1.5 shrink-0 rounded-full ${PRIORITY_DOT[priority]}`}
+        aria-hidden
+      />
+      <span
+        className={`flex-1 truncate text-sm ${
+          done ? 'text-white/40 line-through' : 'text-white/85'
+        }`}
+      >
+        {title}
+      </span>
+      {subtasks ? (
+        <span className="shrink-0 rounded-md border border-white/10 bg-white/[0.03] px-2 py-0.5 font-mono text-[10px] text-white/50">
+          {subtasks} subtasks
+        </span>
+      ) : null}
+      {due ? (
+        <span className="shrink-0 rounded-md border border-white/10 bg-white/[0.03] px-2 py-0.5 font-mono text-[10px] text-white/50">
+          {due}
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
+/* ───── Spotlight section pattern ───── */
+
+function FeatureSpotlight({
+  eyebrow,
+  title,
+  body,
+  visual,
+  reverse,
+}: {
+  eyebrow: string
+  title: string
+  body: React.ReactNode
+  visual: React.ReactNode
+  reverse?: boolean
+}) {
+  return (
+    <div className="grid items-center gap-12 py-32 md:grid-cols-2 md:gap-16">
+      <div className={reverse ? 'order-2 md:order-2' : 'order-2 md:order-1'}>
+        <p className="mb-4 text-sm font-medium tracking-wide text-violet-300">
+          {eyebrow}
+        </p>
+        <h2 className="text-balance text-3xl font-semibold tracking-[-0.02em] text-white sm:text-4xl md:text-[2.5rem] md:leading-[1.1]">
+          {title}
+        </h2>
+        <p className="mt-5 max-w-md text-base leading-relaxed text-white/55">
+          {body}
+        </p>
+      </div>
+      <div className={reverse ? 'order-1 md:order-1' : 'order-1 md:order-2'}>
+        {visual}
+      </div>
+    </div>
+  )
+}
+
+/* ───── Spotlight visuals ───── */
+
+function BreakdownVisual() {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.01] p-6 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.6),0_0_40px_-25px_rgba(139,92,246,0.4)] backdrop-blur">
+      <div className="mb-4 flex items-center gap-2 text-xs text-white/45">
+        <ListChecks className="h-3.5 w-3.5 text-violet-300" />
+        Breakdown agent
+      </div>
+      <div className="mb-5 rounded-lg border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-sm text-white/85">
+        Plan trip to Lisbon
+      </div>
+      <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
+        Generated subtasks
+      </div>
+      <ul className="space-y-2 text-sm">
+        <SubtaskRow time="2h">Book flights & hotel</SubtaskRow>
+        <SubtaskRow time="30m">Renew passport check</SubtaskRow>
+        <SubtaskRow time="1h">Plan day-by-day itinerary</SubtaskRow>
+        <SubtaskRow time="20m">Notify bank of travel</SubtaskRow>
+        <SubtaskRow time="45m">Pack & download offline maps</SubtaskRow>
+      </ul>
+    </div>
+  )
+}
+
+function SubtaskRow({
+  time,
+  children,
+}: {
+  time: string
+  children: React.ReactNode
+}) {
+  return (
+    <li className="flex items-center justify-between gap-3 rounded-md border border-white/5 bg-white/[0.02] px-3 py-2 text-white/80">
+      <span className="flex items-center gap-2.5">
+        <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
+        {children}
+      </span>
+      <span className="font-mono text-[10px] text-white/35">{time}</span>
+    </li>
+  )
+}
+
+function EmailVisual() {
+  return (
+    <div className="overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.01] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.6),0_0_40px_-25px_rgba(139,92,246,0.4)] backdrop-blur">
+      <div className="flex items-center gap-1.5 border-b border-white/10 bg-white/[0.02] px-4 py-3">
+        <span className="h-3 w-3 rounded-full bg-red-500/70" />
+        <span className="h-3 w-3 rounded-full bg-yellow-500/70" />
+        <span className="h-3 w-3 rounded-full bg-green-500/70" />
+        <span className="ml-3 flex items-center gap-1.5 font-mono text-[11px] text-white/40">
+          <Mail className="h-3 w-3" />
+          email agent
+        </span>
+      </div>
+      <div className="space-y-3 p-5 font-mono text-[12.5px]">
+        <ChatBubble role="user">
+          email Sarah about the Q3 budget review meeting
+        </ChatBubble>
+        <ChatBubble role="assistant">
+          Drafted. Subject: “Q3 budget review — quick sync?” Reads warm,
+          proposes Wed/Thu afternoons. Want me to send?
+        </ChatBubble>
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3 font-sans text-[12px] leading-relaxed text-white/75">
+          <p className="text-white/55">To: sarah@company.com</p>
+          <p className="text-white/55">Subject: Q3 budget review — quick sync?</p>
+          <p className="mt-2">Hey Sarah,</p>
+          <p className="mt-1.5">
+            Got a few minutes this week to walk through the Q3 numbers? Wed or
+            Thu afternoon both work for me…
+          </p>
+        </div>
+        <ChatBubble role="user">send it</ChatBubble>
+        <ChatBubble role="assistant" muted>
+          ✓ Sent to sarah@company.com
+        </ChatBubble>
+      </div>
     </div>
   )
 }
@@ -344,49 +527,116 @@ function ChatBubble({
 }) {
   if (role === 'user') {
     return (
-      <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-violet-500/20 px-3 py-2 text-white/90 ring-1 ring-violet-400/20">
+      <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-violet-500/15 px-3 py-2 text-white/90 ring-1 ring-violet-400/20">
         {children}
       </div>
     )
   }
   return (
     <div
-      className={`max-w-[90%] rounded-2xl rounded-bl-md bg-white/[0.04] px-3 py-2 ring-1 ring-white/5 ${muted ? 'text-emerald-300/80' : 'text-white/80'}`}
+      className={`max-w-[90%] rounded-2xl rounded-bl-md bg-white/[0.04] px-3 py-2 ring-1 ring-white/5 ${
+        muted ? 'text-emerald-300/80' : 'text-white/80'
+      }`}
     >
       {children}
     </div>
   )
 }
 
-function SubtaskRow({ time, children }: { time: string; children: React.ReactNode }) {
+function ScheduleVisual() {
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+  // Block format: [colStart 1-5, rowStart 1-8, span, label, color]
+  const blocks: {
+    col: number
+    row: number
+    span: number
+    label: string
+    tone: 'violet' | 'pink' | 'cyan' | 'mute'
+  }[] = [
+    { col: 1, row: 1, span: 2, label: 'Standup', tone: 'mute' },
+    { col: 1, row: 4, span: 3, label: 'Finals study', tone: 'violet' },
+    { col: 2, row: 2, span: 2, label: 'PR review', tone: 'pink' },
+    { col: 2, row: 5, span: 2, label: 'Lisbon plan', tone: 'cyan' },
+    { col: 3, row: 1, span: 2, label: 'Standup', tone: 'mute' },
+    { col: 3, row: 3, span: 4, label: 'Research draft', tone: 'violet' },
+    { col: 4, row: 2, span: 3, label: 'DB project', tone: 'pink' },
+    { col: 4, row: 6, span: 2, label: 'Email Sarah', tone: 'cyan' },
+    { col: 5, row: 1, span: 2, label: 'Standup', tone: 'mute' },
+    { col: 5, row: 4, span: 3, label: 'Deep work', tone: 'violet' },
+  ]
+  const TONE: Record<string, string> = {
+    violet: 'bg-violet-500/20 border-violet-400/30 text-violet-100',
+    pink: 'bg-fuchsia-500/15 border-fuchsia-400/25 text-fuchsia-100',
+    cyan: 'bg-sky-500/15 border-sky-400/25 text-sky-100',
+    mute: 'bg-white/[0.04] border-white/10 text-white/50',
+  }
   return (
-    <li className="flex items-center justify-between gap-3 rounded-md bg-white/[0.02] px-3 py-2 text-white/80 ring-1 ring-white/5">
-      <span className="flex items-center gap-2">
-        <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
-        {children}
-      </span>
-      <span className="text-xs text-white/40">{time}</span>
-    </li>
-  )
-}
-
-function Step({ n, title, body }: { n: string; title: string; body: string }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur">
-      <div className="mb-4 inline-block rounded-lg bg-gradient-to-br from-violet-500/30 to-fuchsia-500/30 px-2.5 py-1 font-mono text-xs text-violet-200 ring-1 ring-white/10">
-        {n}
+    <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.01] p-5 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.6),0_0_40px_-25px_rgba(139,92,246,0.4)] backdrop-blur">
+      <div className="mb-4 flex items-center justify-between text-xs text-white/45">
+        <span className="flex items-center gap-2">
+          <CalendarClock className="h-3.5 w-3.5 text-violet-300" />
+          This week
+        </span>
+        <span className="font-mono text-[10px] text-white/35">9:00 — 5:00</span>
       </div>
-      <h3 className="text-lg font-semibold text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-white/60">{body}</p>
+      {/* Day headers */}
+      <div className="mb-2 grid grid-cols-[2.25rem_repeat(5,minmax(0,1fr))] gap-1">
+        <div />
+        {days.map((d) => (
+          <div
+            key={d}
+            className="text-center font-mono text-[10px] uppercase tracking-wider text-white/45"
+          >
+            {d}
+          </div>
+        ))}
+      </div>
+      {/* Grid body */}
+      <div className="grid grid-cols-[2.25rem_repeat(5,minmax(0,1fr))] gap-1">
+        {/* Time labels column */}
+        <div className="grid grid-rows-8 gap-1">
+          {['9', '10', '11', '12', '1', '2', '3', '4'].map((h) => (
+            <div
+              key={h}
+              className="flex h-6 items-center justify-end pr-1 font-mono text-[10px] text-white/30"
+            >
+              {h}
+            </div>
+          ))}
+        </div>
+        {/* 5 day columns, each a relative grid */}
+        {days.map((_, dayIdx) => (
+          <div key={dayIdx} className="relative grid grid-rows-8 gap-1">
+            {Array.from({ length: 8 }).map((_, r) => (
+              <div
+                key={r}
+                className="h-6 rounded border border-white/[0.04] bg-white/[0.015]"
+              />
+            ))}
+            {blocks
+              .filter((b) => b.col === dayIdx + 1)
+              .map((b, i) => (
+                <div
+                  key={i}
+                  className={`absolute inset-x-0 rounded-md border px-1.5 py-1 text-[10px] font-medium leading-tight ${TONE[b.tone]}`}
+                  style={{
+                    top: `calc(${b.row - 1} * (1.5rem + 0.25rem))`,
+                    height: `calc(${b.span} * 1.5rem + ${b.span - 1} * 0.25rem)`,
+                  }}
+                >
+                  {b.label}
+                </div>
+              ))}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
-function BackgroundLayers() {
-  return <CinematicBackground />
-}
+/* ───── Agent grid card ───── */
 
-function FeatureCard({
+function AgentCard({
   icon,
   title,
   body,
@@ -396,12 +646,30 @@ function FeatureCard({
   body: string
 }) {
   return (
-    <div className="card-glow group rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur transition-colors hover:bg-white/[0.05]">
-      <div className="mb-5 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/30 to-fuchsia-500/30 text-violet-200 ring-1 ring-white/10 transition-transform group-hover:scale-105">
+    <div className="group rounded-2xl border border-white/10 bg-white/[0.025] p-7 backdrop-blur transition-colors hover:border-white/20 hover:bg-white/[0.04]">
+      <div className="mb-6 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/15 text-violet-200 ring-1 ring-violet-400/20">
         {icon}
       </div>
-      <h3 className="text-base font-semibold text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-white/60">{body}</p>
+      <h3 className="text-[15px] font-semibold tracking-tight text-white">
+        {title}
+      </h3>
+      <p className="mt-2.5 text-sm leading-relaxed text-white/55">{body}</p>
+    </div>
+  )
+}
+
+/* ───── How-it-works step ───── */
+
+function Step({ n, title, body }: { n: string; title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-7 backdrop-blur">
+      <div className="mb-5 inline-block rounded-md border border-white/10 bg-violet-500/10 px-2.5 py-1 font-mono text-[11px] text-violet-200">
+        {n}
+      </div>
+      <h3 className="text-lg font-semibold tracking-tight text-white">
+        {title}
+      </h3>
+      <p className="mt-2.5 text-sm leading-relaxed text-white/55">{body}</p>
     </div>
   )
 }
