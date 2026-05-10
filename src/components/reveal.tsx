@@ -32,7 +32,7 @@ export function Reveal({ children, delay = 0, className = '' }: Props) {
           }
         })
       },
-      { threshold: 0.12, rootMargin: '0px 0px -80px 0px' },
+      { threshold: 0.05, rootMargin: '0px 0px -10% 0px' },
     )
     observer.observe(el)
     return () => observer.disconnect()
@@ -41,10 +41,15 @@ export function Reveal({ children, delay = 0, className = '' }: Props) {
   return (
     <div
       ref={ref}
-      style={{ transitionDelay: `${delay}ms` }}
-      className={`transition-all duration-[800ms] ease-out ${
-        visible ? 'translate-y-0 opacity-100 blur-0' : 'translate-y-10 opacity-0 blur-[2px]'
-      } ${className}`}
+      style={{
+        transitionDelay: `${delay}ms`,
+        transitionProperty: 'opacity, transform',
+        transitionDuration: '900ms',
+        transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(40px)',
+      }}
+      className={className}
     >
       {children}
     </div>
