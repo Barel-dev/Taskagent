@@ -13,6 +13,12 @@ import {
 import { LandingBg } from '@/components/landing-bg'
 import { Reveal } from '@/components/reveal'
 import { OrbitalVisual } from '@/components/orbital-visual'
+import { Spotlight } from '@/components/spotlight'
+import { ScrollProgress } from '@/components/scroll-progress'
+import { ParallaxWrap } from '@/components/parallax'
+
+const PRIMARY_CTA_CLASSES =
+  'group h-11 px-6 text-sm shadow-[0_0_30px_rgba(139,92,246,0.3)] transition-transform hover:scale-[1.02] hover:shadow-[0_0_60px_rgba(139,92,246,0.5)]'
 
 export default async function Landing() {
   const session = await auth()
@@ -21,6 +27,8 @@ export default async function Landing() {
   return (
     <div className="relative isolate text-foreground">
       <LandingBg />
+      <Spotlight />
+      <ScrollProgress />
 
       {/* Sticky header */}
       <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-white/5 bg-[#0a0e1a]/80 px-8 backdrop-blur-xl sm:px-12">
@@ -76,7 +84,9 @@ export default async function Landing() {
       <main className="relative z-10">
         {/* Hero */}
         <section className="mx-auto flex min-h-[90vh] max-w-6xl flex-col items-center px-6 pt-32 pb-40 text-center">
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/70 backdrop-blur">
+          <div
+            className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/70 backdrop-blur animate-pill-pulse"
+          >
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -102,14 +112,14 @@ export default async function Landing() {
 
           <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
             {isAuthed ? (
-              <Button asChild size="lg" className="group h-11 px-6 text-sm">
+              <Button asChild size="lg" className={PRIMARY_CTA_CLASSES}>
                 <Link href="/tasks">
                   Go to your tasks
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </Button>
             ) : (
-              <Button asChild size="lg" className="group h-11 px-6 text-sm">
+              <Button asChild size="lg" className={PRIMARY_CTA_CLASSES}>
                 <Link href="/signin">
                   Sign in with Google
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -132,7 +142,9 @@ export default async function Landing() {
             Free for personal use · No credit card required
           </p>
 
-          <OrbitalVisual />
+          <ParallaxWrap speed={0.1} className="w-full">
+            <OrbitalVisual />
+          </ParallaxWrap>
         </section>
 
         {/* Product mockup section */}
@@ -150,76 +162,91 @@ export default async function Landing() {
           </Reveal>
         </section>
 
+        {/* Tech marquee */}
+        <TechMarquee />
+
         {/* Section 1 — Breakdown agent */}
         <section id="agents" className="mx-auto max-w-6xl scroll-mt-24 px-6">
-          <Reveal>
-          <FeatureSpotlight
-            eyebrow="01 — Breakdown"
-            title="From a single sentence to a real plan."
-            body={
-              <>
-                Drop in something vague like “study for finals” or “plan trip to
-                Lisbon.” The breakdown agent turns it into ordered subtasks with
-                time estimates and priorities — ready to schedule, ready to
-                check off.
-              </>
-            }
-            bullets={[
-              'Realistic time estimates for each subtask',
-              'Smart priority ordering, not alphabetical',
-              'One click sends them to the schedule agent',
-            ]}
-            visual={<BreakdownVisual />}
-          />
-          </Reveal>
+          <div className="grid items-center gap-12 py-28 md:grid-cols-2 md:gap-16">
+            <Reveal direction="left" className="order-2 md:order-1">
+              <SpotlightText
+                eyebrow="01 — Breakdown"
+                title="From a single sentence to a real plan."
+                body={
+                  <>
+                    Drop in something vague like {'“'}study for finals{'”'} or
+                    {' '}{'“'}plan trip to Lisbon.{'”'} The breakdown agent turns
+                    it into ordered subtasks with time estimates and priorities
+                    — ready to schedule, ready to check off.
+                  </>
+                }
+                bullets={[
+                  'Realistic time estimates for each subtask',
+                  'Smart priority ordering, not alphabetical',
+                  'One click sends them to the schedule agent',
+                ]}
+              />
+            </Reveal>
+            <Reveal direction="right" delay={150} className="order-1 md:order-2">
+              <BreakdownVisual />
+            </Reveal>
+          </div>
         </section>
 
-        {/* Section 2 — Email agent */}
+        {/* Section 2 — Email agent (reverse: text right, visual left) */}
         <section className="mx-auto max-w-6xl px-6">
-          <Reveal>
-          <FeatureSpotlight
-            eyebrow="02 — Email"
-            title="Drafts the email you’ve been putting off."
-            body={
-              <>
-                Tell it the goal — “email Sarah about next quarter’s budget” —
-                and the email agent writes the message in your voice. You read
-                it, tweak a word, send. The dread is gone.
-              </>
-            }
-            bullets={[
-              'Learns your tone from past replies',
-              'Always shows the draft before sending',
-              'Sends through your real Gmail account',
-            ]}
-            visual={<EmailVisual />}
-            reverse
-          />
-          </Reveal>
+          <div className="grid items-center gap-12 py-28 md:grid-cols-2 md:gap-16">
+            <Reveal direction="left" delay={150} className="order-1 md:order-1">
+              <EmailVisual />
+            </Reveal>
+            <Reveal direction="right" className="order-2 md:order-2">
+              <SpotlightText
+                eyebrow="02 — Email"
+                title={`Drafts the email you${'’'}ve been putting off.`}
+                body={
+                  <>
+                    Tell it the goal — {'“'}email Sarah about next quarter{'’'}s
+                    budget{'”'} — and the email agent writes the message in
+                    your voice. You read it, tweak a word, send. The dread is
+                    gone.
+                  </>
+                }
+                bullets={[
+                  'Learns your tone from past replies',
+                  'Always shows the draft before sending',
+                  'Sends through your real Gmail account',
+                ]}
+              />
+            </Reveal>
+          </div>
         </section>
 
         {/* Section 3 — Schedule agent */}
         <section className="mx-auto max-w-6xl px-6">
-          <Reveal>
-          <FeatureSpotlight
-            eyebrow="03 — Schedule"
-            title="Books the work into the week, around real life."
-            body={
-              <>
-                The schedule agent reads your calendar, finds the gaps between
-                meetings, and slots in your tasks where they actually fit.
-                Deep-work blocks in the morning, errands in the cracks. You
-                approve.
-              </>
-            }
-            bullets={[
-              'Reads your real Google Calendar',
-              'Respects deep-work blocks and meetings',
-              'Confirms before adding anything',
-            ]}
-            visual={<ScheduleVisual />}
-          />
-          </Reveal>
+          <div className="grid items-center gap-12 py-28 md:grid-cols-2 md:gap-16">
+            <Reveal direction="left" className="order-2 md:order-1">
+              <SpotlightText
+                eyebrow="03 — Schedule"
+                title="Books the work into the week, around real life."
+                body={
+                  <>
+                    The schedule agent reads your calendar, finds the gaps
+                    between meetings, and slots in your tasks where they
+                    actually fit. Deep-work blocks in the morning, errands in
+                    the cracks. You approve.
+                  </>
+                }
+                bullets={[
+                  'Reads your real Google Calendar',
+                  'Respects deep-work blocks and meetings',
+                  'Confirms before adding anything',
+                ]}
+              />
+            </Reveal>
+            <Reveal direction="right" delay={150} className="order-1 md:order-2">
+              <ScheduleVisual />
+            </Reveal>
+          </div>
         </section>
 
         {/* The 5 agents grid */}
@@ -228,52 +255,64 @@ export default async function Landing() {
           className="mx-auto max-w-6xl scroll-mt-24 px-6 pt-40 pb-32"
         >
           <Reveal>
-          <div className="mb-16 text-center">
-            <h2 className="text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
-              Five agents,{' '}
-              <span className="bg-gradient-to-r from-violet-300 to-fuchsia-400 bg-clip-text text-transparent">
-                one inbox of done
-              </span>
-            </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/55">
-              Each agent is specialized for a single job and runs in the
-              background while you live your life.
-            </p>
-          </div>
+            <div className="mb-16 text-center">
+              <h2 className="text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
+                Five agents,{' '}
+                <span className="bg-gradient-to-r from-violet-300 to-fuchsia-400 bg-clip-text text-transparent">
+                  one inbox of done
+                </span>
+              </h2>
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/55">
+                Each agent is specialized for a single job and runs in the
+                background while you live your life.
+              </p>
+            </div>
+          </Reveal>
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <AgentCard
-              icon={<ListChecks className="h-5 w-5" />}
-              title="Breakdown agent"
-              body="Turn ‘study for finals’ into a real plan. Subtasks, time estimates, priorities — generated."
-            />
-            <AgentCard
-              icon={<Bot className="h-5 w-5" />}
-              title="Smart prioritizer"
-              body="Asks what matters, weighs urgency vs importance, then reorders your day."
-            />
-            <AgentCard
-              icon={<CalendarClock className="h-5 w-5" />}
-              title="Schedule agent"
-              body="Reads your Google Calendar, finds the gaps, books the work in. You just confirm."
-            />
-            <AgentCard
-              icon={<Mail className="h-5 w-5" />}
-              title="Email agent"
-              body="‘Email Sarah about the budget review.’ Drafts, shows it to you, sends on approval."
-            />
-            <AgentCard
-              icon={<Sun className="h-5 w-5" />}
-              title="Daily briefing"
-              body="A friendly summary in your inbox at 7am — what’s due, what’s overdue, what to focus on."
-            />
-            <AgentCard
-              icon={<Sparkles className="h-5 w-5" />}
-              title="Talk to your tasks"
-              body="A chat sidebar that knows your todos. ‘What’s left for the website?’ just works."
-            />
+            <Reveal delay={0}>
+              <AgentCard
+                icon={<ListChecks className="h-5 w-5" />}
+                title="Breakdown agent"
+                body={`Turn ${'‘'}study for finals${'’'} into a real plan. Subtasks, time estimates, priorities — generated.`}
+              />
+            </Reveal>
+            <Reveal delay={80}>
+              <AgentCard
+                icon={<Bot className="h-5 w-5" />}
+                title="Smart prioritizer"
+                body="Asks what matters, weighs urgency vs importance, then reorders your day."
+              />
+            </Reveal>
+            <Reveal delay={160}>
+              <AgentCard
+                icon={<CalendarClock className="h-5 w-5" />}
+                title="Schedule agent"
+                body="Reads your Google Calendar, finds the gaps, books the work in. You just confirm."
+              />
+            </Reveal>
+            <Reveal delay={240}>
+              <AgentCard
+                icon={<Mail className="h-5 w-5" />}
+                title="Email agent"
+                body={`${'‘'}Email Sarah about the budget review.${'’'} Drafts, shows it to you, sends on approval.`}
+              />
+            </Reveal>
+            <Reveal delay={320}>
+              <AgentCard
+                icon={<Sun className="h-5 w-5" />}
+                title="Daily briefing"
+                body={`A friendly summary in your inbox at 7am — what${'’'}s due, what${'’'}s overdue, what to focus on.`}
+              />
+            </Reveal>
+            <Reveal delay={400}>
+              <AgentCard
+                icon={<Sparkles className="h-5 w-5" />}
+                title="Talk to your tasks"
+                body={`A chat sidebar that knows your todos. ${'‘'}What${'’'}s left for the website?${'’'} just works.`}
+              />
+            </Reveal>
           </div>
-          </Reveal>
         </section>
 
         {/* How it works */}
@@ -282,63 +321,69 @@ export default async function Landing() {
           className="mx-auto max-w-6xl scroll-mt-24 px-6 pb-32"
         >
           <Reveal>
-          <div className="mb-16 text-center">
-            <h2 className="text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
-              Three steps to your{' '}
-              <span className="bg-gradient-to-r from-violet-300 to-fuchsia-400 bg-clip-text text-transparent">
-                quietest week
-              </span>
-            </h2>
-          </div>
+            <div className="mb-16 text-center">
+              <h2 className="text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
+                Three steps to your{' '}
+                <span className="bg-gradient-to-r from-violet-300 to-fuchsia-400 bg-clip-text text-transparent">
+                  quietest week
+                </span>
+              </h2>
+            </div>
+          </Reveal>
 
           <div className="grid gap-5 md:grid-cols-3">
-            <Step
-              n="01"
-              title="Drop in your tasks"
-              body="Type them in. Or paste a brain dump. Or talk to the chat. Whatever feels natural — the app figures out structure."
-            />
-            <Step
-              n="02"
-              title="Agents do the work"
-              body="Breakdown, prioritization, scheduling, drafting — the five agents run quietly in the background while you focus."
-            />
-            <Step
-              n="03"
-              title="You stay in flow"
-              body="Each morning a calm briefing arrives in your inbox. Each evening, more is done than you expected."
-            />
+            <Reveal delay={0}>
+              <Step
+                n="01"
+                title="Drop in your tasks"
+                body="Type them in. Or paste a brain dump. Or talk to the chat. Whatever feels natural — the app figures out structure."
+              />
+            </Reveal>
+            <Reveal delay={100}>
+              <Step
+                n="02"
+                title="Agents do the work"
+                body="Breakdown, prioritization, scheduling, drafting — the five agents run quietly in the background while you focus."
+              />
+            </Reveal>
+            <Reveal delay={200}>
+              <Step
+                n="03"
+                title="You stay in flow"
+                body="Each morning a calm briefing arrives in your inbox. Each evening, more is done than you expected."
+              />
+            </Reveal>
           </div>
-          </Reveal>
         </section>
 
         {/* Bottom CTA */}
         <section className="mx-auto max-w-6xl px-6 pb-24">
           <Reveal>
-          <div className="relative isolate overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-violet-500/10 via-fuchsia-500/[0.04] to-transparent px-12 py-24 text-center backdrop-blur-sm before:absolute before:inset-0 before:rounded-3xl before:bg-[radial-gradient(closest-side,rgba(139,92,246,0.15),transparent_70%)] before:blur-2xl">
-            <h2 className="text-balance text-5xl font-semibold tracking-[-0.02em] text-white sm:text-6xl">
-              Ready to let the agents work?
-            </h2>
-            <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/55">
-              Free for personal use. Sign in with Google and you{'’'}re in.
-            </p>
-            <div className="mt-10 flex justify-center">
-              {isAuthed ? (
-                <Button asChild size="lg" className="group h-11 px-6 text-sm">
-                  <Link href="/tasks">
-                    Open your tasks
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                  </Link>
-                </Button>
-              ) : (
-                <Button asChild size="lg" className="group h-11 px-6 text-sm">
-                  <Link href="/signin">
-                    Sign in with Google
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                  </Link>
-                </Button>
-              )}
+            <div className="relative isolate overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-violet-500/10 via-fuchsia-500/[0.04] to-transparent px-12 py-24 text-center backdrop-blur-sm before:absolute before:inset-0 before:rounded-3xl before:bg-[radial-gradient(closest-side,rgba(139,92,246,0.15),transparent_70%)] before:blur-2xl">
+              <h2 className="text-balance text-5xl font-semibold tracking-[-0.02em] text-white sm:text-6xl">
+                Ready to let the agents work?
+              </h2>
+              <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/55">
+                Free for personal use. Sign in with Google and you{'’'}re in.
+              </p>
+              <div className="mt-10 flex justify-center">
+                {isAuthed ? (
+                  <Button asChild size="lg" className={PRIMARY_CTA_CLASSES}>
+                    <Link href="/tasks">
+                      Open your tasks
+                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button asChild size="lg" className={PRIMARY_CTA_CLASSES}>
+                    <Link href="/signin">
+                      Sign in with Google
+                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
           </Reveal>
         </section>
 
@@ -397,6 +442,41 @@ export default async function Landing() {
         </footer>
       </main>
     </div>
+  )
+}
+
+/* ───── Tech marquee — infinite scroll badge row ───── */
+
+function TechMarquee() {
+  const items = [
+    'Next.js 15',
+    'TypeScript',
+    'PostgreSQL',
+    'Anthropic Claude',
+    'NextAuth',
+    'Prisma',
+    'Tailwind v4',
+    'shadcn/ui',
+    'Vitest',
+  ]
+  // Duplicate so the loop is seamless when translateX(-50%) wraps.
+  const doubled = [...items, ...items]
+  return (
+    <section className="relative overflow-hidden border-y border-white/10 py-10">
+      <div className="flex animate-marquee gap-12 whitespace-nowrap">
+        {doubled.map((item, i) => (
+          <span
+            key={i}
+            className="text-lg font-medium text-white/40"
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+      {/* fade edges */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#0a0e1a] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#0a0e1a] to-transparent" />
+    </section>
   )
 }
 
@@ -494,49 +574,40 @@ function MockTask({
   )
 }
 
-/* ───── Spotlight section pattern ───── */
+/* ───── Spotlight text column (text + bullets, used in feature spotlights) ───── */
 
-function FeatureSpotlight({
+function SpotlightText({
   eyebrow,
   title,
   body,
   bullets,
-  visual,
-  reverse,
 }: {
   eyebrow: string
   title: string
   body: React.ReactNode
   bullets?: string[]
-  visual: React.ReactNode
-  reverse?: boolean
 }) {
   return (
-    <div className="grid items-center gap-12 py-28 md:grid-cols-2 md:gap-16">
-      <div className={reverse ? 'order-2 md:order-2' : 'order-2 md:order-1'}>
-        <p className="mb-4 text-sm font-medium tracking-wide text-violet-300">
-          {eyebrow}
-        </p>
-        <h2 className="text-balance text-3xl font-semibold tracking-[-0.02em] text-white sm:text-4xl md:text-[2.5rem] md:leading-[1.1]">
-          {title}
-        </h2>
-        <p className="mt-5 max-w-md text-base leading-relaxed text-white/55">
-          {body}
-        </p>
-        {bullets && bullets.length > 0 && (
-          <ul className="mt-8 space-y-3 text-sm">
-            {bullets.map((b) => (
-              <li key={b} className="flex items-start gap-3 text-white/70">
-                <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-violet-400" />
-                <span>{b}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <div className={reverse ? 'order-1 md:order-1' : 'order-1 md:order-2'}>
-        {visual}
-      </div>
+    <div>
+      <p className="mb-4 text-sm font-medium tracking-wide text-violet-300">
+        {eyebrow}
+      </p>
+      <h2 className="text-balance text-3xl font-semibold tracking-[-0.02em] text-white sm:text-4xl md:text-[2.5rem] md:leading-[1.1]">
+        {title}
+      </h2>
+      <p className="mt-5 max-w-md text-base leading-relaxed text-white/55">
+        {body}
+      </p>
+      {bullets && bullets.length > 0 && (
+        <ul className="mt-8 space-y-3 text-sm">
+          {bullets.map((b) => (
+            <li key={b} className="flex items-start gap-3 text-white/70">
+              <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-violet-400" />
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
@@ -602,7 +673,7 @@ function EmailVisual() {
           email Sarah about the Q3 budget review meeting
         </ChatBubble>
         <ChatBubble role="assistant">
-          Drafted. Subject: “Q3 budget review — quick sync?” Reads warm,
+          Drafted. Subject: {'“'}Q3 budget review — quick sync?{'”'} Reads warm,
           proposes Wed/Thu afternoons. Want me to send?
         </ChatBubble>
         <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3 font-sans text-[12px] leading-relaxed text-white/75">
@@ -753,7 +824,7 @@ function AgentCard({
   body: string
 }) {
   return (
-    <div className="group rounded-2xl border border-white/10 bg-white/[0.025] p-7 backdrop-blur transition-colors hover:border-white/20 hover:bg-white/[0.04]">
+    <div className="card-glow group h-full rounded-2xl border border-white/10 bg-white/[0.025] p-7 backdrop-blur transition-colors hover:border-white/20 hover:bg-white/[0.04]">
       <div className="mb-6 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/15 text-violet-200 ring-1 ring-violet-400/20">
         {icon}
       </div>
@@ -769,7 +840,7 @@ function AgentCard({
 
 function Step({ n, title, body }: { n: string; title: string; body: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-7 backdrop-blur">
+    <div className="h-full rounded-2xl border border-white/10 bg-white/[0.025] p-7 backdrop-blur">
       <div className="mb-5 inline-block rounded-md border border-white/10 bg-violet-500/10 px-2.5 py-1 font-mono text-[11px] text-violet-200">
         {n}
       </div>

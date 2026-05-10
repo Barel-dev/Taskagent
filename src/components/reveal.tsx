@@ -2,13 +2,44 @@
 
 import { useEffect, useRef, useState } from 'react'
 
+type Direction = 'up' | 'left' | 'right'
+
 type Props = {
   children: React.ReactNode
   delay?: number
   className?: string
+  direction?: Direction
 }
 
-export function Reveal({ children, delay = 0, className = '' }: Props) {
+function hiddenTransform(direction: Direction) {
+  switch (direction) {
+    case 'left':
+      return 'translateX(-80px)'
+    case 'right':
+      return 'translateX(80px)'
+    case 'up':
+    default:
+      return 'translateY(60px)'
+  }
+}
+
+function visibleTransform(direction: Direction) {
+  switch (direction) {
+    case 'left':
+    case 'right':
+      return 'translateX(0)'
+    case 'up':
+    default:
+      return 'translateY(0)'
+  }
+}
+
+export function Reveal({
+  children,
+  delay = 0,
+  className = '',
+  direction = 'up',
+}: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
 
@@ -44,10 +75,11 @@ export function Reveal({ children, delay = 0, className = '' }: Props) {
       style={{
         transitionDelay: `${delay}ms`,
         transitionProperty: 'opacity, transform',
-        transitionDuration: '900ms',
+        transitionDuration: '1100ms',
         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
         opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(40px)',
+        transform: visible ? visibleTransform(direction) : hiddenTransform(direction),
+        willChange: 'opacity, transform',
       }}
       className={className}
     >
