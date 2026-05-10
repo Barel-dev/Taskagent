@@ -6,7 +6,7 @@ import { LandingBg } from '@/components/landing-bg'
 
 export default function SignInPage() {
   return (
-    <div className="relative flex min-h-screen flex-col text-foreground">
+    <div className="relative isolate flex min-h-screen flex-col text-foreground">
       <LandingBg />
 
       <header className="relative z-10 flex h-14 w-full items-center justify-between border-b border-white/5 bg-[#0a0a0a]/80 px-8 backdrop-blur-xl sm:px-12">

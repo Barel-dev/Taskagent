@@ -18,7 +18,7 @@ export default async function Landing() {
   const isAuthed = !!session?.user
 
   return (
-    <div className="relative text-foreground">
+    <div className="relative isolate text-foreground">
       <LandingBg />
 
       {/* Sticky header */}

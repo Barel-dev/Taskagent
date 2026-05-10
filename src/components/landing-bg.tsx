@@ -24,8 +24,8 @@ export function LandingBg() {
 
   return (
     <div
-      className="fixed inset-0 -z-10 overflow-hidden"
-      style={{ backgroundColor: '#0a0a0a' }}
+      className="pointer-events-none fixed inset-0 overflow-hidden"
+      style={{ backgroundColor: '#0a0a0a', zIndex: 0 }}
     >
       {/* Top center violet glow (primary) */}
       <div
