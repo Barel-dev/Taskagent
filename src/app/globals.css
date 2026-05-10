@@ -129,3 +129,26 @@
   }
 }
 
+/* ───── Landing background motion (slow, subtle) ───── */
+@keyframes la-pulse {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
+
+@keyframes la-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  33%      { transform: translate3d(8%, -5%, 0); }
+  66%      { transform: translate3d(-4%, 5%, 0); }
+}
+
+@keyframes la-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  33%      { transform: translate3d(-6%, 4%, 0); }
+  66%      { transform: translate3d(5%, -4%, 0); }
+}
+
+@keyframes la-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.4); }
+  50%      { opacity: 1; transform: scale(1.2); }
+}
+
