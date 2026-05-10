@@ -162,9 +162,6 @@ export default async function Landing() {
           </Reveal>
         </section>
 
-        {/* Tech marquee */}
-        <TechMarquee />
-
         {/* Section 1 — Breakdown agent */}
         <section id="agents" className="mx-auto max-w-6xl scroll-mt-24 px-6">
           <div className="grid items-center gap-12 py-28 md:grid-cols-2 md:gap-16">
@@ -446,39 +443,6 @@ export default async function Landing() {
 }
 
 /* ───── Tech marquee — infinite scroll badge row ───── */
-
-function TechMarquee() {
-  const items = [
-    'Next.js 15',
-    'TypeScript',
-    'PostgreSQL',
-    'Anthropic Claude',
-    'NextAuth',
-    'Prisma',
-    'Tailwind v4',
-    'shadcn/ui',
-    'Vitest',
-  ]
-  // Duplicate so the loop is seamless when translateX(-50%) wraps.
-  const doubled = [...items, ...items]
-  return (
-    <section className="relative overflow-hidden border-y border-white/10 py-10">
-      <div className="flex animate-marquee gap-12 whitespace-nowrap">
-        {doubled.map((item, i) => (
-          <span
-            key={i}
-            className="text-lg font-medium text-white/40"
-          >
-            {item}
-          </span>
-        ))}
-      </div>
-      {/* fade edges */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#0a0e1a] to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#0a0e1a] to-transparent" />
-    </section>
-  )
-}
 
 /* ───── Hero product mockup ───── */
 
