@@ -9,7 +9,7 @@ export default function SignInPage() {
     <div className="relative isolate flex min-h-screen flex-col text-foreground">
       <LandingBg />
 
-      <header className="relative z-10 flex h-14 w-full items-center justify-between border-b border-white/5 bg-[#0a0a0a]/80 px-8 backdrop-blur-xl sm:px-12">
+      <header className="relative z-10 flex h-14 w-full items-center justify-between border-b border-white/5 bg-[#0a0e1a]/80 px-8 backdrop-blur-xl sm:px-12">
         <Link href="/" className="flex items-center gap-2">
           <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_0_18px_rgba(139,92,246,0.35)]">
             <Sparkles className="h-3.5 w-3.5" />

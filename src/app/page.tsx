@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { LandingBg } from '@/components/landing-bg'
 import { Reveal } from '@/components/reveal'
+import { OrbitalVisual } from '@/components/orbital-visual'
 
 export default async function Landing() {
   const session = await auth()
@@ -22,7 +23,7 @@ export default async function Landing() {
       <LandingBg />
 
       {/* Sticky header */}
-      <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-white/5 bg-[#0a0a0a]/80 px-8 backdrop-blur-xl sm:px-12">
+      <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-white/5 bg-[#0a0e1a]/80 px-8 backdrop-blur-xl sm:px-12">
         <Link href="/" className="flex items-center gap-2">
           <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_0_18px_rgba(139,92,246,0.35)]">
             <Sparkles className="h-3.5 w-3.5" />
@@ -74,7 +75,7 @@ export default async function Landing() {
 
       <main className="relative z-10">
         {/* Hero */}
-        <section className="mx-auto flex min-h-[90vh] max-w-6xl flex-col items-center px-6 pt-28 pb-24 text-center">
+        <section className="mx-auto flex min-h-[90vh] max-w-6xl flex-col items-center px-6 pt-32 pb-40 text-center">
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/70 backdrop-blur">
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -83,18 +84,20 @@ export default async function Landing() {
             5 specialized agents at your service
           </div>
 
-          <h1 className="max-w-5xl text-balance text-5xl font-semibold leading-[1.02] tracking-[-0.03em] text-white sm:text-6xl md:text-7xl">
-            Your AI task manager.
+          <h1 className="text-balance text-6xl font-semibold leading-[0.95] tracking-[-0.04em] text-white sm:text-7xl md:text-8xl lg:text-[8rem]">
+            Plan less.
             <br />
-            <span className="bg-gradient-to-r from-violet-300 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-              Let agents do the work.
+            Decide less.
+            <br />
+            <span className="bg-gradient-to-r from-violet-300 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
+              Finish more.
             </span>
           </h1>
 
-          <p className="mt-7 max-w-2xl text-pretty text-base leading-relaxed text-white/55 sm:text-lg">
-            TaskAgent breaks down what you need to do, schedules it into your week,
-            drafts the emails you’ve been avoiding, and briefs you every morning —
-            so you actually finish.
+          <p className="mt-9 max-w-2xl text-pretty text-base leading-relaxed text-white/55 sm:text-lg">
+            TaskAgent breaks down what you need to do, schedules it into your
+            week, drafts the emails you{'’'}ve been avoiding, and briefs you
+            every morning.
           </p>
 
           <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
@@ -129,14 +132,29 @@ export default async function Landing() {
             Free for personal use · No credit card required
           </p>
 
-          <ProductMockup />
+          <OrbitalVisual />
+        </section>
+
+        {/* Product mockup section */}
+        <section className="mx-auto max-w-6xl px-6 pb-32 text-center">
+          <Reveal>
+            <p className="mb-6 text-sm font-medium tracking-wide text-violet-300">
+              The product
+            </p>
+            <h2 className="mb-16 text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
+              Designed to feel calm.
+              <br />
+              Built to ship work.
+            </h2>
+            <ProductMockup />
+          </Reveal>
         </section>
 
         {/* Section 1 — Breakdown agent */}
         <section id="agents" className="mx-auto max-w-6xl scroll-mt-24 px-6">
           <Reveal>
           <FeatureSpotlight
-            eyebrow="Breakdown"
+            eyebrow="01 — Breakdown"
             title="From a single sentence to a real plan."
             body={
               <>
@@ -160,7 +178,7 @@ export default async function Landing() {
         <section className="mx-auto max-w-6xl px-6">
           <Reveal>
           <FeatureSpotlight
-            eyebrow="Email"
+            eyebrow="02 — Email"
             title="Drafts the email you’ve been putting off."
             body={
               <>
@@ -184,7 +202,7 @@ export default async function Landing() {
         <section className="mx-auto max-w-6xl px-6">
           <Reveal>
           <FeatureSpotlight
-            eyebrow="Schedule"
+            eyebrow="03 — Schedule"
             title="Books the work into the week, around real life."
             body={
               <>
@@ -207,7 +225,7 @@ export default async function Landing() {
         {/* The 5 agents grid */}
         <section
           id="examples"
-          className="mx-auto max-w-6xl scroll-mt-24 px-6 pt-32 pb-32"
+          className="mx-auto max-w-6xl scroll-mt-24 px-6 pt-40 pb-32"
         >
           <Reveal>
           <div className="mb-16 text-center">
@@ -296,14 +314,14 @@ export default async function Landing() {
         {/* Bottom CTA */}
         <section className="mx-auto max-w-6xl px-6 pb-24">
           <Reveal>
-          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-violet-500/10 via-fuchsia-500/[0.04] to-transparent px-8 py-16 text-center backdrop-blur-sm sm:px-16">
-            <h2 className="text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
+          <div className="relative isolate overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-violet-500/10 via-fuchsia-500/[0.04] to-transparent px-12 py-24 text-center backdrop-blur-sm before:absolute before:inset-0 before:rounded-3xl before:bg-[radial-gradient(closest-side,rgba(139,92,246,0.15),transparent_70%)] before:blur-2xl">
+            <h2 className="text-balance text-5xl font-semibold tracking-[-0.02em] text-white sm:text-6xl">
               Ready to let the agents work?
             </h2>
-            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/55">
-              Free for personal use. Sign in with Google and you’re in.
+            <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/55">
+              Free for personal use. Sign in with Google and you{'’'}re in.
             </p>
-            <div className="mt-9 flex justify-center">
+            <div className="mt-10 flex justify-center">
               {isAuthed ? (
                 <Button asChild size="lg" className="group h-11 px-6 text-sm">
                   <Link href="/tasks">
@@ -324,9 +342,58 @@ export default async function Landing() {
           </Reveal>
         </section>
 
-        <footer className="mx-auto flex max-w-6xl flex-col items-center gap-2 border-t border-white/10 px-6 py-10 text-center text-xs text-white/40 sm:flex-row sm:justify-between">
-          <span>© {new Date().getFullYear()} TaskAgent</span>
-          <span>Built with Next.js, Postgres, NextAuth, Anthropic Claude</span>
+        <footer className="mx-auto max-w-6xl border-t border-white/10 px-6 py-16">
+          <div className="grid gap-12 md:grid-cols-3">
+            <div>
+              <Link href="/" className="flex items-center gap-2">
+                <span className="grid h-8 w-8 place-items-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
+                  <Sparkles className="h-4 w-4" />
+                </span>
+                <span className="text-lg font-semibold tracking-tight text-white">
+                  TaskAgent
+                </span>
+              </Link>
+              <p className="mt-4 max-w-xs text-sm text-white/50">
+                AI task manager with five autonomous agents.
+              </p>
+            </div>
+            <div>
+              <p className="mb-4 text-xs font-medium uppercase tracking-widest text-white/40">
+                Product
+              </p>
+              <ul className="space-y-2 text-sm text-white/70">
+                <li>
+                  <Link href="#agents" className="hover:text-white">
+                    Agents
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#examples" className="hover:text-white">
+                    Examples
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#how" className="hover:text-white">
+                    How it works
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <p className="mb-4 text-xs font-medium uppercase tracking-widest text-white/40">
+                Built with
+              </p>
+              <ul className="space-y-2 text-sm text-white/70">
+                <li>Next.js 15</li>
+                <li>Anthropic Claude</li>
+                <li>PostgreSQL</li>
+                <li>NextAuth</li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-12 border-t border-white/5 pt-6 text-center text-xs text-white/40">
+            © {new Date().getFullYear()} TaskAgent
+          </div>
         </footer>
       </main>
     </div>
@@ -445,7 +512,7 @@ function FeatureSpotlight({
   reverse?: boolean
 }) {
   return (
-    <div className="grid items-center gap-12 py-20 md:grid-cols-2 md:gap-16">
+    <div className="grid items-center gap-12 py-28 md:grid-cols-2 md:gap-16">
       <div className={reverse ? 'order-2 md:order-2' : 'order-2 md:order-1'}>
         <p className="mb-4 text-sm font-medium tracking-wide text-violet-300">
           {eyebrow}

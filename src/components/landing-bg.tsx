@@ -25,8 +25,18 @@ export function LandingBg() {
   return (
     <div
       className="pointer-events-none fixed inset-0 overflow-hidden"
-      style={{ backgroundColor: '#0a0a0a', zIndex: 0 }}
+      style={{ backgroundColor: '#0a0e1a', zIndex: 0 }}
     >
+      {/* Deep navy atmospheric layer */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-[80vh]"
+        style={{
+          background:
+            'radial-gradient(ellipse 100% 60% at 50% 0%, rgba(30,40,80,0.4), transparent 60%)',
+        }}
+      />
+
       {/* Top center violet glow (primary) */}
       <div
         aria-hidden
