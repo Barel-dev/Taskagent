@@ -31,54 +31,66 @@ export default async function Landing() {
       <ScrollProgress />
 
       {/* Sticky header */}
-      <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-white/5 bg-[#0a0e1a]/80 px-8 backdrop-blur-xl sm:px-12">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_0_18px_rgba(139,92,246,0.35)]">
-            <Sparkles className="h-3.5 w-3.5" />
-          </span>
-          <span className="text-[15px] font-semibold tracking-tight text-white">
-            TaskAgent
-          </span>
-        </Link>
+      <header className="sticky top-0 z-30 w-full">
+        {/* Frosted glass plate */}
+        <div className="absolute inset-0 border-b border-white/[0.06] bg-[#0a0e1a]/65 backdrop-blur-xl" />
+        {/* Subtle gradient bottom edge */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
 
-        {/* Centered nav */}
-        <nav className="hidden items-center gap-6 text-sm text-white/60 md:flex">
-          <Link
-            href="#agents"
-            className="transition-colors hover:text-white"
-          >
-            Agents
+        <div className="relative mx-auto flex h-16 max-w-[1400px] items-center justify-between px-6 sm:px-10">
+          {/* Logo */}
+          <Link href="/" className="group flex items-center gap-2.5">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_0_24px_rgba(139,92,246,0.45)] transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
+              <Sparkles className="h-4 w-4" />
+            </span>
+            <span className="text-[15px] font-semibold tracking-tight text-white">
+              TaskAgent
+            </span>
           </Link>
-          <Link
-            href="#examples"
-            className="transition-colors hover:text-white"
-          >
-            Examples
-          </Link>
-          <Link
-            href="#how"
-            className="transition-colors hover:text-white"
-          >
-            How it works
-          </Link>
-        </nav>
 
-        <nav className="flex items-center gap-3">
-          {isAuthed ? (
-            <Button asChild size="sm">
-              <Link href="/tasks">Open app</Link>
-            </Button>
-          ) : (
-            <Button
-              asChild
-              size="sm"
-              variant="outline"
-              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+          {/* Floating pill nav (centered, absolute so it stays perfectly centered) */}
+          <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] p-1 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl md:flex">
+            <Link
+              href="#agents"
+              className="rounded-full px-4 py-1.5 text-[13px] font-medium text-white/65 transition-all duration-200 hover:bg-white/[0.07] hover:text-white"
             >
-              <Link href="/signin">Sign in</Link>
-            </Button>
-          )}
-        </nav>
+              Agents
+            </Link>
+            <Link
+              href="#examples"
+              className="rounded-full px-4 py-1.5 text-[13px] font-medium text-white/65 transition-all duration-200 hover:bg-white/[0.07] hover:text-white"
+            >
+              Examples
+            </Link>
+            <Link
+              href="#how"
+              className="rounded-full px-4 py-1.5 text-[13px] font-medium text-white/65 transition-all duration-200 hover:bg-white/[0.07] hover:text-white"
+            >
+              How it works
+            </Link>
+          </nav>
+
+          {/* CTA — white pill */}
+          <nav className="flex items-center gap-3">
+            {isAuthed ? (
+              <Button
+                asChild
+                size="sm"
+                className="h-9 rounded-full bg-white px-5 text-[13px] font-medium text-black shadow-[0_4px_20px_rgba(255,255,255,0.12)] hover:bg-white/90 hover:shadow-[0_4px_28px_rgba(255,255,255,0.2)]"
+              >
+                <Link href="/tasks">Open app →</Link>
+              </Button>
+            ) : (
+              <Button
+                asChild
+                size="sm"
+                className="h-9 rounded-full bg-white px-5 text-[13px] font-medium text-black shadow-[0_4px_20px_rgba(255,255,255,0.12)] hover:bg-white/90 hover:shadow-[0_4px_28px_rgba(255,255,255,0.2)]"
+              >
+                <Link href="/signin">Sign in →</Link>
+              </Button>
+            )}
+          </nav>
+        </div>
       </header>
 
       <main className="relative z-10">

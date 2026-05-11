@@ -9,21 +9,25 @@ export default function SignInPage() {
     <div className="relative isolate flex min-h-screen flex-col text-foreground">
       <LandingBg />
 
-      <header className="relative z-10 flex h-14 w-full items-center justify-between border-b border-white/5 bg-[#0a0e1a]/80 px-8 backdrop-blur-xl sm:px-12">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_0_18px_rgba(139,92,246,0.35)]">
-            <Sparkles className="h-3.5 w-3.5" />
-          </span>
-          <span className="text-[15px] font-semibold tracking-tight text-white">
-            TaskAgent
-          </span>
-        </Link>
-        <Link
-          href="/"
-          className="text-sm text-white/55 transition-colors hover:text-white"
-        >
-          ← Back home
-        </Link>
+      <header className="relative z-10 w-full">
+        <div className="absolute inset-0 border-b border-white/[0.06] bg-[#0a0e1a]/65 backdrop-blur-xl" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
+        <div className="relative mx-auto flex h-16 max-w-[1400px] items-center justify-between px-6 sm:px-10">
+          <Link href="/" className="group flex items-center gap-2.5">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_0_24px_rgba(139,92,246,0.45)] transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
+              <Sparkles className="h-4 w-4" />
+            </span>
+            <span className="text-[15px] font-semibold tracking-tight text-white">
+              TaskAgent
+            </span>
+          </Link>
+          <Link
+            href="/"
+            className="rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-1.5 text-[13px] font-medium text-white/65 backdrop-blur-xl transition-all duration-200 hover:bg-white/[0.07] hover:text-white"
+          >
+            ← Back home
+          </Link>
+        </div>
       </header>
 
       <main className="relative z-10 flex flex-1 items-center justify-center px-6 pb-16">
