@@ -198,26 +198,32 @@ function Starfield() {
 
   return (
     <div className="relative h-full w-full">
-      {stars.map((star, i) => (
-        <motion.span
-          key={i}
-          className="absolute rounded-full bg-white"
-          style={{
-            left: `${star.x}%`,
-            top: `${star.y}%`,
-            width: `${star.s}px`,
-            height: `${star.s}px`,
-            boxShadow: `0 0 ${star.s * 2}px rgba(216, 180, 254, 0.6)`,
-          }}
-          animate={{ opacity: [0.2, 0.9, 0.2] }}
-          transition={{
-            duration: 2.4 + star.d,
-            delay: star.d,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-      ))}
+      {stars.map((star, i) => {
+        const x = star.x.toFixed(3)
+        const y = star.y.toFixed(3)
+        const s = star.s.toFixed(3)
+        const glow = (star.s * 2).toFixed(3)
+        return (
+          <motion.span
+            key={i}
+            className="absolute rounded-full bg-white"
+            style={{
+              left: `${x}%`,
+              top: `${y}%`,
+              width: `${s}px`,
+              height: `${s}px`,
+              boxShadow: `0 0 ${glow}px rgba(216, 180, 254, 0.6)`,
+            }}
+            animate={{ opacity: [0.2, 0.9, 0.2] }}
+            transition={{
+              duration: 2.4 + star.d,
+              delay: star.d,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+        )
+      })}
     </div>
   )
 }
