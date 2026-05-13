@@ -62,8 +62,8 @@ const agents: Agent[] = [
 ]
 
 function positionFor(angle: number, radius = RADIUS) {
-  const rad = ((angle - 90) * Math.PI) / 180 // shift so 0 = top
-  // Note: in SVG, +y is down, but we treat -90 as top, so use cos for x and sin for y with angle adjusted
+  // SVG: +x right, +y down. Angle measured in degrees, 0° = right, 90° = down.
+  // The agent angles are pre-set so -90° lands at top.
   const a = (angle * Math.PI) / 180
   return {
     x: CENTER + radius * Math.cos(a),
