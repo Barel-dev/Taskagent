@@ -18,6 +18,7 @@ import { ScrollProgress } from '@/components/scroll-progress'
 import { TiltOnScroll } from '@/components/tilt-on-scroll'
 import { CursorTilt } from '@/components/cursor-tilt'
 import { MockupParallax } from '@/components/mockup-parallax'
+import { AgentNetwork } from '@/components/agent-network'
 import {
   BreakdownVisual,
   EmailVisual,
@@ -134,6 +135,37 @@ export default async function Landing() {
             <MockupParallax>
               <ProductMockup />
             </MockupParallax>
+          </Reveal>
+        </section>
+
+        {/* Section melt */}
+        <div
+          className="h-32 w-full bg-gradient-to-b from-transparent via-[#0a0e1a]/30 to-transparent"
+          aria-hidden
+        />
+
+        {/* Meet your agents — animated network visualization */}
+        <section className="mx-auto max-w-6xl px-6 py-24">
+          <Reveal>
+            <div className="mb-12 text-center">
+              <p className="mb-4 text-sm font-medium tracking-wide text-violet-300">
+                The system
+              </p>
+              <h2 className="text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
+                Five agents,{' '}
+                <span className="bg-gradient-to-r from-violet-300 to-fuchsia-400 bg-clip-text text-transparent">
+                  one quiet mind
+                </span>
+              </h2>
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/55">
+                Each agent specializes in a single job. They share what they know with each other —
+                so when one finishes thinking, the next picks up where it left off.
+              </p>
+            </div>
+            <AgentNetwork />
+            <p className="mt-8 text-center text-xs text-white/40">
+              Hover an agent to see what it does
+            </p>
           </Reveal>
         </section>
 
