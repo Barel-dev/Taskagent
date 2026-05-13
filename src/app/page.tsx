@@ -13,7 +13,6 @@ import {
 import { LandingBg } from '@/components/landing-bg'
 import { Reveal } from '@/components/reveal'
 import AnimatedShaderHero from '@/components/ui/animated-shader-hero'
-import { Spotlight } from '@/components/spotlight'
 import { ScrollProgress } from '@/components/scroll-progress'
 import { TiltOnScroll } from '@/components/tilt-on-scroll'
 import { CursorTilt } from '@/components/cursor-tilt'
@@ -35,7 +34,6 @@ export default async function Landing() {
   return (
     <div className="relative isolate text-foreground">
       <LandingBg />
-      <Spotlight />
       <ScrollProgress />
 
       {/* Fixed header — floats on top of the hero shader with no plate */}
