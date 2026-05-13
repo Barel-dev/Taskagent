@@ -10,8 +10,7 @@ export default function SignInPage() {
       <LandingBg />
 
       <header className="relative z-10 w-full">
-        <div className="absolute inset-0 border-b border-white/[0.06] bg-[#0a0e1a]/65 backdrop-blur-xl" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-transparent backdrop-blur-md [mask-image:linear-gradient(to_bottom,black_0%,black_60%,transparent_100%)]" />
         <div className="relative mx-auto flex h-16 max-w-[1400px] items-center justify-between px-6 sm:px-10">
           <Link href="/" className="group flex items-center gap-2.5">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_0_24px_rgba(139,92,246,0.45)] transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">

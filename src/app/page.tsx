@@ -37,12 +37,10 @@ export default async function Landing() {
       <Spotlight />
       <ScrollProgress />
 
-      {/* Sticky header */}
+      {/* Sticky header — transparent so the hero shader bleeds through */}
       <header className="sticky top-0 z-30 w-full">
-        {/* Frosted glass plate */}
-        <div className="absolute inset-0 border-b border-white/[0.06] bg-[#0a0e1a]/65 backdrop-blur-xl" />
-        {/* Subtle gradient bottom edge */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
+        {/* Almost-invisible blur layer just for text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-transparent backdrop-blur-md [mask-image:linear-gradient(to_bottom,black_0%,black_60%,transparent_100%)]" />
 
         <div className="relative mx-auto flex h-16 max-w-[1400px] items-center justify-between px-6 sm:px-10">
           {/* Logo */}
