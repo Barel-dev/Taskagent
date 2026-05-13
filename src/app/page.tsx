@@ -15,6 +15,14 @@ import { Reveal } from '@/components/reveal'
 import AnimatedShaderHero from '@/components/ui/animated-shader-hero'
 import { Spotlight } from '@/components/spotlight'
 import { ScrollProgress } from '@/components/scroll-progress'
+import { TiltOnScroll } from '@/components/tilt-on-scroll'
+import { CursorTilt } from '@/components/cursor-tilt'
+import { MockupParallax } from '@/components/mockup-parallax'
+import {
+  BreakdownVisual,
+  EmailVisual,
+  ScheduleVisual,
+} from '@/components/spotlight-visuals'
 
 const PRIMARY_CTA_CLASSES =
   'group h-11 px-6 text-sm shadow-[0_0_30px_rgba(139,92,246,0.3)] transition-transform hover:scale-[1.02] hover:shadow-[0_0_60px_rgba(139,92,246,0.5)]'
@@ -127,9 +135,17 @@ export default async function Landing() {
               <br />
               Built to ship work.
             </h2>
-            <ProductMockup />
+            <MockupParallax>
+              <ProductMockup />
+            </MockupParallax>
           </Reveal>
         </section>
+
+        {/* Section melt */}
+        <div
+          className="h-32 w-full bg-gradient-to-b from-transparent via-[#0a0e1a]/30 to-transparent"
+          aria-hidden
+        />
 
         {/* Section 1 — Breakdown agent */}
         <section id="agents" className="mx-auto max-w-6xl scroll-mt-24 px-6">
@@ -154,16 +170,26 @@ export default async function Landing() {
               />
             </Reveal>
             <Reveal direction="right" delay={150} className="order-1 md:order-2">
-              <BreakdownVisual />
+              <TiltOnScroll>
+                <BreakdownVisual />
+              </TiltOnScroll>
             </Reveal>
           </div>
         </section>
+
+        {/* Section melt */}
+        <div
+          className="h-32 w-full bg-gradient-to-b from-transparent via-[#0a0e1a]/30 to-transparent"
+          aria-hidden
+        />
 
         {/* Section 2 — Email agent (reverse: text right, visual left) */}
         <section className="mx-auto max-w-6xl px-6">
           <div className="grid items-center gap-12 py-28 md:grid-cols-2 md:gap-16">
             <Reveal direction="left" delay={150} className="order-1 md:order-1">
-              <EmailVisual />
+              <TiltOnScroll>
+                <EmailVisual />
+              </TiltOnScroll>
             </Reveal>
             <Reveal direction="right" className="order-2 md:order-2">
               <SpotlightText
@@ -186,6 +212,12 @@ export default async function Landing() {
             </Reveal>
           </div>
         </section>
+
+        {/* Section melt */}
+        <div
+          className="h-32 w-full bg-gradient-to-b from-transparent via-[#0a0e1a]/30 to-transparent"
+          aria-hidden
+        />
 
         {/* Section 3 — Schedule agent */}
         <section className="mx-auto max-w-6xl px-6">
@@ -210,10 +242,18 @@ export default async function Landing() {
               />
             </Reveal>
             <Reveal direction="right" delay={150} className="order-1 md:order-2">
-              <ScheduleVisual />
+              <TiltOnScroll>
+                <ScheduleVisual />
+              </TiltOnScroll>
             </Reveal>
           </div>
         </section>
+
+        {/* Section melt */}
+        <div
+          className="h-32 w-full bg-gradient-to-b from-transparent via-[#0a0e1a]/30 to-transparent"
+          aria-hidden
+        />
 
         {/* The 5 agents grid */}
         <section
@@ -237,49 +277,67 @@ export default async function Landing() {
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <Reveal delay={0}>
-              <AgentCard
-                icon={<ListChecks className="h-5 w-5" />}
-                title="Breakdown agent"
-                body={`Turn ${'‘'}study for finals${'’'} into a real plan. Subtasks, time estimates, priorities — generated.`}
-              />
+              <CursorTilt>
+                <AgentCard
+                  icon={<ListChecks className="h-5 w-5" />}
+                  title="Breakdown agent"
+                  body={`Turn ${'‘'}study for finals${'’'} into a real plan. Subtasks, time estimates, priorities — generated.`}
+                />
+              </CursorTilt>
             </Reveal>
             <Reveal delay={80}>
-              <AgentCard
-                icon={<Bot className="h-5 w-5" />}
-                title="Smart prioritizer"
-                body="Asks what matters, weighs urgency vs importance, then reorders your day."
-              />
+              <CursorTilt>
+                <AgentCard
+                  icon={<Bot className="h-5 w-5" />}
+                  title="Smart prioritizer"
+                  body="Asks what matters, weighs urgency vs importance, then reorders your day."
+                />
+              </CursorTilt>
             </Reveal>
             <Reveal delay={160}>
-              <AgentCard
-                icon={<CalendarClock className="h-5 w-5" />}
-                title="Schedule agent"
-                body="Reads your Google Calendar, finds the gaps, books the work in. You just confirm."
-              />
+              <CursorTilt>
+                <AgentCard
+                  icon={<CalendarClock className="h-5 w-5" />}
+                  title="Schedule agent"
+                  body="Reads your Google Calendar, finds the gaps, books the work in. You just confirm."
+                />
+              </CursorTilt>
             </Reveal>
             <Reveal delay={240}>
-              <AgentCard
-                icon={<Mail className="h-5 w-5" />}
-                title="Email agent"
-                body={`${'‘'}Email Sarah about the budget review.${'’'} Drafts, shows it to you, sends on approval.`}
-              />
+              <CursorTilt>
+                <AgentCard
+                  icon={<Mail className="h-5 w-5" />}
+                  title="Email agent"
+                  body={`${'‘'}Email Sarah about the budget review.${'’'} Drafts, shows it to you, sends on approval.`}
+                />
+              </CursorTilt>
             </Reveal>
             <Reveal delay={320}>
-              <AgentCard
-                icon={<Sun className="h-5 w-5" />}
-                title="Daily briefing"
-                body={`A friendly summary in your inbox at 7am — what${'’'}s due, what${'’'}s overdue, what to focus on.`}
-              />
+              <CursorTilt>
+                <AgentCard
+                  icon={<Sun className="h-5 w-5" />}
+                  title="Daily briefing"
+                  body={`A friendly summary in your inbox at 7am — what${'’'}s due, what${'’'}s overdue, what to focus on.`}
+                />
+              </CursorTilt>
             </Reveal>
             <Reveal delay={400}>
-              <AgentCard
-                icon={<Sparkles className="h-5 w-5" />}
-                title="Talk to your tasks"
-                body={`A chat sidebar that knows your todos. ${'‘'}What${'’'}s left for the website?${'’'} just works.`}
-              />
+              <CursorTilt>
+                <AgentCard
+                  icon={<Sparkles className="h-5 w-5" />}
+                  title="Talk to your tasks"
+                  body={`A chat sidebar that knows your todos. ${'‘'}What${'’'}s left for the website?${'’'} just works.`}
+                />
+              </CursorTilt>
             </Reveal>
           </div>
         </section>
+
+        {/* Section melt */}
+        <div
+          className="h-32 w-full bg-gradient-to-b from-transparent via-[#0a0e1a]/30 to-transparent"
+          aria-hidden
+        />
 
         {/* How it works */}
         <section
@@ -541,206 +599,6 @@ function SpotlightText({
           ))}
         </ul>
       )}
-    </div>
-  )
-}
-
-/* ───── Spotlight visuals ───── */
-
-function BreakdownVisual() {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.01] p-6 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.6),0_0_40px_-25px_rgba(139,92,246,0.4)] backdrop-blur">
-      <div className="mb-4 flex items-center gap-2 text-xs text-white/45">
-        <ListChecks className="h-3.5 w-3.5 text-violet-300" />
-        Breakdown agent
-      </div>
-      <div className="mb-5 rounded-lg border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-sm text-white/85">
-        Plan trip to Lisbon
-      </div>
-      <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
-        Generated subtasks
-      </div>
-      <ul className="space-y-2 text-sm">
-        <SubtaskRow time="2h">Book flights & hotel</SubtaskRow>
-        <SubtaskRow time="30m">Renew passport check</SubtaskRow>
-        <SubtaskRow time="1h">Plan day-by-day itinerary</SubtaskRow>
-        <SubtaskRow time="20m">Notify bank of travel</SubtaskRow>
-        <SubtaskRow time="45m">Pack & download offline maps</SubtaskRow>
-      </ul>
-    </div>
-  )
-}
-
-function SubtaskRow({
-  time,
-  children,
-}: {
-  time: string
-  children: React.ReactNode
-}) {
-  return (
-    <li className="flex items-center justify-between gap-3 rounded-md border border-white/5 bg-white/[0.02] px-3 py-2 text-white/80">
-      <span className="flex items-center gap-2.5">
-        <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
-        {children}
-      </span>
-      <span className="font-mono text-[10px] text-white/35">{time}</span>
-    </li>
-  )
-}
-
-function EmailVisual() {
-  return (
-    <div className="overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.01] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.6),0_0_40px_-25px_rgba(139,92,246,0.4)] backdrop-blur">
-      <div className="flex items-center gap-1.5 border-b border-white/10 bg-white/[0.02] px-4 py-3">
-        <span className="h-3 w-3 rounded-full bg-red-500/70" />
-        <span className="h-3 w-3 rounded-full bg-yellow-500/70" />
-        <span className="h-3 w-3 rounded-full bg-green-500/70" />
-        <span className="ml-3 flex items-center gap-1.5 font-mono text-[11px] text-white/40">
-          <Mail className="h-3 w-3" />
-          email agent
-        </span>
-      </div>
-      <div className="space-y-3 p-5 font-mono text-[12.5px]">
-        <ChatBubble role="user">
-          email Sarah about the Q3 budget review meeting
-        </ChatBubble>
-        <ChatBubble role="assistant">
-          Drafted. Subject: {'“'}Q3 budget review — quick sync?{'”'} Reads warm,
-          proposes Wed/Thu afternoons. Want me to send?
-        </ChatBubble>
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3 font-sans text-[12px] leading-relaxed text-white/75">
-          <p className="text-white/55">To: sarah@company.com</p>
-          <p className="text-white/55">Subject: Q3 budget review — quick sync?</p>
-          <p className="mt-2">Hey Sarah,</p>
-          <p className="mt-1.5">
-            Got a few minutes this week to walk through the Q3 numbers? Wed or
-            Thu afternoon both work for me…
-          </p>
-        </div>
-        <ChatBubble role="user">send it</ChatBubble>
-        <ChatBubble role="assistant" muted>
-          ✓ Sent to sarah@company.com
-        </ChatBubble>
-      </div>
-    </div>
-  )
-}
-
-function ChatBubble({
-  role,
-  muted,
-  children,
-}: {
-  role: 'user' | 'assistant'
-  muted?: boolean
-  children: React.ReactNode
-}) {
-  if (role === 'user') {
-    return (
-      <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-violet-500/15 px-3 py-2 text-white/90 ring-1 ring-violet-400/20">
-        {children}
-      </div>
-    )
-  }
-  return (
-    <div
-      className={`max-w-[90%] rounded-2xl rounded-bl-md bg-white/[0.04] px-3 py-2 ring-1 ring-white/5 ${
-        muted ? 'text-emerald-300/80' : 'text-white/80'
-      }`}
-    >
-      {children}
-    </div>
-  )
-}
-
-function ScheduleVisual() {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
-  // Block format: [colStart 1-5, rowStart 1-8, span, label, color]
-  const blocks: {
-    col: number
-    row: number
-    span: number
-    label: string
-    tone: 'violet' | 'pink' | 'cyan' | 'mute'
-  }[] = [
-    { col: 1, row: 1, span: 2, label: 'Standup', tone: 'mute' },
-    { col: 1, row: 4, span: 3, label: 'Finals study', tone: 'violet' },
-    { col: 2, row: 2, span: 2, label: 'PR review', tone: 'pink' },
-    { col: 2, row: 5, span: 2, label: 'Lisbon plan', tone: 'cyan' },
-    { col: 3, row: 1, span: 2, label: 'Standup', tone: 'mute' },
-    { col: 3, row: 3, span: 4, label: 'Research draft', tone: 'violet' },
-    { col: 4, row: 2, span: 3, label: 'DB project', tone: 'pink' },
-    { col: 4, row: 6, span: 2, label: 'Email Sarah', tone: 'cyan' },
-    { col: 5, row: 1, span: 2, label: 'Standup', tone: 'mute' },
-    { col: 5, row: 4, span: 3, label: 'Deep work', tone: 'violet' },
-  ]
-  const TONE: Record<string, string> = {
-    violet: 'bg-violet-500/20 border-violet-400/30 text-violet-100',
-    pink: 'bg-fuchsia-500/15 border-fuchsia-400/25 text-fuchsia-100',
-    cyan: 'bg-sky-500/15 border-sky-400/25 text-sky-100',
-    mute: 'bg-white/[0.04] border-white/10 text-white/50',
-  }
-  return (
-    <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.01] p-5 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.6),0_0_40px_-25px_rgba(139,92,246,0.4)] backdrop-blur">
-      <div className="mb-4 flex items-center justify-between text-xs text-white/45">
-        <span className="flex items-center gap-2">
-          <CalendarClock className="h-3.5 w-3.5 text-violet-300" />
-          This week
-        </span>
-        <span className="font-mono text-[10px] text-white/35">9:00 — 5:00</span>
-      </div>
-      {/* Day headers */}
-      <div className="mb-2 grid grid-cols-[2.25rem_repeat(5,minmax(0,1fr))] gap-1">
-        <div />
-        {days.map((d) => (
-          <div
-            key={d}
-            className="text-center font-mono text-[10px] uppercase tracking-wider text-white/45"
-          >
-            {d}
-          </div>
-        ))}
-      </div>
-      {/* Grid body */}
-      <div className="grid grid-cols-[2.25rem_repeat(5,minmax(0,1fr))] gap-1">
-        {/* Time labels column */}
-        <div className="grid grid-rows-8 gap-1">
-          {['9', '10', '11', '12', '1', '2', '3', '4'].map((h) => (
-            <div
-              key={h}
-              className="flex h-6 items-center justify-end pr-1 font-mono text-[10px] text-white/30"
-            >
-              {h}
-            </div>
-          ))}
-        </div>
-        {/* 5 day columns, each a relative grid */}
-        {days.map((_, dayIdx) => (
-          <div key={dayIdx} className="relative grid grid-rows-8 gap-1">
-            {Array.from({ length: 8 }).map((_, r) => (
-              <div
-                key={r}
-                className="h-6 rounded border border-white/[0.04] bg-white/[0.015]"
-              />
-            ))}
-            {blocks
-              .filter((b) => b.col === dayIdx + 1)
-              .map((b, i) => (
-                <div
-                  key={i}
-                  className={`absolute inset-x-0 rounded-md border px-1.5 py-1 text-[10px] font-medium leading-tight ${TONE[b.tone]}`}
-                  style={{
-                    top: `calc(${b.row - 1} * (1.5rem + 0.25rem))`,
-                    height: `calc(${b.span} * 1.5rem + ${b.span - 1} * 0.25rem)`,
-                  }}
-                >
-                  {b.label}
-                </div>
-              ))}
-          </div>
-        ))}
-      </div>
     </div>
   )
 }
