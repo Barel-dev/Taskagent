@@ -12,10 +12,9 @@ import {
 } from 'lucide-react'
 import { LandingBg } from '@/components/landing-bg'
 import { Reveal } from '@/components/reveal'
-import { OrbitalVisual } from '@/components/orbital-visual'
+import AnimatedShaderHero from '@/components/ui/animated-shader-hero'
 import { Spotlight } from '@/components/spotlight'
 import { ScrollProgress } from '@/components/scroll-progress'
-import { ParallaxWrap } from '@/components/parallax'
 
 const PRIMARY_CTA_CLASSES =
   'group h-11 px-6 text-sm shadow-[0_0_30px_rgba(139,92,246,0.3)] transition-transform hover:scale-[1.02] hover:shadow-[0_0_60px_rgba(139,92,246,0.5)]'
@@ -94,70 +93,28 @@ export default async function Landing() {
       </header>
 
       <main className="relative z-10">
-        {/* Hero */}
-        <section className="mx-auto flex min-h-[90vh] max-w-6xl flex-col items-center px-6 pt-32 pb-40 text-center">
-          <div
-            className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/70 backdrop-blur animate-pill-pulse"
-          >
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            </span>
-            5 specialized agents at your service
-          </div>
-
-          <h1 className="text-balance text-6xl font-semibold leading-[0.95] tracking-[-0.04em] text-white sm:text-7xl md:text-8xl lg:text-[8rem]">
-            Plan less.
-            <br />
-            Decide less.
-            <br />
-            <span className="bg-gradient-to-r from-violet-300 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
-              Finish more.
-            </span>
-          </h1>
-
-          <p className="mt-9 max-w-2xl text-pretty text-base leading-relaxed text-white/55 sm:text-lg">
-            TaskAgent breaks down what you need to do, schedules it into your
-            week, drafts the emails you{'’'}ve been avoiding, and briefs you
-            every morning.
-          </p>
-
-          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
-            {isAuthed ? (
-              <Button asChild size="lg" className={PRIMARY_CTA_CLASSES}>
-                <Link href="/tasks">
-                  Go to your tasks
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </Link>
-              </Button>
-            ) : (
-              <Button asChild size="lg" className={PRIMARY_CTA_CLASSES}>
-                <Link href="/signin">
-                  Sign in with Google
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </Link>
-              </Button>
-            )}
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-11 border-white/10 bg-transparent px-6 text-sm text-white hover:bg-white/[0.06]"
-            >
-              <Link href="https://github.com/" target="_blank">
-                View on GitHub
-              </Link>
-            </Button>
-          </div>
-
-          <p className="mt-5 text-xs text-white/35">
-            Free for personal use · No credit card required
-          </p>
-
-          <ParallaxWrap speed={0.1} className="w-full">
-            <OrbitalVisual />
-          </ParallaxWrap>
-        </section>
+        {/* Hero — WebGL animated shader background */}
+        <AnimatedShaderHero
+          trustBadge={{
+            text: '5 specialized agents at your service',
+            icons: ['✦'],
+          }}
+          headline={{
+            line1: 'Plan less.',
+            line2: 'Finish more.',
+          }}
+          subtitle="TaskAgent breaks down what you need to do, schedules it into your week, drafts the emails you’ve been avoiding, and briefs you every morning."
+          buttons={{
+            primary: {
+              text: isAuthed ? 'Go to your tasks →' : 'Sign in with Google →',
+              href: isAuthed ? '/tasks' : '/signin',
+            },
+            secondary: {
+              text: 'View on GitHub',
+              href: 'https://github.com/Barel-dev/Taskagent',
+            },
+          }}
+        />
 
         {/* Product mockup section */}
         <section className="mx-auto max-w-6xl px-6 pb-32 text-center">
