@@ -503,26 +503,163 @@ export default async function Landing() {
 
 function ProductMockup() {
   return (
-    <div className="mx-auto mt-16 w-full max-w-3xl">
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5),0_0_60px_-30px_rgba(139,92,246,0.4)] backdrop-blur">
+    <div className="relative mx-auto mt-16 w-full max-w-5xl">
+      {/* Soft violet glow underneath */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-x-20 -bottom-10 -top-10 -z-10"
+        style={{
+          background:
+            'radial-gradient(60% 50% at 50% 50%, rgba(139,92,246,0.30), transparent 70%)',
+        }}
+      />
+
+      {/* The window itself */}
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] shadow-[0_60px_120px_-30px_rgba(0,0,0,0.7),0_0_120px_-40px_rgba(139,92,246,0.5),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">
         {/* Window chrome */}
-        <div className="flex items-center gap-1.5 border-b border-white/10 bg-white/[0.02] px-4 py-3">
-          <span className="h-3 w-3 rounded-full bg-red-500/70" />
-          <span className="h-3 w-3 rounded-full bg-yellow-500/70" />
-          <span className="h-3 w-3 rounded-full bg-green-500/70" />
-          <span className="ml-3 font-mono text-[11px] text-white/40">
+        <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.03] px-4 py-3">
+          <div className="flex items-center gap-1.5">
+            <span className="h-3 w-3 rounded-full bg-red-500/70" />
+            <span className="h-3 w-3 rounded-full bg-yellow-500/70" />
+            <span className="h-3 w-3 rounded-full bg-green-500/70" />
+          </div>
+          <div className="flex items-center gap-2 rounded-md bg-white/[0.04] px-3 py-1 font-mono text-[11px] text-white/45">
+            <svg viewBox="0 0 12 12" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <rect x="2" y="3.5" width="8" height="5" rx="1" />
+              <path d="M4 3.5V2.5a2 2 0 0 1 4 0v1" />
+            </svg>
             taskagent.app/tasks
-          </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              5 online
+            </div>
+          </div>
         </div>
-        {/* Task list */}
-        <div className="space-y-2 p-6">
-          <MockTask done title="Submit research draft" priority="HIGH" due="Today" />
-          <MockTask title="Review PR #247" priority="MEDIUM" due="Tomorrow" />
-          <MockTask title="Plan trip to Lisbon" priority="LOW" subtasks={5} />
-          <MockTask title="Prep finals study guide" priority="URGENT" due="Wed" />
-          <MockTask title="Email Sarah about budget" priority="MEDIUM" />
+
+        {/* 3-column app body */}
+        <div className="grid h-[440px] grid-cols-[180px_1fr_240px] divide-x divide-white/[0.06]">
+          {/* Left: agents sidebar */}
+          <aside className="flex flex-col gap-1 p-4">
+            <div className="mb-2 text-[10px] font-medium uppercase tracking-widest text-white/35">
+              Agents
+            </div>
+            <SidebarAgent name="Breakdown" hue="rgb(167,139,250)" active />
+            <SidebarAgent name="Prioritizer" hue="rgb(244,114,182)" />
+            <SidebarAgent name="Schedule" hue="rgb(125,211,252)" />
+            <SidebarAgent name="Email" hue="rgb(249,168,212)" />
+            <SidebarAgent name="Briefing" hue="rgb(196,181,253)" />
+
+            <div className="mt-auto rounded-lg border border-white/5 bg-white/[0.03] p-3">
+              <div className="text-[10px] uppercase tracking-widest text-white/35">Today</div>
+              <div className="mt-1 font-semibold text-white">8 / 12 done</div>
+              <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/5">
+                <div className="h-full w-2/3 rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400" />
+              </div>
+            </div>
+          </aside>
+
+          {/* Center: tasks */}
+          <main className="flex flex-col p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <div className="text-[10px] uppercase tracking-widest text-white/35">
+                  Wednesday, May 14
+                </div>
+                <div className="text-base font-semibold text-white">Today</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="rounded-md bg-violet-500/15 px-2.5 py-1 text-[11px] font-medium text-violet-200">
+                  + New task
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <MockTask done title="Submit research draft" priority="HIGH" due="Today" />
+              <MockTask title="Review PR #247" priority="MEDIUM" due="Tomorrow" />
+              <MockTask title="Plan trip to Lisbon" priority="LOW" subtasks={5} />
+              <MockTask title="Prep finals study guide" priority="URGENT" due="Wed" />
+              <MockTask title="Email Sarah about budget" priority="MEDIUM" />
+            </div>
+          </main>
+
+          {/* Right: today's briefing preview */}
+          <aside className="flex flex-col gap-3 p-4">
+            <div className="text-[10px] font-medium uppercase tracking-widest text-white/35">
+              7:00 AM briefing
+            </div>
+            <div className="rounded-lg border border-white/5 bg-white/[0.03] p-3 text-[12px] leading-relaxed text-white/65">
+              <div className="mb-2 font-medium text-white">Good morning, Barel.</div>
+              <div>
+                3 tasks due today. <span className="text-white/85">PR review</span> can slip to
+                tomorrow — your afternoon is free after 4pm.
+              </div>
+              <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-violet-500/15 px-2 py-0.5 text-[10px] text-violet-200">
+                <span className="h-1 w-1 rounded-full bg-violet-300" />
+                drafted by Briefing agent
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-white/5 bg-white/[0.03] p-3 text-[12px] text-white/65">
+              <div className="mb-2 flex items-center gap-1.5">
+                <span className="grid h-4 w-4 place-items-center rounded-full bg-gradient-to-br from-violet-400 to-fuchsia-400 text-[9px] font-bold text-white">
+                  E
+                </span>
+                <span className="font-medium text-white">Email agent</span>
+              </div>
+              <div className="text-white/55">
+                Draft ready for{' '}
+                <span className="text-white/85">Q3 budget review</span> — review and send?
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        {/* Bottom status bar */}
+        <div className="flex items-center justify-between border-t border-white/[0.06] bg-white/[0.02] px-4 py-2 text-[10px] text-white/40">
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-violet-400" />
+            Prioritizer agent thinking…
+          </div>
+          <div className="font-mono">⌘K to chat</div>
         </div>
       </div>
+
+      {/* Floor reflection — mirrored fade */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-8 -bottom-10 h-24 rounded-3xl"
+        style={{
+          background:
+            'radial-gradient(70% 100% at 50% 0%, rgba(139,92,246,0.18), transparent 75%)',
+          filter: 'blur(20px)',
+        }}
+      />
+    </div>
+  )
+}
+
+function SidebarAgent({
+  name,
+  hue,
+  active,
+}: {
+  name: string
+  hue: string
+  active?: boolean
+}) {
+  return (
+    <div
+      className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[12px] transition-colors ${
+        active ? 'bg-white/[0.05]' : 'hover:bg-white/[0.03]'
+      }`}
+    >
+      <span
+        className="h-2 w-2 shrink-0 rounded-full"
+        style={{ backgroundColor: hue, boxShadow: `0 0 8px ${hue}` }}
+      />
+      <span className={active ? 'text-white' : 'text-white/65'}>{name}</span>
     </div>
   )
 }
