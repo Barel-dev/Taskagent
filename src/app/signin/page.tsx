@@ -2,12 +2,14 @@ import Link from 'next/link'
 import { signIn } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Sparkles } from 'lucide-react'
-import { LandingBg } from '@/components/landing-bg'
+import { ShaderBackground } from '@/components/ui/shader-background'
 
 export default function SignInPage() {
   return (
     <div className="relative isolate flex min-h-screen flex-col text-foreground">
-      <LandingBg />
+      <ShaderBackground opacity={1} />
+      {/* Dark overlay for legibility */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-black/30" />
 
       <header className="relative z-10 w-full">
         <div className="relative mx-auto flex h-16 max-w-[1400px] items-center justify-between px-6 sm:px-10">
