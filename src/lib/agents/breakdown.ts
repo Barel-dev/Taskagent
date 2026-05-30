@@ -68,6 +68,24 @@ Always respond by calling the create_subtasks tool.`
 // Defensive cap so a misbehaving response can't create hundreds of rows.
 const MAX_SUBTASKS = 12
 
+// Free, offline fallback used when no ANTHROPIC_API_KEY is configured.
+// Deterministic placeholder subtasks so the whole flow is testable at zero
+// cost; the real Claude breakdown takes over automatically once a key is set.
+function demoSubtasks(title: string): z.infer<typeof subtaskSchema>[] {
+  const t = title.trim() || 'this task'
+  return [
+    {
+      title: `Clarify the goal & success criteria for "${t}"`,
+      priority: 'HIGH',
+      estimatedMinutes: 15,
+    },
+    { title: 'Outline the steps and gather what you need', priority: 'MEDIUM', estimatedMinutes: 20 },
+    { title: 'Do the core work', priority: 'HIGH', estimatedMinutes: 60 },
+    { title: 'Review, test, and refine', priority: 'MEDIUM', estimatedMinutes: 20 },
+    { title: 'Wrap up and mark complete', priority: 'LOW', estimatedMinutes: 10 },
+  ]
+}
+
 // ───────────────────────── Agent ─────────────────────────
 
 export type BreakdownInput = {
@@ -90,8 +108,10 @@ export type BreakdownResult = {
 export async function runBreakdownAgent(params: {
   userId: string
   task: BreakdownInput
+  /** When true, skip the Claude call and return free placeholder subtasks. */
+  demo?: boolean
 }): Promise<BreakdownResult> {
-  const { userId, task } = params
+  const { userId, task, demo = false } = params
 
   const run = await prisma.agentRun.create({
     data: {
@@ -99,44 +119,53 @@ export async function runBreakdownAgent(params: {
       taskId: task.id,
       agentType: 'BREAKDOWN',
       status: 'PENDING',
-      input: { taskId: task.id, title: task.title, priority: task.priority },
+      input: { taskId: task.id, title: task.title, priority: task.priority, demo },
     },
   })
 
   try {
-    const userPrompt =
-      `Task: ${task.title}` +
-      (task.description ? `\n\nDetails: ${task.description}` : '') +
-      `\n\nCurrent priority: ${task.priority}`
+    let subtasks: z.infer<typeof subtaskSchema>[]
+    let tokensUsed = 0
 
-    const message = await claude.messages.create({
-      model: AGENT_MODEL,
-      max_tokens: 2048,
-      // Disabled for snappy UX — the forced tool call returns structured
-      // data directly, so reasoning tokens add latency without value here.
-      thinking: { type: 'disabled' },
-      system: [
-        // cache_control is the documented pattern; it only takes effect once
-        // the prompt exceeds the model's minimum cacheable prefix.
-        { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
-      ],
-      tools: [
-        {
-          name: 'create_subtasks',
-          description: 'Record the ordered list of subtasks the parent task breaks down into.',
-          input_schema: CREATE_SUBTASKS_SCHEMA,
-        },
-      ],
-      tool_choice: { type: 'tool', name: 'create_subtasks' },
-      messages: [{ role: 'user', content: userPrompt }],
-    })
+    if (demo) {
+      subtasks = demoSubtasks(task.title)
+    } else {
+      const userPrompt =
+        `Task: ${task.title}` +
+        (task.description ? `\n\nDetails: ${task.description}` : '') +
+        `\n\nCurrent priority: ${task.priority}`
 
-    const toolUse = message.content.find((block) => block.type === 'tool_use')
-    if (!toolUse || toolUse.type !== 'tool_use') {
-      throw new Error('The agent did not return any subtasks.')
+      const message = await claude.messages.create({
+        model: AGENT_MODEL,
+        max_tokens: 2048,
+        // Disabled for snappy UX — the forced tool call returns structured
+        // data directly, so reasoning tokens add latency without value here.
+        thinking: { type: 'disabled' },
+        system: [
+          // cache_control is the documented pattern; it only takes effect once
+          // the prompt exceeds the model's minimum cacheable prefix.
+          { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+        ],
+        tools: [
+          {
+            name: 'create_subtasks',
+            description: 'Record the ordered list of subtasks the parent task breaks down into.',
+            input_schema: CREATE_SUBTASKS_SCHEMA,
+          },
+        ],
+        tool_choice: { type: 'tool', name: 'create_subtasks' },
+        messages: [{ role: 'user', content: userPrompt }],
+      })
+
+      const toolUse = message.content.find((block) => block.type === 'tool_use')
+      if (!toolUse || toolUse.type !== 'tool_use') {
+        throw new Error('The agent did not return any subtasks.')
+      }
+
+      subtasks = breakdownOutputSchema.parse(toolUse.input).subtasks
+      tokensUsed = message.usage.input_tokens + message.usage.output_tokens
     }
 
-    const { subtasks } = breakdownOutputSchema.parse(toolUse.input)
     const capped = subtasks.slice(0, MAX_SUBTASKS)
 
     // Create the child rows in order, in one transaction, so we can return
@@ -155,12 +184,11 @@ export async function runBreakdownAgent(params: {
       ),
     )
 
-    const tokensUsed = message.usage.input_tokens + message.usage.output_tokens
     await prisma.agentRun.update({
       where: { id: run.id },
       data: {
         status: 'SUCCESS',
-        output: { subtasks: capped },
+        output: { demo, subtasks: capped },
         tokensUsed,
         completedAt: new Date(),
       },

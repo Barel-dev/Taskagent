@@ -20,18 +20,15 @@ export async function POST(req: Request) {
     )
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json(
-      { error: 'The Breakdown agent is not configured (missing ANTHROPIC_API_KEY).' },
-      { status: 503 },
-    )
-  }
-
   const task = await getTaskForUser(session.user.id, parsed.data.taskId)
   if (!task) return NextResponse.json({ error: 'Task not found' }, { status: 404 })
   if (task.parentId) {
     return NextResponse.json({ error: 'A subtask can’t be broken down.' }, { status: 400 })
   }
+
+  // No API key → free demo mode (deterministic placeholder subtasks). The real
+  // Claude breakdown runs automatically as soon as ANTHROPIC_API_KEY is set.
+  const demo = !process.env.ANTHROPIC_API_KEY
 
   try {
     const { subtasks } = await runBreakdownAgent({
@@ -42,8 +39,9 @@ export async function POST(req: Request) {
         description: task.description,
         priority: task.priority,
       },
+      demo,
     })
-    return NextResponse.json({ subtasks }, { status: 201 })
+    return NextResponse.json({ subtasks, demo }, { status: 201 })
   } catch (err) {
     console.error('Breakdown agent failed:', err)
     return NextResponse.json(

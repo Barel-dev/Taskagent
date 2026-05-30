@@ -82,7 +82,12 @@ export function TaskItem({
       }
       const newSubtasks: Task[] = data?.subtasks ?? []
       setChildren((prev) => [...prev, ...newSubtasks])
-      toast.success(`Added ${newSubtasks.length} subtask${newSubtasks.length === 1 ? '' : 's'}`)
+      toast.success(
+        `Added ${newSubtasks.length} subtask${newSubtasks.length === 1 ? '' : 's'}`,
+        data?.demo
+          ? { description: 'Demo mode — add an Anthropic API key for real AI breakdowns.' }
+          : undefined,
+      )
     } catch {
       toast.error('Breakdown failed')
     } finally {

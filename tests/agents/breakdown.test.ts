@@ -92,6 +92,25 @@ describe('breakdown agent', () => {
     expect(children).toHaveLength(0)
   })
 
+  it('demo mode creates placeholder subtasks without calling Claude', async () => {
+    const user = await createTestUser({ email: 'demo@x.com' })
+    const task = await createTaskForUser(user.id, { title: 'Write my thesis' })
+
+    const result = await runBreakdownAgent({
+      userId: user.id,
+      task: { id: task.id, title: task.title, description: null, priority: 'MEDIUM' },
+      demo: true,
+    })
+
+    expect(createMock).not.toHaveBeenCalled()
+    expect(result.subtasks.length).toBeGreaterThan(0)
+    expect(result.subtasks[0].parentId).toBe(task.id)
+
+    const run = await prisma.agentRun.findUnique({ where: { id: result.agentRunId } })
+    expect(run?.status).toBe('SUCCESS')
+    expect(run?.tokensUsed).toBe(0)
+  })
+
   it('rejects malformed agent output and logs an ERROR', async () => {
     const user = await createTestUser({ email: 'bad@x.com' })
     const task = await createTaskForUser(user.id, { title: 'Whatever' })
