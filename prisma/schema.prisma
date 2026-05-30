@@ -20,6 +20,22 @@ enum Priority {
   URGENT
 }
 
+// Which specialized agent produced a run. Only BREAKDOWN is wired up today;
+// the rest are declared so the AgentRun log is forward-compatible.
+enum AgentType {
+  BREAKDOWN
+  PRIORITIZER
+  SCHEDULE
+  EMAIL
+  BRIEFING
+}
+
+enum AgentRunStatus {
+  PENDING
+  SUCCESS
+  ERROR
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -29,6 +45,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   tasks         Task[]
+  agentRuns     AgentRun[]
   createdAt     DateTime  @default(now())
 }
 
@@ -80,6 +97,33 @@ model Task {
   updatedAt   DateTime   @updatedAt
   completedAt DateTime?
 
+  // Self-relation: a task can be broken down into ordered subtasks.
+  estimatedMinutes Int?
+  parentId         String?
+  parent           Task?   @relation("Subtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  children         Task[]  @relation("Subtasks")
+
   @@index([userId, status])
   @@index([userId, dueDate])
+  @@index([parentId])
+}
+
+// Audit log for every agent invocation — what went in, what came out,
+// how many tokens it cost. Powers a future usage dashboard and makes the
+// "shipped an AI agent" claim verifiable.
+model AgentRun {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId      String?
+  agentType   AgentType
+  status      AgentRunStatus @default(PENDING)
+  input       Json?
+  output      Json?
+  error       String?
+  tokensUsed  Int?
+  createdAt   DateTime       @default(now())
+  completedAt DateTime?
+
+  @@index([userId, createdAt])
 }

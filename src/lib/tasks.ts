@@ -2,9 +2,14 @@ import { prisma } from '@/lib/prisma'
 import type { CreateTaskInput, UpdateTaskInput } from '@/lib/validators'
 
 export async function listTasksForUser(userId: string) {
+  // Only top-level tasks; their agent-generated subtasks come nested under
+  // `children` so the UI can render them indented beneath the parent.
   return prisma.task.findMany({
-    where: { userId },
+    where: { userId, parentId: null },
     orderBy: [{ status: 'asc' }, { dueDate: 'asc' }, { createdAt: 'desc' }],
+    include: {
+      children: { orderBy: { createdAt: 'asc' } },
+    },
   })
 }
 

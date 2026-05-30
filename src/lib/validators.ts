@@ -20,5 +20,9 @@ export const updateTaskSchema = createTaskSchema
     message: 'At least one field is required',
   })
 
+export const breakdownRequestSchema = z.object({
+  taskId: z.string().min(1, 'taskId is required'),
+})
+
 export type CreateTaskInput = z.infer<typeof createTaskSchema>
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>

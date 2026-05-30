@@ -10,10 +10,14 @@ export default async function TasksPage() {
   if (!session?.user?.id) redirect('/signin')
 
   const tasks = await listTasksForUser(session.user.id)
-  // serialize Date fields for client components
+  // serialize Date fields for client components (parents + nested subtasks)
   const initial = tasks.map((t) => ({
     ...t,
     dueDate: t.dueDate?.toISOString() ?? null,
+    children: t.children.map((c) => ({
+      ...c,
+      dueDate: c.dueDate?.toISOString() ?? null,
+    })),
   })) as Parameters<typeof TaskList>[0]['initialTasks']
 
   return (
