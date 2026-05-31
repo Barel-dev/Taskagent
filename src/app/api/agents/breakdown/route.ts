@@ -22,9 +22,6 @@ export async function POST(req: Request) {
 
   const task = await getTaskForUser(session.user.id, parsed.data.taskId)
   if (!task) return NextResponse.json({ error: 'Task not found' }, { status: 404 })
-  if (task.parentId) {
-    return NextResponse.json({ error: 'A subtask can’t be broken down.' }, { status: 400 })
-  }
 
   // No API key → free demo mode (deterministic placeholder subtasks). The real
   // Gemini breakdown runs automatically as soon as GEMINI_API_KEY is set.

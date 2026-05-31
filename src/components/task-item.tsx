@@ -127,18 +127,16 @@ export function TaskItem({
           </div>
         </div>
         <div className="flex shrink-0 gap-2">
-          {!isSubtask && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={breakDown}
-              disabled={pending || breakingDown}
-              title="Break this task into subtasks with AI"
-            >
-              <Sparkles className={`mr-1 h-3.5 w-3.5 ${breakingDown ? 'animate-spin' : ''}`} />
-              {breakingDown ? 'Breaking down…' : 'Break down'}
-            </Button>
-          )}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={breakDown}
+            disabled={pending || breakingDown}
+            title="Break this into smaller steps with AI"
+          >
+            <Sparkles className={`mr-1 h-3.5 w-3.5 ${breakingDown ? 'animate-spin' : ''}`} />
+            {breakingDown ? 'Breaking down…' : 'Break down'}
+          </Button>
           <Button size="sm" variant="outline" onClick={() => onEdit(task)} disabled={pending}>
             Edit
           </Button>

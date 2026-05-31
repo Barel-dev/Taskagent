@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { Header } from '@/components/header'
 import { TaskList } from '@/components/task-list'
-import { listTasksForUser } from '@/lib/tasks'
+import { listTasksForUser, type TaskNode } from '@/lib/tasks'
 import { ShaderBackground } from '@/components/ui/shader-background'
 
 export default async function TasksPage() {
@@ -10,15 +10,13 @@ export default async function TasksPage() {
   if (!session?.user?.id) redirect('/signin')
 
   const tasks = await listTasksForUser(session.user.id)
-  // serialize Date fields for client components (parents + nested subtasks)
-  const initial = tasks.map((t) => ({
+  // Recursively serialize Date fields for client components (tree of any depth).
+  const serialize = (t: TaskNode): unknown => ({
     ...t,
     dueDate: t.dueDate?.toISOString() ?? null,
-    children: t.children.map((c) => ({
-      ...c,
-      dueDate: c.dueDate?.toISOString() ?? null,
-    })),
-  })) as Parameters<typeof TaskList>[0]['initialTasks']
+    children: t.children.map(serialize),
+  })
+  const initial = tasks.map(serialize) as Parameters<typeof TaskList>[0]['initialTasks']
 
   return (
     <div className="relative isolate min-h-screen">
