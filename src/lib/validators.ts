@@ -24,5 +24,9 @@ export const breakdownRequestSchema = z.object({
   taskId: z.string().min(1, 'taskId is required'),
 })
 
+export const planRequestSchema = z.object({
+  goal: z.string().min(1, 'Describe a goal').max(500),
+})
+
 export type CreateTaskInput = z.infer<typeof createTaskSchema>
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>

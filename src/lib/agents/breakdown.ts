@@ -11,7 +11,7 @@ import { priorityEnum } from '@/lib/validators'
 // (below) constrains the *shape*; this Zod schema enforces the finer
 // constraints (non-empty title, positive integer minutes) that JSON Schema
 // for tool use can't express, and gives us a typed result.
-const subtaskSchema = z.object({
+export const subtaskSchema = z.object({
   title: z.string().min(1).max(200),
   priority: priorityEnum,
   estimatedMinutes: z.number().int().positive().max(100000),
@@ -72,7 +72,7 @@ const MAX_SUBTASKS = 12
 // Free, offline fallback used when no GEMINI_API_KEY is configured.
 // Deterministic placeholder subtasks so the whole flow is testable at zero
 // cost; the real Gemini breakdown takes over automatically once a key is set.
-function demoSubtasks(title: string): z.infer<typeof subtaskSchema>[] {
+export function demoSubtasks(title: string): z.infer<typeof subtaskSchema>[] {
   const t = title.trim() || 'this task'
   return [
     {
