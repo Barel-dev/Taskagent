@@ -24,6 +24,7 @@ enum Priority {
 // the rest are declared so the AgentRun log is forward-compatible.
 enum AgentType {
   BREAKDOWN
+  EXECUTE
   PRIORITIZER
   SCHEDULE
   EMAIL
@@ -96,6 +97,11 @@ model Task {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   completedAt DateTime?
+
+  // Result of the Execute agent actually carrying out this task (e.g. a web
+  // search report), kept so it persists across reloads.
+  result    String?   @db.Text
+  resultAt  DateTime?
 
   // Self-relation: a task can be broken down into ordered subtasks.
   estimatedMinutes Int?

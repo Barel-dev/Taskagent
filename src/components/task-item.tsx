@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, Play, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useRouter } from 'next/navigation'
+
+type Source = { title: string; uri: string }
 
 type Task = {
   id: string
@@ -15,6 +17,7 @@ type Task = {
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   dueDate: string | Date | null
   estimatedMinutes?: number | null
+  result?: string | null
   children?: Task[]
 }
 
@@ -32,6 +35,12 @@ export function TaskItem({
   const [optimisticDone, setOptimisticDone] = useState(task.status === 'DONE')
   const [children, setChildren] = useState<Task[]>(task.children ?? [])
   const [breakingDown, setBreakingDown] = useState(false)
+
+  // Execute ("Do it") agent state
+  const [running, setRunning] = useState(false)
+  const [result, setResult] = useState<string | null>(task.result ?? null)
+  const [sources, setSources] = useState<Source[]>([])
+  const [showResult, setShowResult] = useState(false)
 
   async function toggleDone() {
     const next = optimisticDone ? 'TODO' : 'DONE'
@@ -95,6 +104,35 @@ export function TaskItem({
     }
   }
 
+  async function doIt() {
+    setRunning(true)
+    try {
+      const res = await fetch('/api/agents/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: task.id }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        toast.error(data?.error ?? 'The agent failed')
+        return
+      }
+      setResult(data?.result ?? '')
+      setSources(data?.sources ?? [])
+      setShowResult(true)
+      toast.success(
+        'Agent finished',
+        data?.demo
+          ? { description: 'Demo mode — add a Gemini API key to run real web searches.' }
+          : undefined,
+      )
+    } catch {
+      toast.error('The agent failed')
+    } finally {
+      setRunning(false)
+    }
+  }
+
   return (
     <div>
       <Card className={`flex items-start gap-3 ${isSubtask ? 'p-3' : 'p-4'}`}>
@@ -126,17 +164,28 @@ export function TaskItem({
             {task.dueDate && <span>· due {new Date(task.dueDate).toLocaleDateString()}</span>}
           </div>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 flex-wrap justify-end gap-2">
           <Button
             size="sm"
-            variant="outline"
-            onClick={breakDown}
-            disabled={pending || breakingDown}
-            title="Break this into smaller steps with AI"
+            onClick={doIt}
+            disabled={pending || running}
+            title="Let the agent actually do this task (live web search)"
           >
-            <Sparkles className={`mr-1 h-3.5 w-3.5 ${breakingDown ? 'animate-spin' : ''}`} />
-            {breakingDown ? 'Breaking down…' : 'Break down'}
+            <Play className={`mr-1 h-3.5 w-3.5 ${running ? 'animate-pulse' : ''}`} />
+            {running ? 'Working…' : 'Do it'}
           </Button>
+          {!isSubtask && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={breakDown}
+              disabled={pending || breakingDown}
+              title="Break this task into subtasks with AI"
+            >
+              <Sparkles className={`mr-1 h-3.5 w-3.5 ${breakingDown ? 'animate-spin' : ''}`} />
+              {breakingDown ? 'Breaking down…' : 'Break down'}
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={() => onEdit(task)} disabled={pending}>
             Edit
           </Button>
@@ -145,6 +194,44 @@ export function TaskItem({
           </Button>
         </div>
       </Card>
+
+      {result && (
+        <div className="mt-2 ml-5 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+          <button
+            type="button"
+            onClick={() => setShowResult((v) => !v)}
+            className="flex items-center gap-1.5 text-xs font-medium text-violet-300"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Agent result {showResult ? '▾' : '▸'}
+          </button>
+          {showResult && (
+            <div className="mt-2">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/80">{result}</p>
+              {sources.length > 0 && (
+                <div className="mt-3 border-t border-white/10 pt-2">
+                  <p className="mb-1 text-[11px] uppercase tracking-wide text-white/40">Sources</p>
+                  <ul className="space-y-1">
+                    {sources.map((s, i) => (
+                      <li key={i}>
+                        <a
+                          href={s.uri}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-sky-300 hover:underline"
+                        >
+                          <ExternalLink className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{s.title}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {children.length > 0 && (
         <div className="mt-2 ml-5 space-y-2 border-l border-white/10 pl-4">
