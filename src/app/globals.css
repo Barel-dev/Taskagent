@@ -276,3 +276,78 @@
   }
 }
 
+/* ───── Premium task cards ───── */
+.task-card {
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.task-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(167, 139, 250, 0.35);
+  background-color: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 14px 44px -16px rgba(139, 92, 246, 0.45);
+}
+
+/* Premium gradient action button (Do it / Plan with AI) */
+.btn-gradient {
+  background-image: linear-gradient(110deg, rgb(139, 92, 246), rgb(217, 70, 239));
+  color: white;
+  border: none;
+  box-shadow: 0 6px 22px -8px rgba(167, 139, 250, 0.7);
+}
+.btn-gradient:hover {
+  background-image: linear-gradient(110deg, rgb(124, 58, 237), rgb(192, 38, 211));
+  box-shadow: 0 8px 28px -6px rgba(167, 139, 250, 0.9);
+}
+
+/* Staggered entrance for the task list */
+@keyframes tl-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.tl-rise {
+  animation: tl-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Command bar glow when focused */
+.ai-bar::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(110deg, rgba(167, 139, 250, 0.6), rgba(217, 70, 239, 0.6));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.ai-bar:focus-within::after {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-card,
+  .task-card:hover {
+    transform: none;
+    transition: none;
+  }
+  .tl-rise {
+    animation: none;
+  }
+}
+
