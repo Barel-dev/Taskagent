@@ -28,5 +28,11 @@ export const planRequestSchema = z.object({
   goal: z.string().min(1, 'Describe a goal').max(500),
 })
 
+export const executeRequestSchema = z.object({
+  taskId: z.string().min(1, 'taskId is required'),
+  // Optional answer to the agent's questions / extra details to use.
+  reply: z.string().max(2000).optional(),
+})
+
 export type CreateTaskInput = z.infer<typeof createTaskSchema>
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>

@@ -5,6 +5,7 @@ import { Sparkles, Play, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
 
 type Source = { title: string; uri: string }
@@ -41,6 +42,7 @@ export function TaskItem({
   const [result, setResult] = useState<string | null>(task.result ?? null)
   const [sources, setSources] = useState<Source[]>([])
   const [showResult, setShowResult] = useState(false)
+  const [reply, setReply] = useState('')
 
   async function toggleDone() {
     const next = optimisticDone ? 'TODO' : 'DONE'
@@ -104,13 +106,13 @@ export function TaskItem({
     }
   }
 
-  async function doIt() {
+  async function doIt(replyText?: string) {
     setRunning(true)
     try {
       const res = await fetch('/api/agents/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ taskId: task.id }),
+        body: JSON.stringify({ taskId: task.id, reply: replyText || undefined }),
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) {
@@ -120,8 +122,9 @@ export function TaskItem({
       setResult(data?.result ?? '')
       setSources(data?.sources ?? [])
       setShowResult(true)
+      setReply('')
       toast.success(
-        'Agent finished',
+        replyText ? 'Agent updated with your answer' : 'Agent finished',
         data?.demo
           ? { description: 'Demo mode — add a Gemini API key to run real web searches.' }
           : undefined,
@@ -167,7 +170,7 @@ export function TaskItem({
         <div className="flex shrink-0 flex-wrap justify-end gap-2">
           <Button
             size="sm"
-            onClick={doIt}
+            onClick={() => doIt()}
             disabled={pending || running}
             title="Let the agent actually do this task (live web search)"
           >
@@ -228,6 +231,27 @@ export function TaskItem({
                   </ul>
                 </div>
               )}
+
+              {/* Answer the agent's questions / add details. Saved to the whole
+                  plan so other agents reuse it. */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  if (reply.trim() && !running) doIt(reply.trim())
+                }}
+                className="mt-3 flex gap-2 border-t border-white/10 pt-3"
+              >
+                <Input
+                  value={reply}
+                  onChange={(e) => setReply(e.target.value)}
+                  placeholder="Answer the agent or add details…"
+                  disabled={running}
+                  className="h-8 text-sm"
+                />
+                <Button type="submit" size="sm" variant="outline" disabled={running || !reply.trim()}>
+                  {running ? 'Sending…' : 'Send'}
+                </Button>
+              </form>
             </div>
           )}
         </div>

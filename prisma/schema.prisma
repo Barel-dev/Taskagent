@@ -103,6 +103,11 @@ model Task {
   result    String?   @db.Text
   resultAt  DateTime?
 
+  // Shared context for the whole plan — the user's answers/preferences are
+  // stored on the root task so every agent working on a subtask can read them
+  // and stop asking the same questions.
+  context String? @db.Text
+
   // Self-relation: a task can be broken down into ordered subtasks.
   estimatedMinutes Int?
   parentId         String?
