@@ -1,12 +1,12 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-// Mock the Anthropic client before importing the agent, so no real network
-// call (and no token spend) happens in the suite. vi.mock is hoisted above
-// imports, so the mock fn must come from vi.hoisted to be defined in time.
+// Mock the Gemini client before importing the agent, so no real network call
+// (and no quota use) happens in the suite. vi.mock is hoisted above imports,
+// so the mock fn must come from vi.hoisted to be defined in time.
 const { createMock } = vi.hoisted(() => ({ createMock: vi.fn() }))
-vi.mock('@/lib/claude', () => ({
-  claude: { messages: { create: createMock } },
-  AGENT_MODEL: 'claude-opus-4-8',
+vi.mock('@/lib/gemini', () => ({
+  getGemini: () => ({ models: { generateContent: createMock } }),
+  GEMINI_MODEL: 'gemini-2.5-flash',
 }))
 
 import { runBreakdownAgent } from '@/lib/agents/breakdown'
@@ -16,12 +16,11 @@ import { createTestUser } from '../helpers'
 
 type FakeSubtask = { title: string; priority: string; estimatedMinutes: number }
 
-function mockToolResponse(subtasks: FakeSubtask[]) {
+// Gemini returns the structured output as a JSON string on `response.text`.
+function mockGeminiResponse(subtasks: FakeSubtask[]) {
   return {
-    content: [
-      { type: 'tool_use', id: 'toolu_1', name: 'create_subtasks', input: { subtasks } },
-    ],
-    usage: { input_tokens: 100, output_tokens: 50 },
+    text: JSON.stringify({ subtasks }),
+    usageMetadata: { totalTokenCount: 150 },
   }
 }
 
@@ -34,7 +33,7 @@ describe('breakdown agent', () => {
     const user = await createTestUser()
     const task = await createTaskForUser(user.id, { title: 'Plan trip to Lisbon' })
     createMock.mockResolvedValue(
-      mockToolResponse([
+      mockGeminiResponse([
         { title: 'Book round-trip flights', priority: 'HIGH', estimatedMinutes: 30 },
         { title: 'Reserve a hotel', priority: 'MEDIUM', estimatedMinutes: 20 },
         { title: 'Make a packing list', priority: 'LOW', estimatedMinutes: 15 },
@@ -115,7 +114,7 @@ describe('breakdown agent', () => {
     const user = await createTestUser({ email: 'bad@x.com' })
     const task = await createTaskForUser(user.id, { title: 'Whatever' })
     createMock.mockResolvedValue(
-      mockToolResponse([{ title: '', priority: 'NOPE', estimatedMinutes: -1 }]),
+      mockGeminiResponse([{ title: '', priority: 'NOPE', estimatedMinutes: -1 }]),
     )
 
     await expect(

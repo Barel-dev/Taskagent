@@ -85,7 +85,7 @@ export function TaskItem({
       toast.success(
         `Added ${newSubtasks.length} subtask${newSubtasks.length === 1 ? '' : 's'}`,
         data?.demo
-          ? { description: 'Demo mode — add an Anthropic API key for real AI breakdowns.' }
+          ? { description: 'Demo mode — add a Gemini API key for real AI breakdowns.' }
           : undefined,
       )
     } catch {

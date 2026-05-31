@@ -480,7 +480,7 @@ export default async function Landing() {
               </p>
               <ul className="space-y-2 text-sm text-white/70">
                 <li>Next.js 15</li>
-                <li>Anthropic Claude</li>
+                <li>Google Gemini</li>
                 <li>PostgreSQL</li>
                 <li>NextAuth</li>
               </ul>

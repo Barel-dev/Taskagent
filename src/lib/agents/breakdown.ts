@@ -1,7 +1,7 @@
 import { z } from 'zod'
-import type Anthropic from '@anthropic-ai/sdk'
+import { Type } from '@google/genai'
 import type { Priority, Task } from '@prisma/client'
-import { claude, AGENT_MODEL } from '@/lib/claude'
+import { getGemini, GEMINI_MODEL } from '@/lib/gemini'
 import { prisma } from '@/lib/prisma'
 import { priorityEnum } from '@/lib/validators'
 
@@ -21,36 +21,37 @@ const breakdownOutputSchema = z.object({
   subtasks: z.array(subtaskSchema).min(1),
 })
 
-// JSON Schema for the forced `create_subtasks` tool call. Keep in sync with
-// the Zod schema above.
-const CREATE_SUBTASKS_SCHEMA: Anthropic.Tool.InputSchema = {
-  type: 'object',
-  additionalProperties: false,
+// Gemini structured-output schema (OpenAPI 3.0 subset). Keep in sync with the
+// Zod schema above — Zod re-validates the response, enforcing the finer
+// constraints this schema can't express.
+const RESPONSE_SCHEMA = {
+  type: Type.OBJECT,
   properties: {
     subtasks: {
-      type: 'array',
+      type: Type.ARRAY,
       description: 'The ordered subtasks, in the sequence they should be done.',
       items: {
-        type: 'object',
-        additionalProperties: false,
+        type: Type.OBJECT,
         properties: {
-          title: { type: 'string', description: 'A specific, actionable subtask.' },
+          title: { type: Type.STRING, description: 'A specific, actionable subtask.' },
           priority: {
-            type: 'string',
+            type: Type.STRING,
             enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'],
             description: 'How blocking/urgent this subtask is relative to the others.',
           },
           estimatedMinutes: {
-            type: 'integer',
+            type: Type.INTEGER,
             description: 'Realistic whole-number estimate of focused work, in minutes.',
           },
         },
         required: ['title', 'priority', 'estimatedMinutes'],
+        propertyOrdering: ['title', 'priority', 'estimatedMinutes'],
       },
     },
   },
   required: ['subtasks'],
-} as const
+  propertyOrdering: ['subtasks'],
+}
 
 const SYSTEM_PROMPT = `You are the Breakdown agent inside TaskAgent, a personal task manager.
 Given a single task, decompose it into 3-7 concrete, ordered subtasks the user can act on immediately.
@@ -63,14 +64,14 @@ Rules:
 - Keep each title under ~80 characters.
 - Do not restate the parent task as a subtask, and do not add filler steps like "review the plan" or "get started".
 
-Always respond by calling the create_subtasks tool.`
+Return only the subtasks as JSON matching the provided schema.`
 
 // Defensive cap so a misbehaving response can't create hundreds of rows.
 const MAX_SUBTASKS = 12
 
-// Free, offline fallback used when no ANTHROPIC_API_KEY is configured.
+// Free, offline fallback used when no GEMINI_API_KEY is configured.
 // Deterministic placeholder subtasks so the whole flow is testable at zero
-// cost; the real Claude breakdown takes over automatically once a key is set.
+// cost; the real Gemini breakdown takes over automatically once a key is set.
 function demoSubtasks(title: string): z.infer<typeof subtaskSchema>[] {
   const t = title.trim() || 'this task'
   return [
@@ -108,7 +109,7 @@ export type BreakdownResult = {
 export async function runBreakdownAgent(params: {
   userId: string
   task: BreakdownInput
-  /** When true, skip the Claude call and return free placeholder subtasks. */
+  /** When true, skip the Gemini call and return free placeholder subtasks. */
   demo?: boolean
 }): Promise<BreakdownResult> {
   const { userId, task, demo = false } = params
@@ -135,35 +136,23 @@ export async function runBreakdownAgent(params: {
         (task.description ? `\n\nDetails: ${task.description}` : '') +
         `\n\nCurrent priority: ${task.priority}`
 
-      const message = await claude.messages.create({
-        model: AGENT_MODEL,
-        max_tokens: 2048,
-        // Disabled for snappy UX — the forced tool call returns structured
-        // data directly, so reasoning tokens add latency without value here.
-        thinking: { type: 'disabled' },
-        system: [
-          // cache_control is the documented pattern; it only takes effect once
-          // the prompt exceeds the model's minimum cacheable prefix.
-          { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
-        ],
-        tools: [
-          {
-            name: 'create_subtasks',
-            description: 'Record the ordered list of subtasks the parent task breaks down into.',
-            input_schema: CREATE_SUBTASKS_SCHEMA,
-          },
-        ],
-        tool_choice: { type: 'tool', name: 'create_subtasks' },
-        messages: [{ role: 'user', content: userPrompt }],
+      const response = await getGemini().models.generateContent({
+        model: GEMINI_MODEL,
+        contents: userPrompt,
+        config: {
+          systemInstruction: SYSTEM_PROMPT,
+          responseMimeType: 'application/json',
+          responseSchema: RESPONSE_SCHEMA,
+        },
       })
 
-      const toolUse = message.content.find((block) => block.type === 'tool_use')
-      if (!toolUse || toolUse.type !== 'tool_use') {
+      const text = response.text
+      if (!text) {
         throw new Error('The agent did not return any subtasks.')
       }
 
-      subtasks = breakdownOutputSchema.parse(toolUse.input).subtasks
-      tokensUsed = message.usage.input_tokens + message.usage.output_tokens
+      subtasks = breakdownOutputSchema.parse(JSON.parse(text)).subtasks
+      tokensUsed = response.usageMetadata?.totalTokenCount ?? 0
     }
 
     const capped = subtasks.slice(0, MAX_SUBTASKS)

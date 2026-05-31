@@ -4,7 +4,7 @@ import { breakdownRequestSchema } from '@/lib/validators'
 import { getTaskForUser } from '@/lib/tasks'
 import { runBreakdownAgent } from '@/lib/agents/breakdown'
 
-// The Anthropic call can take several seconds; give the route room to run.
+// The Gemini call can take several seconds; give the route room to run.
 export const maxDuration = 60
 
 export async function POST(req: Request) {
@@ -27,8 +27,8 @@ export async function POST(req: Request) {
   }
 
   // No API key → free demo mode (deterministic placeholder subtasks). The real
-  // Claude breakdown runs automatically as soon as ANTHROPIC_API_KEY is set.
-  const demo = !process.env.ANTHROPIC_API_KEY
+  // Gemini breakdown runs automatically as soon as GEMINI_API_KEY is set.
+  const demo = !process.env.GEMINI_API_KEY
 
   try {
     const { subtasks } = await runBreakdownAgent({
