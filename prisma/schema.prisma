@@ -103,6 +103,11 @@ model Task {
   result    String?   @db.Text
   resultAt  DateTime?
 
+  // A plan summary produced by the Summarize agent (rolls up subtasks + their
+  // results), persisted for reloads.
+  summary   String?   @db.Text
+  summaryAt DateTime?
+
   // Shared context for the whole plan — the user's answers/preferences are
   // stored on the root task so every agent working on a subtask can read them
   // and stop asking the same questions.

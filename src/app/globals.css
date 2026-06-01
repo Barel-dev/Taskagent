@@ -286,22 +286,22 @@
 }
 
 .task-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(167, 139, 250, 0.35);
-  background-color: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 14px 44px -16px rgba(139, 92, 246, 0.45);
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.18);
+  background-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 34px -18px rgba(0, 0, 0, 0.8);
 }
 
-/* Premium gradient action button (Do it / Plan with AI) */
-.btn-gradient {
-  background-image: linear-gradient(110deg, rgb(139, 92, 246), rgb(217, 70, 239));
-  color: white;
-  border: none;
-  box-shadow: 0 6px 22px -8px rgba(167, 139, 250, 0.7);
+/* Quiet accent action button — calm, no neon gradient */
+.btn-accent {
+  background-color: rgba(139, 92, 246, 0.14);
+  color: rgb(221, 214, 254);
+  border: 1px solid rgba(167, 139, 250, 0.3);
 }
-.btn-gradient:hover {
-  background-image: linear-gradient(110deg, rgb(124, 58, 237), rgb(192, 38, 211));
-  box-shadow: 0 8px 28px -6px rgba(167, 139, 250, 0.9);
+.btn-accent:hover {
+  background-color: rgba(139, 92, 246, 0.22);
+  border-color: rgba(167, 139, 250, 0.5);
+  color: rgb(237, 233, 254);
 }
 
 /* Staggered entrance for the task list */
@@ -326,7 +326,7 @@
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(110deg, rgba(167, 139, 250, 0.6), rgba(217, 70, 239, 0.6));
+  background: linear-gradient(110deg, rgba(167, 139, 250, 0.45), rgba(167, 139, 250, 0.15));
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);

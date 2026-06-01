@@ -55,10 +55,7 @@ export function TaskList({ initialTasks }: { initialTasks: Task[] }) {
           TaskAgent
         </p>
         <h2 className="mt-1.5 text-3xl font-semibold tracking-tight text-white">
-          Your{' '}
-          <span className="bg-gradient-to-r from-violet-300 to-fuchsia-300 bg-clip-text text-transparent">
-            tasks
-          </span>
+          Your <span className="text-violet-300">tasks</span>
         </h2>
         <p className="mt-1.5 text-sm text-white/50">
           Describe a goal and an agent builds it — or hit <span className="text-white/70">Do it</span>{' '}
@@ -78,7 +75,7 @@ export function TaskList({ initialTasks }: { initialTasks: Task[] }) {
             aria-label="Describe a goal for the agent"
             className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/35 focus:outline-none"
           />
-          <Button type="submit" size="sm" disabled={planning || !goal.trim()} className="btn-gradient">
+          <Button type="submit" size="sm" disabled={planning || !goal.trim()} className="btn-accent">
             <Sparkles className={`mr-1 h-3.5 w-3.5 ${planning ? 'animate-spin' : ''}`} />
             {planning ? 'Planning…' : 'Plan with AI'}
           </Button>

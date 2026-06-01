@@ -1,7 +1,18 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Sparkles, Play, ExternalLink, Check, Pencil, Trash2, Clock, CalendarDays } from 'lucide-react'
+import {
+  Sparkles,
+  Play,
+  ListChecks,
+  FileText,
+  ExternalLink,
+  Check,
+  Pencil,
+  Trash2,
+  Clock,
+  CalendarDays,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,15 +30,15 @@ type Task = {
   dueDate: string | Date | null
   estimatedMinutes?: number | null
   result?: string | null
+  summary?: string | null
   children?: Task[]
 }
 
-// Priority → color tokens (dot, label, accent bar).
-const PRIORITY: Record<Priority, { dot: string; label: string; bar: string }> = {
-  LOW: { dot: 'bg-slate-400', label: 'text-slate-300', bar: 'rgb(148,163,184)' },
-  MEDIUM: { dot: 'bg-sky-400', label: 'text-sky-300', bar: 'rgb(56,189,248)' },
-  HIGH: { dot: 'bg-amber-400', label: 'text-amber-300', bar: 'rgb(251,191,36)' },
-  URGENT: { dot: 'bg-rose-500', label: 'text-rose-300', bar: 'rgb(244,63,94)' },
+const PRIORITY: Record<Priority, { dot: string; label: string }> = {
+  LOW: { dot: 'bg-slate-400', label: 'text-slate-300' },
+  MEDIUM: { dot: 'bg-sky-400', label: 'text-sky-300' },
+  HIGH: { dot: 'bg-amber-400', label: 'text-amber-300' },
+  URGENT: { dot: 'bg-rose-500', label: 'text-rose-300' },
 }
 
 export function TaskItem({
@@ -42,16 +53,21 @@ export function TaskItem({
   const router = useRouter()
   const [pending, start] = useTransition()
   const [optimisticDone, setOptimisticDone] = useState(task.status === 'DONE')
-  const [children, setChildren] = useState<Task[]>(task.children ?? [])
+  const [children] = useState<Task[]>(task.children ?? [])
   const [breakingDown, setBreakingDown] = useState(false)
 
   const [running, setRunning] = useState(false)
+  const [runningAll, setRunningAll] = useState(false)
+  const [summarizing, setSummarizing] = useState(false)
   const [result, setResult] = useState<string | null>(task.result ?? null)
+  const [summary, setSummary] = useState<string | null>(task.summary ?? null)
   const [sources, setSources] = useState<Source[]>([])
   const [showResult, setShowResult] = useState(false)
+  const [showSummary, setShowSummary] = useState(Boolean(task.summary))
   const [reply, setReply] = useState('')
 
   const pr = PRIORITY[task.priority]
+  const hasChildren = children.length > 0
 
   async function toggleDone() {
     const next = optimisticDone ? 'TODO' : 'DONE'
@@ -75,7 +91,7 @@ export function TaskItem({
   }
 
   async function remove() {
-    if (!confirm(isSubtask ? 'Delete this subtask?' : 'Delete this task?')) return
+    if (!confirm(isSubtask ? 'Delete this subtask?' : 'Delete this task and its subtasks?')) return
     start(async () => {
       const res = await fetch(`/api/tasks/${task.id}`, { method: 'DELETE' })
       if (!res.ok) {
@@ -100,14 +116,13 @@ export function TaskItem({
         toast.error(data?.error ?? 'Breakdown failed')
         return
       }
-      const newSubtasks: Task[] = data?.subtasks ?? []
-      setChildren((prev) => [...prev, ...newSubtasks])
       toast.success(
-        `Added ${newSubtasks.length} subtask${newSubtasks.length === 1 ? '' : 's'}`,
+        `Added ${data?.subtasks?.length ?? 0} subtasks`,
         data?.demo
           ? { description: 'Demo mode — add a Gemini API key for real AI breakdowns.' }
           : undefined,
       )
+      router.refresh()
     } catch {
       toast.error('Breakdown failed')
     } finally {
@@ -145,22 +160,72 @@ export function TaskItem({
     }
   }
 
+  async function doAll() {
+    setRunningAll(true)
+    try {
+      const res = await fetch('/api/agents/run-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: task.id }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        toast.error(data?.error ?? 'Run all failed')
+        return
+      }
+      toast.success(
+        `Agent ran ${data?.ran ?? 0} subtask${data?.ran === 1 ? '' : 's'}`,
+        data?.demo
+          ? { description: 'Demo mode — add a Gemini API key for real runs.' }
+          : undefined,
+      )
+      router.refresh()
+    } catch {
+      toast.error('Run all failed')
+    } finally {
+      setRunningAll(false)
+    }
+  }
+
+  async function summarize() {
+    setSummarizing(true)
+    try {
+      const res = await fetch('/api/agents/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: task.id }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        toast.error(data?.error ?? 'Summary failed')
+        return
+      }
+      setSummary(data?.summary ?? '')
+      setShowSummary(true)
+      toast.success(
+        'Summary ready',
+        data?.demo ? { description: 'Demo mode — add a Gemini API key.' } : undefined,
+      )
+    } catch {
+      toast.error('Summary failed')
+    } finally {
+      setSummarizing(false)
+    }
+  }
+
+  const panelClass =
+    'mt-2 ml-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm'
+  const panelHeader =
+    'flex w-full items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white/70'
+
   return (
     <div>
       <div
-        className={`task-card relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm ${
-          optimisticDone ? 'opacity-60' : ''
+        className={`task-card relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] backdrop-blur-sm ${
+          optimisticDone ? 'opacity-55' : ''
         }`}
       >
-        {/* priority accent bar */}
-        <span
-          aria-hidden
-          className="absolute inset-y-0 left-0 w-1"
-          style={{ background: pr.bar }}
-        />
-
-        <div className={`flex items-start gap-3 ${isSubtask ? 'p-3 pl-5' : 'p-4 pl-5'}`}>
-          {/* custom checkbox */}
+        <div className={`flex items-start gap-3 ${isSubtask ? 'p-3' : 'p-4'}`}>
           <button
             type="button"
             onClick={toggleDone}
@@ -169,7 +234,7 @@ export function TaskItem({
             className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all ${
               optimisticDone
                 ? 'border-violet-400 bg-violet-500 text-white'
-                : 'border-white/25 hover:border-violet-400/60'
+                : 'border-white/25 hover:border-violet-300/60'
             }`}
           >
             {optimisticDone && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
@@ -187,51 +252,78 @@ export function TaskItem({
             >
               {task.title}
             </div>
-            {task.description && (
-              <p className="mt-1 text-sm text-white/55">{task.description}</p>
-            )}
+            {task.description && <p className="mt-1 text-sm text-white/55">{task.description}</p>}
             <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-2 py-0.5">
+              <span className="inline-flex items-center gap-1.5">
                 <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
                 <span className={`font-medium ${pr.label}`}>{task.priority}</span>
               </span>
               {task.estimatedMinutes != null && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-white/55">
+                <span className="inline-flex items-center gap-1 text-white/45">
                   <Clock className="h-3 w-3" />~{task.estimatedMinutes}m
                 </span>
               )}
               {task.dueDate && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-white/55">
+                <span className="inline-flex items-center gap-1 text-white/45">
                   <CalendarDays className="h-3 w-3" />
                   {new Date(task.dueDate).toLocaleDateString()}
                 </span>
               )}
+              {hasChildren && <span className="text-white/35">· {children.length} subtasks</span>}
             </div>
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
-            <Button
-              size="sm"
-              onClick={() => doIt()}
-              disabled={pending || running}
-              className="btn-gradient"
-              title="Let the agent actually do this task (live web search)"
-            >
-              <Play className={`mr-1 h-3.5 w-3.5 ${running ? 'animate-pulse' : ''}`} />
-              {running ? 'Working…' : 'Do it'}
-            </Button>
-            {!isSubtask && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={breakDown}
-                disabled={pending || breakingDown}
-                className="border-violet-400/25 text-violet-200 hover:bg-violet-500/10"
-                title="Break this task into subtasks with AI"
-              >
-                <Sparkles className={`mr-1 h-3.5 w-3.5 ${breakingDown ? 'animate-spin' : ''}`} />
-                {breakingDown ? '…' : 'Break down'}
-              </Button>
+            {hasChildren ? (
+              <>
+                <Button
+                  size="sm"
+                  onClick={doAll}
+                  disabled={pending || runningAll}
+                  className="btn-accent"
+                  title="Run every subtask with the agent"
+                >
+                  <ListChecks className={`mr-1 h-3.5 w-3.5 ${runningAll ? 'animate-pulse' : ''}`} />
+                  {runningAll ? 'Running…' : 'Do all'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={summarize}
+                  disabled={pending || summarizing}
+                  className="border-white/15 text-white/70 hover:bg-white/5"
+                  title="Summarize this plan"
+                >
+                  <FileText className={`mr-1 h-3.5 w-3.5 ${summarizing ? 'animate-pulse' : ''}`} />
+                  {summarizing ? '…' : 'Summary'}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  size="sm"
+                  onClick={() => doIt()}
+                  disabled={pending || running}
+                  className="btn-accent"
+                  title="Let the agent actually do this task (live web search)"
+                >
+                  <Play className={`mr-1 h-3.5 w-3.5 ${running ? 'animate-pulse' : ''}`} />
+                  {running ? 'Working…' : 'Do it'}
+                </Button>
+                {!isSubtask && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={breakDown}
+                    disabled={pending || breakingDown}
+                    className="border-white/15 text-white/70 hover:bg-white/5"
+                    title="Break this task into subtasks"
+                  >
+                    <Sparkles className={`mr-1 h-3.5 w-3.5 ${breakingDown ? 'animate-spin' : ''}`} />
+                    {breakingDown ? '…' : 'Break down'}
+                  </Button>
+                )}
+              </>
             )}
             <Button
               size="icon-sm"
@@ -239,7 +331,7 @@ export function TaskItem({
               onClick={() => onEdit(task)}
               disabled={pending}
               title="Edit"
-              className="text-white/50 hover:text-white"
+              className="text-white/40 hover:text-white"
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>
@@ -249,7 +341,7 @@ export function TaskItem({
               onClick={remove}
               disabled={pending}
               title="Delete"
-              className="text-white/50 hover:text-rose-300"
+              className="text-white/40 hover:text-rose-300"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
@@ -257,14 +349,25 @@ export function TaskItem({
         </div>
       </div>
 
+      {summary && (
+        <div className={panelClass}>
+          <button type="button" onClick={() => setShowSummary((v) => !v)} className={panelHeader}>
+            <FileText className="h-3.5 w-3.5 text-sky-300" />
+            Summary
+            <span className="ml-auto text-white/40">{showSummary ? '▾' : '▸'}</span>
+          </button>
+          {showSummary && (
+            <div className="px-3 pb-3">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/80">{summary}</p>
+            </div>
+          )}
+        </div>
+      )}
+
       {result && (
-        <div className="mt-2 ml-5 overflow-hidden rounded-xl border border-violet-400/20 bg-violet-500/[0.04] backdrop-blur-sm">
-          <button
-            type="button"
-            onClick={() => setShowResult((v) => !v)}
-            className="flex w-full items-center gap-1.5 px-3 py-2 text-xs font-semibold text-violet-200"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
+        <div className={panelClass}>
+          <button type="button" onClick={() => setShowResult((v) => !v)} className={panelHeader}>
+            <Play className="h-3.5 w-3.5 text-violet-300" />
             Agent result
             <span className="ml-auto text-white/40">{showResult ? '▾' : '▸'}</span>
           </button>
@@ -305,12 +408,7 @@ export function TaskItem({
                   disabled={running}
                   className="h-8 border-white/10 bg-white/5 text-sm"
                 />
-                <Button
-                  type="submit"
-                  size="sm"
-                  disabled={running || !reply.trim()}
-                  className="btn-gradient"
-                >
+                <Button type="submit" size="sm" disabled={running || !reply.trim()} className="btn-accent">
                   {running ? 'Sending…' : 'Send'}
                 </Button>
               </form>
@@ -320,7 +418,7 @@ export function TaskItem({
       )}
 
       {children.length > 0 && (
-        <div className="mt-2 ml-5 space-y-2 border-l-2 border-violet-400/20 pl-4">
+        <div className="mt-2 ml-4 space-y-2 border-l border-white/10 pl-4">
           {children.map((child) => (
             <TaskItem key={child.id} task={child} onEdit={onEdit} isSubtask />
           ))}
