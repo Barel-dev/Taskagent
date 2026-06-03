@@ -6,6 +6,12 @@ vi.mock('@/lib/gemini', () => ({
   GEMINI_MODEL: 'gemini-2.5-flash',
 }))
 
+// Avoid real network fetches for link previews; pass sources through enriched.
+vi.mock('@/lib/link-preview', () => ({
+  fetchLinkPreviews: (sources: { uri: string; title: string }[]) =>
+    Promise.resolve(sources.map((s) => ({ ...s, siteName: 'example.com' }))),
+}))
+
 import { runExecuteAgent } from '@/lib/agents/execute'
 import { createTaskForUser } from '@/lib/tasks'
 import { prisma } from '@/lib/prisma'

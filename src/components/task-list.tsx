@@ -19,8 +19,17 @@ export type TaskNodeUI = {
   dueDate: string | Date | null
   estimatedMinutes?: number | null
   result?: string | null
+  resultData?: { sources?: RichSourceUI[] } | null
   summary?: string | null
   children?: TaskNodeUI[]
+}
+
+export type RichSourceUI = {
+  uri: string
+  title: string
+  image?: string
+  description?: string
+  siteName?: string
 }
 
 export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {

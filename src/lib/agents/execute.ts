@@ -1,6 +1,7 @@
 import type { Task } from '@prisma/client'
 import { getGemini, GEMINI_MODEL } from '@/lib/gemini'
 import { prisma } from '@/lib/prisma'
+import { fetchLinkPreviews, type RichSource } from '@/lib/link-preview'
 
 // The Execute agent actually *carries out* a task using live Google Search
 // (grounding), rather than planning or breaking it down. For "search for a
@@ -10,7 +11,7 @@ import { prisma } from '@/lib/prisma'
 // the plan (the overall goal, the user's saved answers, and sibling steps with
 // their results) so it doesn't re-ask things that are already known.
 
-export type ExecuteSource = { title: string; uri: string }
+export type ExecuteSource = RichSource
 export type ExecuteResult = {
   agentRunId: string
   result: string
@@ -100,7 +101,7 @@ export async function runExecuteAgent(params: {
 
   try {
     let result: string
-    const sources: ExecuteSource[] = []
+    let sources: ExecuteSource[] = []
     let tokensUsed = 0
 
     if (demo) {
@@ -131,19 +132,22 @@ export async function runExecuteAgent(params: {
 
       const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks ?? []
       const seen = new Set<string>()
+      const base: { uri: string; title: string }[] = []
       for (const chunk of chunks) {
         const uri = chunk.web?.uri
         if (uri && !seen.has(uri)) {
           seen.add(uri)
-          sources.push({ uri, title: chunk.web?.title ?? uri })
+          base.push({ uri, title: chunk.web?.title ?? uri })
         }
       }
+      // Enrich into rich preview cards (thumbnail image + description).
+      sources = await fetchLinkPreviews(base)
     }
 
-    // Persist the result on the task so it survives a reload.
+    // Persist the result + rich sources on the task so they survive a reload.
     await prisma.task.update({
       where: { id: task.id },
-      data: { result, resultAt: new Date() },
+      data: { result, resultAt: new Date(), resultData: { sources } },
     })
 
     // Sync: save the user's answer onto the plan's root so every other agent

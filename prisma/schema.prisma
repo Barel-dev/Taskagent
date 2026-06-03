@@ -102,6 +102,8 @@ model Task {
   // search report), kept so it persists across reloads.
   result    String?   @db.Text
   resultAt  DateTime?
+  // Rich source cards (web previews with images) from the Execute agent.
+  resultData Json?
 
   // A plan summary produced by the Summarize agent (rolls up subtasks + their
   // results), persisted for reloads.

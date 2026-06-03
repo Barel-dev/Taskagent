@@ -7,7 +7,7 @@ import {
   Play,
   ListChecks,
   FileText,
-  ExternalLink,
+  Globe,
   Check,
   Pencil,
   Trash2,
@@ -18,9 +18,9 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
-import type { TaskNodeUI } from '@/components/task-list'
+import type { TaskNodeUI, RichSourceUI } from '@/components/task-list'
 
-type Source = { title: string; uri: string }
+type Source = RichSourceUI
 type Child = TaskNodeUI & { _sources?: Source[]; _done?: boolean }
 
 const PRIORITY: Record<TaskNodeUI['priority'], { dot: string; label: string }> = {
@@ -51,7 +51,11 @@ export function TaskDetail({
 }) {
   const router = useRouter()
   const [children, setChildren] = useState<Child[]>(
-    (task.children ?? []).map((c) => ({ ...c, _done: c.status === 'DONE' })),
+    (task.children ?? []).map((c) => ({
+      ...c,
+      _done: c.status === 'DONE',
+      _sources: c.resultData?.sources ?? [],
+    })),
   )
   const [summary, setSummary] = useState<string | null>(task.summary ?? null)
   const [runningAll, setRunningAll] = useState(false)
@@ -61,7 +65,7 @@ export function TaskDetail({
 
   // Parent-as-leaf execute state (task with no subtasks)
   const [parentResult, setParentResult] = useState<string | null>(task.result ?? null)
-  const [parentSources, setParentSources] = useState<Source[]>([])
+  const [parentSources, setParentSources] = useState<Source[]>(task.resultData?.sources ?? [])
   const [runningParent, setRunningParent] = useState(false)
 
   const pr = PRIORITY[task.priority]
@@ -366,6 +370,28 @@ function Panel({
   )
 }
 
+/* ───────── Source thumbnail with fallback ───────── */
+function Thumb({ src }: { src?: string }) {
+  const [err, setErr] = useState(false)
+  if (!src || err) {
+    return (
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-white/5">
+        <Globe className="h-5 w-5 text-white/30" />
+      </div>
+    )
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
+      loading="lazy"
+      onError={() => setErr(true)}
+      className="h-14 w-14 shrink-0 rounded-md object-cover"
+    />
+  )
+}
+
 /* ───────── Result body (text + sources + answer) ───────── */
 function ResultBody({
   result,
@@ -383,19 +409,31 @@ function ResultBody({
     <div>
       <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/80">{result}</p>
       {sources.length > 0 && (
-        <div className="mt-3 border-t border-white/10 pt-2">
-          <p className="mb-1.5 text-[10px] uppercase tracking-wider text-white/40">Sources</p>
-          <div className="flex flex-wrap gap-1.5">
+        <div className="mt-3 border-t border-white/10 pt-3">
+          <p className="mb-2 text-[10px] uppercase tracking-wider text-white/40">
+            Sources &amp; results
+          </p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {sources.map((s, i) => (
               <a
                 key={i}
                 href={s.uri}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex max-w-[15rem] items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs text-sky-300 transition-colors hover:border-sky-400/40 hover:bg-sky-500/10"
+                className="group flex gap-2.5 overflow-hidden rounded-lg border border-white/10 bg-white/[0.04] p-2 transition-colors hover:border-white/25 hover:bg-white/[0.07]"
               >
-                <ExternalLink className="h-3 w-3 shrink-0" />
-                <span className="truncate">{s.title}</span>
+                <Thumb src={s.image} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-xs font-medium text-white/85 group-hover:text-white">
+                    {s.title}
+                  </div>
+                  <div className="truncate text-[10px] text-white/40">{s.siteName}</div>
+                  {s.description && (
+                    <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-white/50">
+                      {s.description}
+                    </p>
+                  )}
+                </div>
               </a>
             ))}
           </div>
