@@ -4,16 +4,29 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sparkles, Plus } from 'lucide-react'
 import { toast } from 'sonner'
-import { TaskItem } from '@/components/task-item'
+import { TaskTile } from '@/components/task-tile'
+import { TaskDetail } from '@/components/task-detail'
 import { TaskForm } from '@/components/task-form'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
-type Task = Parameters<typeof TaskItem>[0]['task']
+export type TaskNodeUI = {
+  id: string
+  title: string
+  description: string | null
+  status: 'TODO' | 'IN_PROGRESS' | 'DONE'
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+  dueDate: string | Date | null
+  estimatedMinutes?: number | null
+  result?: string | null
+  summary?: string | null
+  children?: TaskNodeUI[]
+}
 
-export function TaskList({ initialTasks }: { initialTasks: Task[] }) {
+export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
   const router = useRouter()
-  const [editing, setEditing] = useState<Task | null>(null)
+  const [selected, setSelected] = useState<TaskNodeUI | null>(null)
+  const [editing, setEditing] = useState<TaskNodeUI | null>(null)
   const [creating, setCreating] = useState(false)
   const [goal, setGoal] = useState('')
   const [planning, setPlanning] = useState(false)
@@ -48,8 +61,7 @@ export function TaskList({ initialTasks }: { initialTasks: Task[] }) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-6 py-10">
-      {/* Header */}
+    <div className="mx-auto max-w-5xl space-y-6 px-6 py-10">
       <header className="tl-rise">
         <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-violet-300/70">
           TaskAgent
@@ -58,12 +70,11 @@ export function TaskList({ initialTasks }: { initialTasks: Task[] }) {
           Your <span className="text-violet-300">tasks</span>
         </h2>
         <p className="mt-1.5 text-sm text-white/50">
-          Describe a goal and an agent builds it — or hit <span className="text-white/70">Do it</span>{' '}
-          to have an agent actually carry a task out.
+          Describe a goal and an agent builds it. Open any task to run, summarize, and answer its
+          agents.
         </p>
       </header>
 
-      {/* AI command bar */}
       <form onSubmit={planWithAi} className="tl-rise" style={{ animationDelay: '60ms' }}>
         <div className="ai-bar relative flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-2 backdrop-blur-sm transition-colors focus-within:border-violet-400/40">
           <Sparkles className="ml-2 h-4 w-4 shrink-0 text-violet-300" />
@@ -82,8 +93,10 @@ export function TaskList({ initialTasks }: { initialTasks: Task[] }) {
         </div>
       </form>
 
-      {/* Toolbar */}
-      <div className="flex items-center justify-between tl-rise" style={{ animationDelay: '120ms' }}>
+      <div
+        className="flex items-center justify-between tl-rise"
+        style={{ animationDelay: '120ms' }}
+      >
         <span className="text-xs text-white/40">
           {initialTasks.length} {initialTasks.length === 1 ? 'task' : 'tasks'}
         </span>
@@ -99,7 +112,7 @@ export function TaskList({ initialTasks }: { initialTasks: Task[] }) {
       </div>
 
       {initialTasks.length === 0 && (
-        <div className="tl-rise rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-12 text-center">
+        <div className="tl-rise rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
           <Sparkles className="mx-auto h-6 w-6 text-violet-300/60" />
           <p className="mt-3 text-sm text-white/60">No tasks yet.</p>
           <p className="mt-1 text-xs text-white/40">
@@ -108,13 +121,24 @@ export function TaskList({ initialTasks }: { initialTasks: Task[] }) {
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {initialTasks.map((t, i) => (
-          <div key={t.id} className="tl-rise" style={{ animationDelay: `${160 + i * 50}ms` }}>
-            <TaskItem task={t} onEdit={setEditing} />
+          <div key={t.id} className="tl-rise" style={{ animationDelay: `${160 + i * 45}ms` }}>
+            <TaskTile task={t} onOpen={() => setSelected(t)} />
           </div>
         ))}
       </div>
+
+      {selected && (
+        <TaskDetail
+          task={selected}
+          onClose={() => setSelected(null)}
+          onEdit={(t) => {
+            setSelected(null)
+            setEditing(t)
+          }}
+        />
+      )}
 
       <Dialog open={creating} onOpenChange={setCreating}>
         <DialogContent>

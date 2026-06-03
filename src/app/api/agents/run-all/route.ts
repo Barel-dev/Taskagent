@@ -33,10 +33,11 @@ export async function POST(req: Request) {
 
   // Run sequentially so each subtask's result becomes shared context for the
   // next one (the Execute agent reads sibling results).
-  let ran = 0
+  const results: { taskId: string; result: string; sources: { title: string; uri: string }[] }[] =
+    []
   for (const child of children) {
     try {
-      await runExecuteAgent({
+      const r = await runExecuteAgent({
         userId: session.user.id,
         task: {
           id: child.id,
@@ -46,11 +47,14 @@ export async function POST(req: Request) {
         },
         demo,
       })
-      ran++
+      results.push({ taskId: child.id, result: r.result, sources: r.sources })
     } catch (err) {
       console.error('Do all: a subtask failed, continuing:', err)
     }
   }
 
-  return NextResponse.json({ ran, total: children.length, demo }, { status: 200 })
+  return NextResponse.json(
+    { ran: results.length, total: children.length, results, demo },
+    { status: 200 },
+  )
 }
