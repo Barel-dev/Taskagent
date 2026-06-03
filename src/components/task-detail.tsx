@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Sparkles,
@@ -313,20 +313,37 @@ export function TaskDetail({
           </Panel>
         )}
 
-        {/* Subtasks */}
+        {/* Subtasks — vertical timeline */}
         {hasChildren && (
-          <div className="mt-2 space-y-2">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-white/35">Subtasks</p>
-            {children.map((child) => (
-              <SubtaskRow
-                key={child.id}
-                child={child}
-                busy={runningId === child.id || runningAll}
-                onRun={(reply) => runChild(child.id, reply)}
-                onToggle={() => toggleChild(child)}
-                onDelete={() => deleteChild(child)}
+          <div className="mt-3">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-white/35">
+                Steps
+              </p>
+              <span className="text-[11px] tabular-nums text-white/40">
+                {children.filter((c) => c._done).length}/{children.length} done
+              </span>
+            </div>
+            <div className="relative">
+              {/* connector rail */}
+              <div
+                aria-hidden
+                className="absolute bottom-5 left-[15px] top-5 w-px bg-gradient-to-b from-violet-400/40 via-white/10 to-transparent"
               />
-            ))}
+              <div className="space-y-2.5">
+                {children.map((child, i) => (
+                  <StepRow
+                    key={child.id}
+                    step={i + 1}
+                    child={child}
+                    busy={runningId === child.id || runningAll}
+                    onRun={(reply) => runChild(child.id, reply)}
+                    onToggle={() => toggleChild(child)}
+                    onDelete={() => deleteChild(child)}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
@@ -464,93 +481,112 @@ function ResultBody({
   )
 }
 
-/* ───────── One subtask row ───────── */
-function SubtaskRow({
+/* ───────── One timeline step ───────── */
+function StepRow({
+  step,
   child,
   busy,
   onRun,
   onToggle,
   onDelete,
 }: {
+  step: number
   child: Child
   busy: boolean
   onRun: (reply?: string) => void
   onToggle: () => void
   onDelete: () => void
 }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(Boolean(child.result))
+  // Reveal the result automatically once the agent produces one.
+  useEffect(() => {
+    if (child.result) setOpen(true)
+  }, [child.result])
+
   const pr = PRIORITY[child.priority]
   const done = child._done
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.025]">
-      <div className="flex items-start gap-3 p-3">
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-label={done ? 'Mark as not done' : 'Mark as done'}
-          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all ${
-            done
-              ? 'border-violet-400 bg-violet-500 text-white'
-              : 'border-white/25 hover:border-violet-300/60'
-          }`}
-        >
-          {done && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
-        </button>
+    <div className="relative pl-11">
+      {/* timeline node */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={done ? 'Mark as not done' : 'Mark as done'}
+        className={`absolute left-0 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold transition-all ${
+          done
+            ? 'border-violet-400 bg-violet-500 text-white shadow-[0_0_16px_-2px_rgba(139,92,246,0.65)]'
+            : busy
+              ? 'animate-pulse border-violet-400/70 bg-[#0b0e1a] text-violet-200'
+              : 'border-white/20 bg-[#0b0e1a] text-white/50 hover:border-violet-300/60 hover:text-white'
+        }`}
+      >
+        {done ? <Check className="h-4 w-4" strokeWidth={3} /> : step}
+      </button>
 
-        <div className="min-w-0 flex-1">
-          <div className={`text-sm font-medium ${done ? 'text-white/55 line-through' : 'text-white/90'}`}>
-            {child.title}
-          </div>
-          <div className="mt-1 flex items-center gap-2 text-[11px] text-white/45">
-            <span className="inline-flex items-center gap-1">
-              <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
-              <span className={pr.label}>{child.priority}</span>
-            </span>
-            {child.estimatedMinutes != null && (
+      {/* step card */}
+      <div
+        className={`rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.055] ${
+          done ? 'opacity-70' : ''
+        }`}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div
+              className={`text-sm font-medium ${done ? 'text-white/55 line-through' : 'text-white/90'}`}
+            >
+              {child.title}
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-white/45">
               <span className="inline-flex items-center gap-1">
-                <Clock className="h-3 w-3" />~{child.estimatedMinutes}m
+                <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
+                <span className={pr.label}>{child.priority}</span>
               </span>
-            )}
-            {child.result && (
-              <button
-                type="button"
-                onClick={() => setOpen((v) => !v)}
-                className="text-violet-300/80 hover:text-violet-200"
-              >
-                {open ? 'hide result' : 'view result'}
-              </button>
-            )}
+              {child.estimatedMinutes != null && (
+                <span className="inline-flex items-center gap-1">
+                  <Clock className="h-3 w-3" />~{child.estimatedMinutes}m
+                </span>
+              )}
+              {child.result && (
+                <button
+                  type="button"
+                  onClick={() => setOpen((v) => !v)}
+                  className="text-violet-300/80 transition-colors hover:text-violet-200"
+                >
+                  {open ? 'Hide result' : 'View result'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1">
+            <Button size="sm" onClick={() => onRun()} disabled={busy} className="btn-accent">
+              <Play className={`mr-1 h-3.5 w-3.5 ${busy ? 'animate-pulse' : ''}`} />
+              {busy ? '…' : 'Do it'}
+            </Button>
+            <Button
+              size="icon-sm"
+              variant="ghost"
+              onClick={onDelete}
+              title="Delete step"
+              className="text-white/40 hover:text-rose-300"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1">
-          <Button size="sm" onClick={() => onRun()} disabled={busy} className="btn-accent">
-            <Play className={`mr-1 h-3.5 w-3.5 ${busy ? 'animate-pulse' : ''}`} />
-            {busy ? 'Working…' : 'Do it'}
-          </Button>
-          <Button
-            size="icon-sm"
-            variant="ghost"
-            onClick={onDelete}
-            title="Delete subtask"
-            className="text-white/40 hover:text-rose-300"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        </div>
+        {child.result && open && (
+          <div className="mt-3 border-t border-white/10 pt-3">
+            <ResultBody
+              result={child.result}
+              sources={child._sources ?? []}
+              busy={busy}
+              onReply={(t) => onRun(t)}
+            />
+          </div>
+        )}
       </div>
-
-      {child.result && open && (
-        <div className="border-t border-white/10 px-3 py-3">
-          <ResultBody
-            result={child.result}
-            sources={child._sources ?? []}
-            busy={busy}
-            onReply={(t) => onRun(t)}
-          />
-        </div>
-      )}
     </div>
   )
 }
