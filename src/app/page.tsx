@@ -2,9 +2,9 @@ import Link from 'next/link'
 import { auth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import {
-  Bot,
-  CalendarClock,
-  Mail,
+  Play,
+  FileText,
+  ArrowDownUp,
   Sparkles,
   Sun,
   ListChecks,
@@ -99,14 +99,14 @@ export default async function Landing() {
         {/* Hero — WebGL animated shader background */}
         <AnimatedShaderHero
           trustBadge={{
-            text: '5 specialized agents at your service',
+            text: '6 specialized AI agents at your service',
             icons: ['✦'],
           }}
           headline={{
             line1: 'Plan less.',
             line2: 'Finish more.',
           }}
-          subtitle="TaskAgent breaks down what you need to do, schedules it into your week, drafts the emails you’ve been avoiding, and briefs you every morning."
+          subtitle="TaskAgent turns any goal into an ordered plan, then actually does the work — searching the live web and reporting back with sources. It prioritizes your day and briefs you on what matters."
           buttons={{
             primary: {
               text: isAuthed ? 'Go to your tasks →' : 'Sign in with Google →',
@@ -150,7 +150,7 @@ export default async function Landing() {
                 The system
               </p>
               <h2 className="text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
-                Five agents,{' '}
+                Six agents,{' '}
                 <span className="bg-gradient-to-r from-violet-300 to-fuchsia-400 bg-clip-text text-transparent">
                   one quiet mind
                 </span>
@@ -191,7 +191,7 @@ export default async function Landing() {
                 bullets={[
                   'Realistic time estimates for each subtask',
                   'Smart priority ordering, not alphabetical',
-                  'One click sends them to the schedule agent',
+                  'Every subtask is a real, runnable task',
                 ]}
               />
             </Reveal>
@@ -219,20 +219,20 @@ export default async function Landing() {
             </Reveal>
             <Reveal direction="right" className="order-2 md:order-2">
               <SpotlightText
-                eyebrow="02 — Email"
-                title={`Drafts the email you${'’'}ve been putting off.`}
+                eyebrow="02 — Do it"
+                title="Actually does the task — not just lists it."
                 body={
                   <>
-                    Tell it the goal — {'“'}email Sarah about next quarter{'’'}s
-                    budget{'”'} — and the email agent writes the message in
-                    your voice. You read it, tweak a word, send. The dread is
-                    gone.
+                    Hit {'“'}Do it{'”'} on any task — {'“'}find the cheapest
+                    flights to Lisbon{'”'} — and the agent searches the live web,
+                    then reports real options with prices and clickable sources.
+                    Answer its questions and it remembers across the whole plan.
                   </>
                 }
                 bullets={[
-                  'Learns your tone from past replies',
-                  'Always shows the draft before sending',
-                  'Sends through your real Gmail account',
+                  'Searches the live web with Google',
+                  'Returns real results, with source links',
+                  'Shares what it learns with the other agents',
                 ]}
               />
             </Reveal>
@@ -250,20 +250,20 @@ export default async function Landing() {
           <div className="grid items-center gap-12 py-28 md:grid-cols-2 md:gap-16">
             <Reveal direction="left" className="order-2 md:order-1">
               <SpotlightText
-                eyebrow="03 — Schedule"
-                title="Books the work into the week, around real life."
+                eyebrow="03 — Prioritize & brief"
+                title="Knows what to do first."
                 body={
                   <>
-                    The schedule agent reads your calendar, finds the gaps
-                    between meetings, and slots in your tasks where they
-                    actually fit. Deep-work blocks in the morning, errands in
-                    the cracks. You approve.
+                    The prioritizer reweighs every open task by urgency, due
+                    date, and effort, then reorders your day and tells you why.
+                    Each morning, the briefing agent rolls it all into a calm
+                    summary of what matters.
                   </>
                 }
                 bullets={[
-                  'Reads your real Google Calendar',
-                  'Respects deep-work blocks and meetings',
-                  'Confirms before adding anything',
+                  'Reprioritizes your whole list in one click',
+                  'Explains the new order in plain language',
+                  'A daily briefing of what’s due and overdue',
                 ]}
               />
             </Reveal>
@@ -289,7 +289,7 @@ export default async function Landing() {
           <Reveal>
             <div className="mb-16 text-center">
               <h2 className="text-balance text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">
-                Five agents,{' '}
+                Six agents,{' '}
                 <span className="bg-gradient-to-r from-violet-300 to-fuchsia-400 bg-clip-text text-transparent">
                   one inbox of done
                 </span>
@@ -305,54 +305,54 @@ export default async function Landing() {
             <Reveal delay={0}>
               <CursorTilt>
                 <AgentCard
-                  icon={<ListChecks className="h-5 w-5" />}
-                  title="Breakdown agent"
-                  body={`Turn ${'‘'}study for finals${'’'} into a real plan. Subtasks, time estimates, priorities — generated.`}
+                  icon={<Sparkles className="h-5 w-5" />}
+                  title="Plan with AI"
+                  body="Describe a goal and the agent creates the task and its ordered subtasks for you."
                 />
               </CursorTilt>
             </Reveal>
             <Reveal delay={80}>
               <CursorTilt>
                 <AgentCard
-                  icon={<Bot className="h-5 w-5" />}
-                  title="Smart prioritizer"
-                  body="Asks what matters, weighs urgency vs importance, then reorders your day."
+                  icon={<ListChecks className="h-5 w-5" />}
+                  title="Breakdown"
+                  body={`Turn ${'‘'}study for finals${'’'} into a real plan — subtasks, time estimates, priorities.`}
                 />
               </CursorTilt>
             </Reveal>
             <Reveal delay={160}>
               <CursorTilt>
                 <AgentCard
-                  icon={<CalendarClock className="h-5 w-5" />}
-                  title="Schedule agent"
-                  body="Reads your Google Calendar, finds the gaps, books the work in. You just confirm."
+                  icon={<Play className="h-5 w-5" />}
+                  title="Do it"
+                  body="The agent actually does the task: live web search, real options, with source links."
                 />
               </CursorTilt>
             </Reveal>
             <Reveal delay={240}>
               <CursorTilt>
                 <AgentCard
-                  icon={<Mail className="h-5 w-5" />}
-                  title="Email agent"
-                  body={`${'‘'}Email Sarah about the budget review.${'’'} Drafts, shows it to you, sends on approval.`}
+                  icon={<FileText className="h-5 w-5" />}
+                  title="Summary"
+                  body="Rolls a whole plan up into a short briefing: status, key findings, and next steps."
                 />
               </CursorTilt>
             </Reveal>
             <Reveal delay={320}>
               <CursorTilt>
                 <AgentCard
-                  icon={<Sun className="h-5 w-5" />}
-                  title="Daily briefing"
-                  body={`A friendly summary in your inbox at 7am — what${'’'}s due, what${'’'}s overdue, what to focus on.`}
+                  icon={<ArrowDownUp className="h-5 w-5" />}
+                  title="Prioritizer"
+                  body="Weighs urgency vs importance and reorders your day — and explains the new order."
                 />
               </CursorTilt>
             </Reveal>
             <Reveal delay={400}>
               <CursorTilt>
                 <AgentCard
-                  icon={<Sparkles className="h-5 w-5" />}
-                  title="Talk to your tasks"
-                  body={`A chat sidebar that knows your todos. ${'‘'}What${'’'}s left for the website?${'’'} just works.`}
+                  icon={<Sun className="h-5 w-5" />}
+                  title="Daily briefing"
+                  body={`A friendly summary of what${'’'}s due, what${'’'}s overdue, and what to focus on.`}
                 />
               </CursorTilt>
             </Reveal>
@@ -385,22 +385,22 @@ export default async function Landing() {
             <Reveal delay={0}>
               <Step
                 n="01"
-                title="Drop in your tasks"
-                body="Type them in. Or paste a brain dump. Or talk to the chat. Whatever feels natural — the app figures out structure."
+                title="Describe a goal"
+                body="Type a task, or just describe what you want — “plan a trip to Lisbon.” The planner turns it into a structured task with subtasks."
               />
             </Reveal>
             <Reveal delay={100}>
               <Step
                 n="02"
                 title="Agents do the work"
-                body="Breakdown, prioritization, scheduling, drafting — the five agents run quietly in the background while you focus."
+                body="Break it down, run each step with live web search, prioritize, and summarize — the agents share context as they go."
               />
             </Reveal>
             <Reveal delay={200}>
               <Step
                 n="03"
                 title="You stay in flow"
-                body="Each morning a calm briefing arrives in your inbox. Each evening, more is done than you expected."
+                body="Ask for a daily briefing and get a calm summary of what matters. Each evening, more is done than you expected."
               />
             </Reveal>
           </div>
@@ -543,11 +543,11 @@ function ProductMockup() {
             <div className="mb-2 text-[10px] font-medium uppercase tracking-widest text-white/35">
               Agents
             </div>
-            <SidebarAgent name="Breakdown" hue="rgb(167,139,250)" active />
+            <SidebarAgent name="Plan" hue="rgb(167,139,250)" active />
+            <SidebarAgent name="Breakdown" hue="rgb(196,181,253)" />
+            <SidebarAgent name="Do it" hue="rgb(125,211,252)" />
             <SidebarAgent name="Prioritizer" hue="rgb(244,114,182)" />
-            <SidebarAgent name="Schedule" hue="rgb(125,211,252)" />
-            <SidebarAgent name="Email" hue="rgb(249,168,212)" />
-            <SidebarAgent name="Briefing" hue="rgb(196,181,253)" />
+            <SidebarAgent name="Briefing" hue="rgb(249,168,212)" />
 
             <div className="mt-auto rounded-lg border border-white/5 bg-white/[0.03] p-3">
               <div className="text-[10px] uppercase tracking-widest text-white/35">Today</div>
@@ -578,14 +578,14 @@ function ProductMockup() {
               <MockTask title="Review PR #247" priority="MEDIUM" due="Tomorrow" />
               <MockTask title="Plan trip to Lisbon" priority="LOW" subtasks={5} />
               <MockTask title="Prep finals study guide" priority="URGENT" due="Wed" />
-              <MockTask title="Email Sarah about budget" priority="MEDIUM" />
+              <MockTask title="Find a cheap flight to Lisbon" priority="MEDIUM" />
             </div>
           </main>
 
           {/* Right: today's briefing preview */}
           <aside className="flex flex-col gap-3 p-4">
             <div className="text-[10px] font-medium uppercase tracking-widest text-white/35">
-              7:00 AM briefing
+              Daily briefing
             </div>
             <div className="rounded-lg border border-white/5 bg-white/[0.03] p-3 text-[12px] leading-relaxed text-white/65">
               <div className="mb-2 font-medium text-white">Good morning, Barel.</div>
@@ -602,13 +602,13 @@ function ProductMockup() {
             <div className="rounded-lg border border-white/5 bg-white/[0.03] p-3 text-[12px] text-white/65">
               <div className="mb-2 flex items-center gap-1.5">
                 <span className="grid h-4 w-4 place-items-center rounded-full bg-gradient-to-br from-violet-400 to-fuchsia-400 text-[9px] font-bold text-white">
-                  E
+                  ▶
                 </span>
-                <span className="font-medium text-white">Email agent</span>
+                <span className="font-medium text-white">Do it agent</span>
               </div>
               <div className="text-white/55">
-                Draft ready for{' '}
-                <span className="text-white/85">Q3 budget review</span> — review and send?
+                Found 3 round-trip options to{' '}
+                <span className="text-white/85">Lisbon from $420</span> — view results?
               </div>
             </div>
           </aside>

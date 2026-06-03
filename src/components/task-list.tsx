@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Sparkles, Plus } from 'lucide-react'
+import { Sparkles, Plus, Sun, ArrowDownUp } from 'lucide-react'
 import { toast } from 'sonner'
 import { TaskTile } from '@/components/task-tile'
 import { TaskDetail } from '@/components/task-detail'
@@ -39,6 +39,46 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
   const [creating, setCreating] = useState(false)
   const [goal, setGoal] = useState('')
   const [planning, setPlanning] = useState(false)
+  const [prioritizing, setPrioritizing] = useState(false)
+  const [briefingLoading, setBriefingLoading] = useState(false)
+  const [briefing, setBriefing] = useState<string | null>(null)
+  const [briefingOpen, setBriefingOpen] = useState(false)
+
+  async function prioritize() {
+    setPrioritizing(true)
+    try {
+      const res = await fetch('/api/agents/prioritize', { method: 'POST' })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        toast.error(data?.error ?? 'Could not prioritize')
+        return
+      }
+      toast.success('Reprioritized your day', { description: data?.rationale })
+      router.refresh()
+    } catch {
+      toast.error('Could not prioritize')
+    } finally {
+      setPrioritizing(false)
+    }
+  }
+
+  async function dailyBriefing() {
+    setBriefingLoading(true)
+    try {
+      const res = await fetch('/api/agents/briefing', { method: 'POST' })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        toast.error(data?.error ?? 'Could not build a briefing')
+        return
+      }
+      setBriefing(data?.briefing ?? '')
+      setBriefingOpen(true)
+    } catch {
+      toast.error('Could not build a briefing')
+    } finally {
+      setBriefingLoading(false)
+    }
+  }
 
   async function planWithAi(e: React.FormEvent) {
     e.preventDefault()
@@ -109,15 +149,41 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
         <span className="text-xs text-white/40">
           {initialTasks.length} {initialTasks.length === 1 ? 'task' : 'tasks'}
         </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setCreating(true)}
-          className="text-white/60 hover:text-white"
-        >
-          <Plus className="mr-1 h-3.5 w-3.5" />
-          New task
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {initialTasks.length > 0 && (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={dailyBriefing}
+                disabled={briefingLoading}
+                className="border-white/15 text-white/75 hover:bg-white/5"
+              >
+                <Sun className={`mr-1 h-3.5 w-3.5 ${briefingLoading ? 'animate-pulse' : ''}`} />
+                {briefingLoading ? '…' : 'Daily briefing'}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={prioritize}
+                disabled={prioritizing}
+                className="border-white/15 text-white/75 hover:bg-white/5"
+              >
+                <ArrowDownUp className={`mr-1 h-3.5 w-3.5 ${prioritizing ? 'animate-pulse' : ''}`} />
+                {prioritizing ? 'Prioritizing…' : 'Prioritize'}
+              </Button>
+            </>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setCreating(true)}
+            className="text-white/60 hover:text-white"
+          >
+            <Plus className="mr-1 h-3.5 w-3.5" />
+            New task
+          </Button>
+        </div>
       </div>
 
       {initialTasks.length === 0 && (
@@ -148,6 +214,18 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
           }}
         />
       )}
+
+      <Dialog open={briefingOpen} onOpenChange={setBriefingOpen}>
+        <DialogContent className="max-w-lg border-white/10 bg-[#0b0e1a]/95 backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sun className="h-4 w-4 text-amber-300" />
+              Daily briefing
+            </DialogTitle>
+          </DialogHeader>
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/80">{briefing}</p>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={creating} onOpenChange={setCreating}>
         <DialogContent>

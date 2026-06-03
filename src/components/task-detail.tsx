@@ -321,7 +321,7 @@ export function TaskDetail({
               <SubtaskRow
                 key={child.id}
                 child={child}
-                busy={runningId === child.id}
+                busy={runningId === child.id || runningAll}
                 onRun={(reply) => runChild(child.id, reply)}
                 onToggle={() => toggleChild(child)}
                 onDelete={() => deleteChild(child)}

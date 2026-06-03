@@ -1,82 +1,77 @@
 # TaskAgent
 
-AI-powered task manager with autonomous sub-agents (in development).
+An AI task manager where specialized agents don't just organize your work — they **do** it. Describe a goal, and agents plan it, break it into steps, **search the live web to actually carry tasks out**, prioritize your day, and brief you on what matters.
 
-**Phase 1 — Foundation:** sign in with Google, manage your tasks. ✅
+> **Live demo:** _add your Vercel URL here after deploying_
+> **Stack:** Next.js 15 · TypeScript · Prisma + Postgres (Neon) · NextAuth v5 (Google) · Google Gemini · Tailwind v4
 
-## Stack
+<!-- Add a screenshot or GIF here: ![TaskAgent](docs/screenshot.png) -->
 
-- Next.js 15 (App Router) + TypeScript
-- Tailwind CSS v4 + shadcn/ui
-- PostgreSQL (Neon) + Prisma ORM
-- NextAuth v5 (Google OAuth)
-- Vitest
+## What it does
 
-## Local development
+You sign in with Google, then work with a grid of task tiles. Open any task to reach its agents:
 
-1. Clone and install:
-   ```bash
-   npm install
-   ```
-2. Copy `.env.example` to `.env.local` and fill in values:
-   - `DATABASE_URL` and `TEST_DATABASE_URL` from neon.tech
-   - `AUTH_SECRET` — generate with `openssl rand -base64 32`
-   - `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` from Google Cloud Console (OAuth 2.0 client; redirect URI `http://localhost:3000/api/auth/callback/google`)
-3. Apply migrations to both databases:
-   ```bash
-   npx prisma migrate dev
-   DATABASE_URL=$TEST_DATABASE_URL npx prisma migrate deploy
-   ```
-4. Run dev server:
-   ```bash
-   npm run dev
-   ```
+| Agent | What it does |
+|---|---|
+| **Plan** | Turns a plain-language goal ("plan a trip to Lisbon") into a task with ordered subtasks. |
+| **Breakdown** | Splits a task into 3–7 ordered, time-estimated steps. |
+| **Do it** | **Actually performs the task** using Gemini + live Google Search, and returns real results as rich preview cards (image, title, sources). |
+| **Do all** | Runs *every* subtask in sequence, sharing each result as context for the next. |
+| **Prioritizer** | Reweighs every open task by urgency, due date, and effort, then reorders your day — and explains why. |
+| **Daily Briefing** | A short morning brief across all your tasks: what's due, what's overdue, what to focus on. |
+| **Summary** | Rolls a whole plan up into a status briefing. |
 
-## Tests
+Agents **share context**: answers you give one agent (dates, budget, who's traveling) are saved to the plan and reused by the others, so they stop re-asking what's already known.
+
+## How it works
+
+- **Agents** live in `src/lib/agents/*`. Each calls Google Gemini (`gemini-2.5-flash`) and logs an `AgentRun` row (input, output, status, tokens) — surfaced on the **/dashboard** page.
+- **"Do it"** uses Gemini's **Google Search grounding** to search the live web, then `src/lib/link-preview.ts` fetches each source's OpenGraph data so results render as rich cards.
+- **Structured output** (Gemini `responseSchema`) + **Zod** validation guarantees well-formed agent results.
+- **Demo mode:** with no `GEMINI_API_KEY` set, agents return free placeholder output so the whole flow is testable at zero cost; the real agents switch on automatically once a key is present.
+- **Safety:** per-user, DB-backed rate limiting on every agent route; graceful handling of provider quota (429).
+
+## Local setup
 
 ```bash
-npm run test
+git clone https://github.com/Barel-dev/Taskagent && cd Taskagent
+npm install
+cp .env.example .env.local   # then fill in the values below
+npx prisma migrate dev
+npm run dev
 ```
 
-11 tests covering Zod validators (7) and the tasks data layer with a real test database (4).
+Environment variables (`.env.local`):
 
-## Project structure
+| Var | Notes |
+|---|---|
+| `DATABASE_URL` | Postgres (Neon) connection string |
+| `TEST_DATABASE_URL` | Separate Neon branch, used by the test suite |
+| `AUTH_SECRET` | `openssl rand -base64 32` |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Google OAuth credentials |
+| `GEMINI_API_KEY` | Free key from https://aistudio.google.com/apikey (optional — without it, demo mode) |
 
-```
-src/
-├── app/
-│   ├── api/
-│   │   ├── auth/[...nextauth]/   NextAuth handler
-│   │   └── tasks/                Task CRUD endpoints
-│   ├── signin/                   Sign-in page
-│   ├── tasks/                    Main task view
-│   └── layout.tsx                Root layout + Providers
-├── components/
-│   ├── ui/                       shadcn primitives
-│   ├── header.tsx                Top bar with sign-out
-│   ├── task-list.tsx             List + dialogs
-│   ├── task-item.tsx             Row with optimistic toggle/delete
-│   ├── task-form.tsx             Create/edit form
-│   └── providers.tsx             SessionProvider + Toaster
-├── lib/
-│   ├── auth.ts                   NextAuth config
-│   ├── prisma.ts                 Prisma client singleton
-│   ├── tasks.ts                  Data layer (per-user task ops)
-│   └── validators.ts             Zod schemas
-└── middleware.ts                 Route protection for /tasks/*
+## Testing
+
+```bash
+npm test    # Vitest — Zod validators, data layer, and every agent (Gemini mocked, $0)
 ```
 
-## Roadmap
+## Deploying (Vercel)
 
-- ✅ **Phase 1 — Foundation:** auth + task CRUD (this phase)
-- ⏳ **Phase 2 — Rich task UX:** subtasks, tags, priorities, three views (List / Kanban / Calendar), search & filter, dark mode
-- ⏳ **Phase 3 — First AI agents:** breakdown agent, prioritizer, chat interface
-- ⏳ **Phase 4 — External integrations:** Gmail (email agent), Google Calendar (schedule agent), daily briefing cron
-- ⏳ **Phase 5 — Polish:** stats dashboard, agent run history, notifications, demo video
+1. Import the repo on Vercel.
+2. Build command: `prisma migrate deploy && next build`.
+3. Add the env vars above (`GEMINI_API_KEY` included for real agents).
+4. Add `https://<your-domain>/api/auth/callback/google` to the Google OAuth redirect URIs.
 
-Full design doc: [`docs/superpowers/specs/2026-05-05-taskagent-design.md`](docs/superpowers/specs/2026-05-05-taskagent-design.md)
-Phase 1 plan: [`docs/superpowers/plans/2026-05-07-phase-1-foundation.md`](docs/superpowers/plans/2026-05-07-phase-1-foundation.md)
+## Status
 
-## License
+Built and working: Plan, Breakdown, Do it (live web search), Do all, Prioritizer, Daily Briefing, Summary, plus the agent dashboard. Email/Calendar agents are designed but not built (they need additional OAuth scopes) — and are not claimed as working anywhere in the app.
 
-Personal portfolio project — not licensed for commercial use.
+---
+
+### Resume bullets
+
+- Built a full-stack AI task manager (Next.js 15, TypeScript, Prisma/Postgres, NextAuth) where **6 specialized agents** plan, execute, and prioritize work.
+- Implemented an **agent that performs tasks autonomously** via Google Gemini with **live web-search grounding**, returning cited, rich results — with structured-output + Zod validation, shared cross-agent context, rate limiting, and an audit log.
+- Designed a premium, responsive UI (tile grid + detail modal) and shipped it to Vercel; backed by a Vitest suite covering validators, data layer, and all agents.

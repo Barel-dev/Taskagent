@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Bot, CalendarClock, Mail, ListChecks, Sun } from 'lucide-react'
+import { Sparkles, ListChecks, Play, FileText, ArrowDownUp, Sun } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 type Agent = {
@@ -20,44 +20,52 @@ const CENTER = 320 // viewBox center (640x640)
 
 const agents: Agent[] = [
   {
-    id: 'breakdown',
-    label: 'Breakdown',
-    description: 'Turns vague goals into ordered subtasks with time estimates.',
-    Icon: ListChecks,
+    id: 'plan',
+    label: 'Plan',
+    description: 'Turns a plain-language goal into a task with ordered subtasks.',
+    Icon: Sparkles,
     angle: -90, // top
     hue: 'rgb(167,139,250)', // violet-300
+  },
+  {
+    id: 'breakdown',
+    label: 'Breakdown',
+    description: 'Splits a task into ordered, time-estimated steps.',
+    Icon: ListChecks,
+    angle: -30,
+    hue: 'rgb(196,181,253)', // violet-200
+  },
+  {
+    id: 'doit',
+    label: 'Do it',
+    description: 'Actually does the task with live web search — real results, with sources.',
+    Icon: Play,
+    angle: 30,
+    hue: 'rgb(125,211,252)', // sky-300
+  },
+  {
+    id: 'summary',
+    label: 'Summary',
+    description: 'Rolls a whole plan up into a short briefing.',
+    Icon: FileText,
+    angle: 90,
+    hue: 'rgb(94,234,212)', // teal-300
   },
   {
     id: 'prioritizer',
     label: 'Prioritizer',
     description: 'Reorders your day by what actually matters right now.',
-    Icon: Bot,
-    angle: -18,
+    Icon: ArrowDownUp,
+    angle: 150,
     hue: 'rgb(244,114,182)', // pink-400
-  },
-  {
-    id: 'schedule',
-    label: 'Schedule',
-    description: 'Reads your calendar, finds gaps, books the work in.',
-    Icon: CalendarClock,
-    angle: 54,
-    hue: 'rgb(125,211,252)', // sky-300
-  },
-  {
-    id: 'email',
-    label: 'Email',
-    description: 'Drafts the message you’ve been putting off — in your voice.',
-    Icon: Mail,
-    angle: 126,
-    hue: 'rgb(249,168,212)', // pink-300
   },
   {
     id: 'briefing',
     label: 'Daily Briefing',
-    description: 'A calm morning summary, sent before you sit down.',
+    description: 'A calm summary of what’s due, overdue, and worth your focus.',
     Icon: Sun,
-    angle: 198,
-    hue: 'rgb(196,181,253)', // violet-200
+    angle: 210,
+    hue: 'rgb(251,191,36)', // amber-400
   },
 ]
 

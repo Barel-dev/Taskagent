@@ -4,15 +4,24 @@ import { breakdownRequestSchema } from '@/lib/validators' // also just { taskId 
 import { getTaskForUser } from '@/lib/tasks'
 import { prisma } from '@/lib/prisma'
 import { runExecuteAgent } from '@/lib/agents/execute'
+import { agentRateLimitOk } from '@/lib/rate-limit'
 
 export const maxDuration = 60
 
-// Cap how many subtasks one "Do all" runs, to stay within the request budget.
-const MAX_RUN = 8
+// Cap how many subtasks one "Do all" runs. Each web-search subtask takes
+// ~10s, so 5 keeps the request under the serverless 60s function limit.
+const MAX_RUN = 5
 
 export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  if (!(await agentRateLimitOk(session.user.id))) {
+    return NextResponse.json(
+      { error: 'You’re going too fast — give the agents a moment.' },
+      { status: 429 },
+    )
+  }
 
   const body = await req.json().catch(() => null)
   const parsed = breakdownRequestSchema.safeParse(body)

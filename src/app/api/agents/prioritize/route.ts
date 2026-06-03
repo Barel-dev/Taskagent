@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { breakdownRequestSchema } from '@/lib/validators' // also just { taskId }
-import { runSummarizeAgent } from '@/lib/agents/summarize'
+import { runPrioritizeAgent } from '@/lib/agents/prioritize'
 import { agentRateLimitOk, isQuotaError } from '@/lib/rate-limit'
 
 export const maxDuration = 60
 
-export async function POST(req: Request) {
+export async function POST() {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -17,29 +16,19 @@ export async function POST(req: Request) {
     )
   }
 
-  const body = await req.json().catch(() => null)
-  const parsed = breakdownRequestSchema.safeParse(body)
-  if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
-  }
-
   const demo = !process.env.GEMINI_API_KEY
 
   try {
-    const { summary } = await runSummarizeAgent({
-      userId: session.user.id,
-      taskId: parsed.data.taskId,
-      demo,
-    })
-    return NextResponse.json({ summary, demo }, { status: 200 })
+    const { rationale, updated } = await runPrioritizeAgent({ userId: session.user.id, demo })
+    return NextResponse.json({ rationale, updated, demo }, { status: 200 })
   } catch (err) {
-    console.error('Summarize agent failed:', err)
+    console.error('Prioritizer agent failed:', err)
     if (isQuotaError(err)) {
       return NextResponse.json(
         { error: 'AI quota reached for now — please try again in a bit.' },
         { status: 429 },
       )
     }
-    return NextResponse.json({ error: 'The summary failed. Please try again.' }, { status: 502 })
+    return NextResponse.json({ error: 'Could not prioritize. Please try again.' }, { status: 502 })
   }
 }
