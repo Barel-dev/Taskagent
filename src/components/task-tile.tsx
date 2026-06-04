@@ -62,7 +62,10 @@ export function TaskTile({ task, onOpen }: { task: TaskNodeUI; onOpen: () => voi
         )}
         <div className="flex items-center gap-2.5 text-[11px] text-white/45">
           {task.estimatedMinutes != null && (
-            <span className="inline-flex items-center gap-1">
+            <span
+              className="inline-flex items-center gap-1"
+              title="Estimated time to do it yourself"
+            >
               <Clock className="h-3 w-3" />~{task.estimatedMinutes}m
             </span>
           )}

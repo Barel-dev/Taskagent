@@ -14,6 +14,7 @@ import {
   Clock,
   LayoutGrid,
   ArrowRight,
+  Zap,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -22,7 +23,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import type { TaskNodeUI, RichSourceUI } from '@/components/task-list'
 
 type Source = RichSourceUI
-type Child = TaskNodeUI & { _sources?: Source[]; _done?: boolean }
+type Child = TaskNodeUI & { _sources?: Source[]; _done?: boolean; _ranSecs?: number }
 
 const OVERVIEW = '__overview__'
 
@@ -69,6 +70,7 @@ export function TaskDetail({
   // Parent-as-leaf execute state (task with no subtasks)
   const [parentResult, setParentResult] = useState<string | null>(task.result ?? null)
   const [parentSources, setParentSources] = useState<Source[]>(task.resultData?.sources ?? [])
+  const [parentRanSecs, setParentRanSecs] = useState<number | undefined>(undefined)
   const [runningParent, setRunningParent] = useState(false)
 
   const hasChildren = children.length > 0
@@ -147,12 +149,16 @@ export function TaskDetail({
 
   async function runChild(childId: string, reply?: string) {
     setRunningId(childId)
+    const t0 = Date.now()
     try {
       const { ok, data } = await postJson('/api/agents/execute', { taskId: childId, reply })
       if (!ok) return toast.error(data?.error ?? 'The agent failed')
+      const secs = Math.max(1, Math.round((Date.now() - t0) / 1000))
       setChildren((prev) =>
         prev.map((c) =>
-          c.id === childId ? { ...c, result: data?.result ?? '', _sources: data?.sources ?? [] } : c,
+          c.id === childId
+            ? { ...c, result: data?.result ?? '', _sources: data?.sources ?? [], _ranSecs: secs }
+            : c,
         ),
       )
       toast.success(
@@ -166,11 +172,13 @@ export function TaskDetail({
 
   async function runParent(reply?: string) {
     setRunningParent(true)
+    const t0 = Date.now()
     try {
       const { ok, data } = await postJson('/api/agents/execute', { taskId: task.id, reply })
       if (!ok) return toast.error(data?.error ?? 'The agent failed')
       setParentResult(data?.result ?? '')
       setParentSources(data?.sources ?? [])
+      setParentRanSecs(Math.max(1, Math.round((Date.now() - t0) / 1000)))
       toast.success(
         reply ? 'Agent updated with your answer' : 'Agent finished',
         data?.demo ? { description: 'Demo mode — add a Gemini API key.' } : undefined,
@@ -369,6 +377,7 @@ export function TaskDetail({
                 result={parentResult}
                 sources={parentSources}
                 busy={runningParent}
+                ranSecs={parentRanSecs}
                 onReply={(t) => runParent(t)}
               />
             ) : (
@@ -469,8 +478,11 @@ function StepDetail({
               <span className={pr.label}>{child.priority}</span>
             </span>
             {child.estimatedMinutes != null && (
-              <span className="inline-flex items-center gap-1">
-                <Clock className="h-3 w-3" />~{child.estimatedMinutes}m
+              <span
+                className="inline-flex items-center gap-1"
+                title="Roughly how long this would take you to do by hand"
+              >
+                <Clock className="h-3 w-3" />~{child.estimatedMinutes}m to do yourself
               </span>
             )}
           </div>
@@ -507,6 +519,7 @@ function StepDetail({
           result={child.result}
           sources={child._sources ?? []}
           busy={busy}
+          ranSecs={child._ranSecs}
           onReply={(t) => onRun(t)}
         />
       ) : (
@@ -538,16 +551,24 @@ function ResultView({
   result,
   sources,
   busy,
+  ranSecs,
   onReply,
 }: {
   result: string
   sources: Source[]
   busy: boolean
+  ranSecs?: number
   onReply: (text: string) => void
 }) {
   const [reply, setReply] = useState('')
   return (
     <div className="space-y-4">
+      {ranSecs != null && (
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-300">
+          <Zap className="h-3 w-3" />
+          Agent did it in {ranSecs}s
+        </div>
+      )}
       <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/80">{result}</p>
 
       {sources.length > 0 && (
