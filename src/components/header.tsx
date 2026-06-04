@@ -20,6 +20,12 @@ export async function Header() {
               Tasks
             </Link>
             <Link
+              href="/calendar"
+              className="rounded-md px-2.5 py-1 text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+            >
+              Calendar
+            </Link>
+            <Link
               href="/dashboard"
               className="rounded-md px-2.5 py-1 text-white/70 transition-colors hover:bg-white/5 hover:text-white"
             >
