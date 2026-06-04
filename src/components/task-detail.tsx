@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Sparkles,
@@ -12,7 +12,8 @@ import {
   Pencil,
   Trash2,
   Clock,
-  CalendarDays,
+  LayoutGrid,
+  ArrowRight,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -22,6 +23,8 @@ import type { TaskNodeUI, RichSourceUI } from '@/components/task-list'
 
 type Source = RichSourceUI
 type Child = TaskNodeUI & { _sources?: Source[]; _done?: boolean }
+
+const OVERVIEW = '__overview__'
 
 const PRIORITY: Record<TaskNodeUI['priority'], { dot: string; label: string }> = {
   LOW: { dot: 'bg-slate-400', label: 'text-slate-300' },
@@ -68,8 +71,13 @@ export function TaskDetail({
   const [parentSources, setParentSources] = useState<Source[]>(task.resultData?.sources ?? [])
   const [runningParent, setRunningParent] = useState(false)
 
-  const pr = PRIORITY[task.priority]
   const hasChildren = children.length > 0
+  const doneCount = children.filter((c) => c._done).length
+  const [selectedId, setSelectedId] = useState<string>(
+    hasChildren ? children[0].id : OVERVIEW,
+  )
+  const selected = children.find((c) => c.id === selectedId) ?? null
+  const pr = PRIORITY[task.priority]
 
   function close() {
     onClose()
@@ -93,7 +101,7 @@ export function TaskDetail({
         ),
       )
       toast.success(
-        `Agent ran ${data?.ran ?? 0} subtask${data?.ran === 1 ? '' : 's'}`,
+        `Agent ran ${data?.ran ?? 0} step${data?.ran === 1 ? '' : 's'}`,
         data?.demo ? { description: 'Demo mode — add a Gemini API key for real runs.' } : undefined,
       )
     } finally {
@@ -107,6 +115,7 @@ export function TaskDetail({
       const { ok, data } = await postJson('/api/agents/summarize', { taskId: task.id })
       if (!ok) return toast.error(data?.error ?? 'Summary failed')
       setSummary(data?.summary ?? '')
+      setSelectedId(OVERVIEW)
       toast.success(
         'Summary ready',
         data?.demo ? { description: 'Demo mode — add a Gemini API key.' } : undefined,
@@ -126,8 +135,9 @@ export function TaskDetail({
         _done: c.status === 'DONE',
       }))
       setChildren((prev) => [...prev, ...subs])
+      if (subs[0]) setSelectedId(subs[0].id)
       toast.success(
-        `Added ${subs.length} subtasks`,
+        `Added ${subs.length} steps`,
         data?.demo ? { description: 'Demo mode — add a Gemini API key.' } : undefined,
       )
     } finally {
@@ -188,14 +198,18 @@ export function TaskDetail({
   }
 
   async function deleteChild(child: Child) {
-    if (!confirm('Delete this subtask?')) return
+    if (!confirm('Delete this step?')) return
     const res = await fetch(`/api/tasks/${child.id}`, { method: 'DELETE' })
     if (!res.ok) return toast.error('Failed to delete')
-    setChildren((prev) => prev.filter((c) => c.id !== child.id))
+    setChildren((prev) => {
+      const next = prev.filter((c) => c.id !== child.id)
+      if (selectedId === child.id) setSelectedId(next[0]?.id ?? OVERVIEW)
+      return next
+    })
   }
 
   async function deleteParent() {
-    if (!confirm('Delete this task and all its subtasks?')) return
+    if (!confirm('Delete this task and all its steps?')) return
     const res = await fetch(`/api/tasks/${task.id}`, { method: 'DELETE' })
     if (!res.ok) return toast.error('Failed to delete')
     toast.success('Deleted')
@@ -204,33 +218,23 @@ export function TaskDetail({
 
   return (
     <Dialog open onOpenChange={(o) => !o && close()}>
-      <DialogContent className="max-h-[86vh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto border-white/10 bg-[#0b0e1a]/95 backdrop-blur-xl sm:max-w-2xl">
+      <DialogContent className="flex h-[86vh] w-[calc(100%-1.5rem)] max-w-4xl flex-col gap-0 overflow-hidden border-white/10 bg-[#0b0e1a]/95 p-0 backdrop-blur-xl sm:max-w-4xl">
         {/* Header */}
-        <div className="pr-8">
+        <div className="shrink-0 border-b border-white/10 p-5 pr-12">
           <span className="inline-flex items-center gap-1.5 text-[11px]">
             <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
             <span className={`font-medium ${pr.label}`}>{task.priority}</span>
+            {task.dueDate && (
+              <span className="ml-2 text-white/40">
+                due {new Date(task.dueDate).toLocaleDateString()}
+              </span>
+            )}
           </span>
           <DialogTitle className="mt-1.5 text-xl font-semibold tracking-tight text-white">
             {task.title}
           </DialogTitle>
-          {task.description && <p className="mt-1.5 text-sm text-white/55">{task.description}</p>}
-          <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-white/45">
-            {task.estimatedMinutes != null && (
-              <span className="inline-flex items-center gap-1">
-                <Clock className="h-3 w-3" />~{task.estimatedMinutes}m
-              </span>
-            )}
-            {task.dueDate && (
-              <span className="inline-flex items-center gap-1">
-                <CalendarDays className="h-3 w-3" />
-                {new Date(task.dueDate).toLocaleDateString()}
-              </span>
-            )}
-            {hasChildren && <span>{children.length} subtasks</span>}
-          </div>
+          {task.description && <p className="mt-1 text-sm text-white/55">{task.description}</p>}
 
-          {/* Actions */}
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {hasChildren ? (
               <>
@@ -250,167 +254,287 @@ export function TaskDetail({
                 </Button>
               </>
             ) : (
-              <>
-                <Button size="sm" onClick={() => runParent()} disabled={runningParent} className="btn-accent">
-                  <Play className={`mr-1 h-3.5 w-3.5 ${runningParent ? 'animate-pulse' : ''}`} />
-                  {runningParent ? 'Working…' : 'Do it'}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={breakDown}
-                  disabled={breakingDown}
-                  className="border-white/15 text-white/75 hover:bg-white/5"
-                >
-                  <Sparkles className={`mr-1 h-3.5 w-3.5 ${breakingDown ? 'animate-spin' : ''}`} />
-                  {breakingDown ? 'Breaking down…' : 'Break into subtasks'}
-                </Button>
-              </>
+              <Button size="sm" variant="outline" onClick={breakDown} disabled={breakingDown} className="border-white/15 text-white/75 hover:bg-white/5">
+                <Sparkles className={`mr-1 h-3.5 w-3.5 ${breakingDown ? 'animate-spin' : ''}`} />
+                {breakingDown ? 'Breaking down…' : 'Break into steps'}
+              </Button>
             )}
             <span className="ml-auto flex items-center gap-1">
-              <Button
-                size="icon-sm"
-                variant="ghost"
-                onClick={() => onEdit(task)}
-                title="Edit"
-                className="text-white/40 hover:text-white"
-              >
+              <Button size="icon-sm" variant="ghost" onClick={() => onEdit(task)} title="Edit" className="text-white/40 hover:text-white">
                 <Pencil className="h-3.5 w-3.5" />
               </Button>
-              <Button
-                size="icon-sm"
-                variant="ghost"
-                onClick={deleteParent}
-                title="Delete"
-                className="text-white/40 hover:text-rose-300"
-              >
+              <Button size="icon-sm" variant="ghost" onClick={deleteParent} title="Delete" className="text-white/40 hover:text-rose-300">
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </span>
           </div>
         </div>
 
-        {/* Summary */}
-        {summary && (
-          <Panel icon={<FileText className="h-3.5 w-3.5 text-sky-300" />} title="Summary" defaultOpen>
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/80">{summary}</p>
-          </Panel>
-        )}
-
-        {/* Parent result (leaf task) */}
-        {!hasChildren && parentResult && (
-          <Panel
-            icon={<Play className="h-3.5 w-3.5 text-violet-300" />}
-            title="Agent result"
-            defaultOpen
-          >
-            <ResultBody
-              result={parentResult}
-              sources={parentSources}
-              busy={runningParent}
-              onReply={(t) => runParent(t)}
-            />
-          </Panel>
-        )}
-
-        {/* Subtasks — vertical timeline */}
-        {hasChildren && (
-          <div className="mt-3">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-white/35">
-                Steps
-              </p>
-              <span className="text-[11px] tabular-nums text-white/40">
-                {children.filter((c) => c._done).length}/{children.length} done
-              </span>
-            </div>
-            <div className="relative">
-              {/* connector rail */}
-              <div
-                aria-hidden
-                className="absolute bottom-5 left-[15px] top-5 w-px bg-gradient-to-b from-violet-400/40 via-white/10 to-transparent"
-              />
-              <div className="space-y-2.5">
-                {children.map((child, i) => (
-                  <StepRow
-                    key={child.id}
-                    step={i + 1}
-                    child={child}
-                    busy={runningId === child.id || runningAll}
-                    onRun={(reply) => runChild(child.id, reply)}
-                    onToggle={() => toggleChild(child)}
-                    onDelete={() => deleteChild(child)}
-                  />
-                ))}
+        {/* Body */}
+        {hasChildren ? (
+          <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[252px_1fr]">
+            {/* Left: step rail */}
+            <div className="max-h-44 overflow-y-auto border-b border-white/10 p-3 lg:max-h-none lg:border-b-0 lg:border-r">
+              <div className="mb-2 flex items-center justify-between px-1">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-white/35">
+                  Steps
+                </span>
+                <span className="text-[11px] tabular-nums text-white/40">
+                  {doneCount}/{children.length}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedId(OVERVIEW)}
+                className={`mb-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
+                  selectedId === OVERVIEW ? 'bg-violet-500/15 text-white' : 'text-white/70 hover:bg-white/5'
+                }`}
+              >
+                <LayoutGrid className="h-4 w-4 shrink-0 text-violet-300" />
+                Overview
+              </button>
+              <div className="space-y-0.5">
+                {children.map((child, i) => {
+                  const active = selectedId === child.id
+                  const cpr = PRIORITY[child.priority]
+                  const isBusy = runningId === child.id || runningAll
+                  return (
+                    <button
+                      key={child.id}
+                      type="button"
+                      onClick={() => setSelectedId(child.id)}
+                      className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors ${
+                        active ? 'bg-violet-500/15' : 'hover:bg-white/5'
+                      }`}
+                    >
+                      <span
+                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold ${
+                          child._done
+                            ? 'border-violet-400 bg-violet-500 text-white'
+                            : isBusy
+                              ? 'animate-pulse border-violet-400/70 text-violet-200'
+                              : 'border-white/20 text-white/50'
+                        }`}
+                      >
+                        {child._done ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : i + 1}
+                      </span>
+                      <span
+                        className={`min-w-0 flex-1 truncate text-[13px] ${
+                          child._done ? 'text-white/45 line-through' : active ? 'text-white' : 'text-white/75'
+                        }`}
+                      >
+                        {child.title}
+                      </span>
+                      {child.result && <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${cpr.dot}`} />}
+                    </button>
+                  )
+                })}
               </div>
             </div>
-          </div>
-        )}
 
-        {!hasChildren && !parentResult && (
-          <p className="mt-2 text-sm text-white/45">
-            No subtasks yet. Use <span className="text-white/70">Break into subtasks</span> to plan
-            it, or <span className="text-white/70">Do it</span> to run this task directly.
-          </p>
+            {/* Right: detail canvas */}
+            <div className="min-h-0 overflow-y-auto p-5">
+              {selectedId === OVERVIEW ? (
+                <OverviewPane
+                  description={task.description}
+                  summary={summary}
+                  done={doneCount}
+                  total={children.length}
+                  onSummarize={summarize}
+                  summarizing={summarizing}
+                />
+              ) : selected ? (
+                <StepDetail
+                  key={selected.id}
+                  child={selected}
+                  busy={runningId === selected.id || runningAll}
+                  onRun={(reply) => runChild(selected.id, reply)}
+                  onToggle={() => toggleChild(selected)}
+                  onDelete={() => deleteChild(selected)}
+                />
+              ) : null}
+            </div>
+          </div>
+        ) : (
+          /* Leaf task — single canvas */
+          <div className="min-h-0 flex-1 overflow-y-auto p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Button size="sm" onClick={() => runParent()} disabled={runningParent} className="btn-accent">
+                <Play className={`mr-1 h-3.5 w-3.5 ${runningParent ? 'animate-pulse' : ''}`} />
+                {runningParent ? 'Working…' : 'Do it'}
+              </Button>
+            </div>
+            {parentResult ? (
+              <ResultView
+                result={parentResult}
+                sources={parentSources}
+                busy={runningParent}
+                onReply={(t) => runParent(t)}
+              />
+            ) : (
+              <EmptyResult onRun={() => runParent()} busy={runningParent} />
+            )}
+          </div>
         )}
       </DialogContent>
     </Dialog>
   )
 }
 
-/* ───────── Collapsible panel ───────── */
-function Panel({
-  icon,
-  title,
-  defaultOpen = false,
-  children,
+/* ───────── Overview pane ───────── */
+function OverviewPane({
+  description,
+  summary,
+  done,
+  total,
+  onSummarize,
+  summarizing,
 }: {
-  icon: React.ReactNode
-  title: string
-  defaultOpen?: boolean
-  children: React.ReactNode
+  description: string | null
+  summary: string | null
+  done: number
+  total: number
+  onSummarize: () => void
+  summarizing: boolean
 }) {
-  const [open, setOpen] = useState(defaultOpen)
+  const pct = total ? Math.round((done / total) * 100) : 0
   return (
-    <div className="mt-2 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white/70"
-      >
-        {icon}
-        {title}
-        <span className="ml-auto text-white/40">{open ? '▾' : '▸'}</span>
-      </button>
-      {open && <div className="px-3 pb-3">{children}</div>}
+    <div className="space-y-5">
+      <div>
+        <div className="flex items-center justify-between text-xs text-white/50">
+          <span>Progress</span>
+          <span className="tabular-nums">
+            {done}/{total} done
+          </span>
+        </div>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+          <div className="h-full rounded-full bg-violet-400/80 transition-all" style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+
+      {description && <p className="text-sm leading-relaxed text-white/70">{description}</p>}
+
+      <div>
+        <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-white/80">
+          <FileText className="h-4 w-4 text-sky-300" />
+          Plan summary
+        </div>
+        {summary ? (
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/75">{summary}</p>
+        ) : (
+          <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-5 text-center">
+            <p className="text-sm text-white/50">No summary yet.</p>
+            <Button
+              size="sm"
+              onClick={onSummarize}
+              disabled={summarizing}
+              className="btn-accent mt-3"
+            >
+              <FileText className={`mr-1 h-3.5 w-3.5 ${summarizing ? 'animate-pulse' : ''}`} />
+              {summarizing ? 'Summarizing…' : 'Generate summary'}
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
-/* ───────── Source thumbnail with fallback ───────── */
-function Thumb({ src }: { src?: string }) {
-  const [err, setErr] = useState(false)
-  if (!src || err) {
-    return (
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-white/5">
-        <Globe className="h-5 w-5 text-white/30" />
-      </div>
-    )
-  }
+/* ───────── Step detail (right canvas) ───────── */
+function StepDetail({
+  child,
+  busy,
+  onRun,
+  onToggle,
+  onDelete,
+}: {
+  child: Child
+  busy: boolean
+  onRun: (reply?: string) => void
+  onToggle: () => void
+  onDelete: () => void
+}) {
+  const pr = PRIORITY[child.priority]
+  const done = child._done
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt=""
-      loading="lazy"
-      onError={() => setErr(true)}
-      className="h-14 w-14 shrink-0 rounded-md object-cover"
-    />
+    <div className="space-y-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className={`text-lg font-semibold leading-snug ${done ? 'text-white/55 line-through' : 'text-white'}`}>
+            {child.title}
+          </h3>
+          <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-white/50">
+            <span className="inline-flex items-center gap-1">
+              <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
+              <span className={pr.label}>{child.priority}</span>
+            </span>
+            {child.estimatedMinutes != null && (
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-3 w-3" />~{child.estimatedMinutes}m
+              </span>
+            )}
+          </div>
+        </div>
+        <Button
+          size="icon-sm"
+          variant="ghost"
+          onClick={onDelete}
+          title="Delete step"
+          className="shrink-0 text-white/40 hover:text-rose-300"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Button size="sm" onClick={() => onRun()} disabled={busy} className="btn-accent">
+          <Play className={`mr-1 h-3.5 w-3.5 ${busy ? 'animate-pulse' : ''}`} />
+          {busy ? 'Working…' : child.result ? 'Run again' : 'Do it'}
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onToggle}
+          className="border-white/15 text-white/70 hover:bg-white/5"
+        >
+          <Check className="mr-1 h-3.5 w-3.5" />
+          {done ? 'Mark not done' : 'Mark done'}
+        </Button>
+      </div>
+
+      {child.result ? (
+        <ResultView
+          result={child.result}
+          sources={child._sources ?? []}
+          busy={busy}
+          onReply={(t) => onRun(t)}
+        />
+      ) : (
+        <EmptyResult onRun={() => onRun()} busy={busy} />
+      )}
+    </div>
   )
 }
 
-/* ───────── Result body (text + sources + answer) ───────── */
-function ResultBody({
+/* ───────── Empty result placeholder ───────── */
+function EmptyResult({ onRun, busy }: { onRun: () => void; busy: boolean }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-12 text-center">
+      <Globe className="mx-auto h-7 w-7 text-violet-300/50" />
+      <p className="mt-3 text-sm text-white/60">Run this and the agent does it for real.</p>
+      <p className="mt-1 text-xs text-white/40">
+        It searches the live web and brings back pages, prices, and images — right here.
+      </p>
+      <Button size="sm" onClick={onRun} disabled={busy} className="btn-accent mt-4">
+        <Play className={`mr-1 h-3.5 w-3.5 ${busy ? 'animate-pulse' : ''}`} />
+        {busy ? 'Working…' : 'Do it'}
+      </Button>
+    </div>
+  )
+}
+
+/* ───────── Result view (report + gallery + answer) ───────── */
+function ResultView({
   result,
   sources,
   busy,
@@ -423,39 +547,22 @@ function ResultBody({
 }) {
   const [reply, setReply] = useState('')
   return (
-    <div>
+    <div className="space-y-4">
       <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/80">{result}</p>
+
       {sources.length > 0 && (
-        <div className="mt-3 border-t border-white/10 pt-3">
+        <div>
           <p className="mb-2 text-[10px] uppercase tracking-wider text-white/40">
-            Sources &amp; results
+            Results &amp; sources
           </p>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {sources.map((s, i) => (
-              <a
-                key={i}
-                href={s.uri}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex gap-2.5 overflow-hidden rounded-lg border border-white/10 bg-white/[0.04] p-2 transition-colors hover:border-white/25 hover:bg-white/[0.07]"
-              >
-                <Thumb src={s.image} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-xs font-medium text-white/85 group-hover:text-white">
-                    {s.title}
-                  </div>
-                  <div className="truncate text-[10px] text-white/40">{s.siteName}</div>
-                  {s.description && (
-                    <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-white/50">
-                      {s.description}
-                    </p>
-                  )}
-                </div>
-              </a>
+              <SourceCard key={i} s={s} />
             ))}
           </div>
         </div>
       )}
+
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -464,129 +571,57 @@ function ResultBody({
             setReply('')
           }
         }}
-        className="mt-3 flex gap-2 border-t border-white/10 pt-3"
+        className="flex gap-2 border-t border-white/10 pt-4"
       >
         <Input
           value={reply}
           onChange={(e) => setReply(e.target.value)}
           placeholder="Answer the agent or add details…"
           disabled={busy}
-          className="h-8 border-white/10 bg-white/5 text-sm"
+          className="h-9 border-white/10 bg-white/5 text-sm"
         />
         <Button type="submit" size="sm" disabled={busy || !reply.trim()} className="btn-accent">
-          {busy ? 'Sending…' : 'Send'}
+          <ArrowRight className="h-3.5 w-3.5" />
         </Button>
       </form>
     </div>
   )
 }
 
-/* ───────── One timeline step ───────── */
-function StepRow({
-  step,
-  child,
-  busy,
-  onRun,
-  onToggle,
-  onDelete,
-}: {
-  step: number
-  child: Child
-  busy: boolean
-  onRun: (reply?: string) => void
-  onToggle: () => void
-  onDelete: () => void
-}) {
-  const [open, setOpen] = useState(Boolean(child.result))
-  // Reveal the result automatically once the agent produces one.
-  useEffect(() => {
-    if (child.result) setOpen(true)
-  }, [child.result])
-
-  const pr = PRIORITY[child.priority]
-  const done = child._done
-
+/* ───────── Big source card with banner image ───────── */
+function SourceCard({ s }: { s: Source }) {
+  const [err, setErr] = useState(false)
+  const showImg = s.image && !err
   return (
-    <div className="relative pl-11">
-      {/* timeline node */}
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-label={done ? 'Mark as not done' : 'Mark as done'}
-        className={`absolute left-0 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold transition-all ${
-          done
-            ? 'border-violet-400 bg-violet-500 text-white shadow-[0_0_16px_-2px_rgba(139,92,246,0.65)]'
-            : busy
-              ? 'animate-pulse border-violet-400/70 bg-[#0b0e1a] text-violet-200'
-              : 'border-white/20 bg-[#0b0e1a] text-white/50 hover:border-violet-300/60 hover:text-white'
-        }`}
-      >
-        {done ? <Check className="h-4 w-4" strokeWidth={3} /> : step}
-      </button>
-
-      {/* step card */}
-      <div
-        className={`rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.055] ${
-          done ? 'opacity-70' : ''
-        }`}
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div
-              className={`text-sm font-medium ${done ? 'text-white/55 line-through' : 'text-white/90'}`}
-            >
-              {child.title}
-            </div>
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-white/45">
-              <span className="inline-flex items-center gap-1">
-                <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
-                <span className={pr.label}>{child.priority}</span>
-              </span>
-              {child.estimatedMinutes != null && (
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="h-3 w-3" />~{child.estimatedMinutes}m
-                </span>
-              )}
-              {child.result && (
-                <button
-                  type="button"
-                  onClick={() => setOpen((v) => !v)}
-                  className="text-violet-300/80 transition-colors hover:text-violet-200"
-                >
-                  {open ? 'Hide result' : 'View result'}
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-1">
-            <Button size="sm" onClick={() => onRun()} disabled={busy} className="btn-accent">
-              <Play className={`mr-1 h-3.5 w-3.5 ${busy ? 'animate-pulse' : ''}`} />
-              {busy ? '…' : 'Do it'}
-            </Button>
-            <Button
-              size="icon-sm"
-              variant="ghost"
-              onClick={onDelete}
-              title="Delete step"
-              className="text-white/40 hover:text-rose-300"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          </div>
+    <a
+      href={s.uri}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] transition-colors hover:border-white/25 hover:bg-white/[0.06]"
+    >
+      {showImg ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={s.image}
+          alt=""
+          loading="lazy"
+          onError={() => setErr(true)}
+          className="h-28 w-full object-cover"
+        />
+      ) : (
+        <div className="flex h-28 w-full items-center justify-center bg-white/[0.04]">
+          <Globe className="h-7 w-7 text-white/25" />
         </div>
-
-        {child.result && open && (
-          <div className="mt-3 border-t border-white/10 pt-3">
-            <ResultBody
-              result={child.result}
-              sources={child._sources ?? []}
-              busy={busy}
-              onReply={(t) => onRun(t)}
-            />
-          </div>
+      )}
+      <div className="p-3">
+        <div className="truncate text-xs font-medium text-white/85 group-hover:text-white">
+          {s.title}
+        </div>
+        <div className="mt-0.5 truncate text-[10px] text-white/40">{s.siteName}</div>
+        {s.description && (
+          <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-white/50">{s.description}</p>
         )}
       </div>
-    </div>
+    </a>
   )
 }
