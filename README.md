@@ -2,7 +2,7 @@
 
 An AI task manager where specialized agents don't just organize your work — they **do** it. Describe a goal, and agents plan it, break it into steps, **search the live web to actually carry tasks out**, prioritize your day, and brief you on what matters.
 
-> **Live demo:** _add your Vercel URL here after deploying_
+> **Live demo:** https://taskagent-amber.vercel.app
 > **Stack:** Next.js 15 · TypeScript · Prisma + Postgres (Neon) · NextAuth v5 (Google) · Google Gemini · Tailwind v4
 
 <!-- Add a screenshot or GIF here: ![TaskAgent](docs/screenshot.png) -->
