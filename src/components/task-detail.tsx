@@ -15,11 +15,15 @@ import {
   LayoutGrid,
   ArrowRight,
   Zap,
+  Mail,
+  CalendarPlus,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { EmailAgentDialog } from '@/components/email-agent-dialog'
+import { ScheduleAgentDialog } from '@/components/schedule-agent-dialog'
 import type { TaskNodeUI, RichSourceUI } from '@/components/task-list'
 
 type Source = RichSourceUI
@@ -66,6 +70,8 @@ export function TaskDetail({
   const [summarizing, setSummarizing] = useState(false)
   const [breakingDown, setBreakingDown] = useState(false)
   const [runningId, setRunningId] = useState<string | null>(null)
+  const [emailOpen, setEmailOpen] = useState(false)
+  const [scheduleOpen, setScheduleOpen] = useState(false)
 
   // Parent-as-leaf execute state (task with no subtasks)
   const [parentResult, setParentResult] = useState<string | null>(task.result ?? null)
@@ -75,9 +81,7 @@ export function TaskDetail({
 
   const hasChildren = children.length > 0
   const doneCount = children.filter((c) => c._done).length
-  const [selectedId, setSelectedId] = useState<string>(
-    hasChildren ? children[0].id : OVERVIEW,
-  )
+  const [selectedId, setSelectedId] = useState<string>(hasChildren ? children[0].id : OVERVIEW)
   const selected = children.find((c) => c.id === selectedId) ?? null
   const pr = PRIORITY[task.priority]
 
@@ -99,7 +103,9 @@ export function TaskDetail({
       )
       setChildren((prev) =>
         prev.map((c) =>
-          map.has(c.id) ? { ...c, result: map.get(c.id)!.result, _sources: map.get(c.id)!.sources } : c,
+          map.has(c.id)
+            ? { ...c, result: map.get(c.id)!.result, _sources: map.get(c.id)!.sources }
+            : c,
         ),
       )
       toast.success(
@@ -225,168 +231,226 @@ export function TaskDetail({
   }
 
   return (
-    <Dialog open onOpenChange={(o) => !o && close()}>
-      <DialogContent className="flex h-[86vh] w-[calc(100%-1.5rem)] max-w-4xl flex-col gap-0 overflow-hidden border-white/10 bg-[#0b0e1a]/95 p-0 backdrop-blur-xl sm:max-w-4xl">
-        {/* Header */}
-        <div className="shrink-0 border-b border-white/10 p-5 pr-12">
-          <span className="inline-flex items-center gap-1.5 text-[11px]">
-            <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
-            <span className={`font-medium ${pr.label}`}>{task.priority}</span>
-            {task.dueDate && (
-              <span className="ml-2 text-white/40">
-                due {new Date(task.dueDate).toLocaleDateString()}
-              </span>
-            )}
-          </span>
-          <DialogTitle className="mt-1.5 text-xl font-semibold tracking-tight text-white">
-            {task.title}
-          </DialogTitle>
-          {task.description && <p className="mt-1 text-sm text-white/55">{task.description}</p>}
+    <>
+      <Dialog open onOpenChange={(o) => !o && close()}>
+        <DialogContent className="flex h-[86vh] w-[calc(100%-1.5rem)] max-w-4xl flex-col gap-0 overflow-hidden border-white/10 bg-[#0b0e1a]/95 p-0 backdrop-blur-xl sm:max-w-4xl">
+          {/* Header */}
+          <div className="shrink-0 border-b border-white/10 p-5 pr-12">
+            <span className="inline-flex items-center gap-1.5 text-[11px]">
+              <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
+              <span className={`font-medium ${pr.label}`}>{task.priority}</span>
+              {task.dueDate && (
+                <span className="ml-2 text-white/40">
+                  due {new Date(task.dueDate).toLocaleDateString()}
+                </span>
+              )}
+            </span>
+            <DialogTitle className="mt-1.5 text-xl font-semibold tracking-tight text-white">
+              {task.title}
+            </DialogTitle>
+            {task.description && <p className="mt-1 text-sm text-white/55">{task.description}</p>}
 
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            {hasChildren ? (
-              <>
-                <Button size="sm" onClick={doAll} disabled={runningAll} className="btn-accent">
-                  <ListChecks className={`mr-1 h-3.5 w-3.5 ${runningAll ? 'animate-pulse' : ''}`} />
-                  {runningAll ? 'Running all…' : 'Do all'}
-                </Button>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              {hasChildren ? (
+                <>
+                  <Button size="sm" onClick={doAll} disabled={runningAll} className="btn-accent">
+                    <ListChecks
+                      className={`mr-1 h-3.5 w-3.5 ${runningAll ? 'animate-pulse' : ''}`}
+                    />
+                    {runningAll ? 'Running all…' : 'Do all'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={summarize}
+                    disabled={summarizing}
+                    className="border-white/15 text-white/75 hover:bg-white/5"
+                  >
+                    <FileText
+                      className={`mr-1 h-3.5 w-3.5 ${summarizing ? 'animate-pulse' : ''}`}
+                    />
+                    {summarizing ? 'Summarizing…' : 'Summary'}
+                  </Button>
+                </>
+              ) : (
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={summarize}
-                  disabled={summarizing}
+                  onClick={breakDown}
+                  disabled={breakingDown}
                   className="border-white/15 text-white/75 hover:bg-white/5"
                 >
-                  <FileText className={`mr-1 h-3.5 w-3.5 ${summarizing ? 'animate-pulse' : ''}`} />
-                  {summarizing ? 'Summarizing…' : 'Summary'}
+                  <Sparkles className={`mr-1 h-3.5 w-3.5 ${breakingDown ? 'animate-spin' : ''}`} />
+                  {breakingDown ? 'Breaking down…' : 'Break into steps'}
                 </Button>
-              </>
-            ) : (
-              <Button size="sm" variant="outline" onClick={breakDown} disabled={breakingDown} className="border-white/15 text-white/75 hover:bg-white/5">
-                <Sparkles className={`mr-1 h-3.5 w-3.5 ${breakingDown ? 'animate-spin' : ''}`} />
-                {breakingDown ? 'Breaking down…' : 'Break into steps'}
-              </Button>
-            )}
-            <span className="ml-auto flex items-center gap-1">
-              <Button size="icon-sm" variant="ghost" onClick={() => onEdit(task)} title="Edit" className="text-white/40 hover:text-white">
-                <Pencil className="h-3.5 w-3.5" />
-              </Button>
-              <Button size="icon-sm" variant="ghost" onClick={deleteParent} title="Delete" className="text-white/40 hover:text-rose-300">
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            </span>
-          </div>
-        </div>
-
-        {/* Body */}
-        {hasChildren ? (
-          <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[252px_1fr]">
-            {/* Left: step rail */}
-            <div className="max-h-44 overflow-y-auto border-b border-white/10 p-3 lg:max-h-none lg:border-b-0 lg:border-r">
-              <div className="mb-2 flex items-center justify-between px-1">
-                <span className="text-[11px] font-medium uppercase tracking-wider text-white/35">
-                  Steps
-                </span>
-                <span className="text-[11px] tabular-nums text-white/40">
-                  {doneCount}/{children.length}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedId(OVERVIEW)}
-                className={`mb-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
-                  selectedId === OVERVIEW ? 'bg-violet-500/15 text-white' : 'text-white/70 hover:bg-white/5'
-                }`}
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setEmailOpen(true)}
+                className="border-white/15 text-white/75 hover:bg-white/5"
               >
-                <LayoutGrid className="h-4 w-4 shrink-0 text-violet-300" />
-                Overview
-              </button>
-              <div className="space-y-0.5">
-                {children.map((child, i) => {
-                  const active = selectedId === child.id
-                  const cpr = PRIORITY[child.priority]
-                  const isBusy = runningId === child.id || runningAll
-                  return (
-                    <button
-                      key={child.id}
-                      type="button"
-                      onClick={() => setSelectedId(child.id)}
-                      className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors ${
-                        active ? 'bg-violet-500/15' : 'hover:bg-white/5'
-                      }`}
-                    >
-                      <span
-                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold ${
-                          child._done
-                            ? 'border-violet-400 bg-violet-500 text-white'
-                            : isBusy
-                              ? 'animate-pulse border-violet-400/70 text-violet-200'
-                              : 'border-white/20 text-white/50'
+                <Mail className="mr-1 h-3.5 w-3.5" />
+                Email
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setScheduleOpen(true)}
+                className="border-white/15 text-white/75 hover:bg-white/5"
+              >
+                <CalendarPlus className="mr-1 h-3.5 w-3.5" />
+                Schedule
+              </Button>
+              <span className="ml-auto flex items-center gap-1">
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  onClick={() => onEdit(task)}
+                  title="Edit"
+                  className="text-white/40 hover:text-white"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  onClick={deleteParent}
+                  title="Delete"
+                  className="text-white/40 hover:text-rose-300"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </span>
+            </div>
+          </div>
+
+          {/* Body */}
+          {hasChildren ? (
+            <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[252px_1fr]">
+              {/* Left: step rail */}
+              <div className="max-h-44 overflow-y-auto border-b border-white/10 p-3 lg:max-h-none lg:border-r lg:border-b-0">
+                <div className="mb-2 flex items-center justify-between px-1">
+                  <span className="text-[11px] font-medium tracking-wider text-white/35 uppercase">
+                    Steps
+                  </span>
+                  <span className="text-[11px] text-white/40 tabular-nums">
+                    {doneCount}/{children.length}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(OVERVIEW)}
+                  className={`mb-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
+                    selectedId === OVERVIEW
+                      ? 'bg-violet-500/15 text-white'
+                      : 'text-white/70 hover:bg-white/5'
+                  }`}
+                >
+                  <LayoutGrid className="h-4 w-4 shrink-0 text-violet-300" />
+                  Overview
+                </button>
+                <div className="space-y-0.5">
+                  {children.map((child, i) => {
+                    const active = selectedId === child.id
+                    const cpr = PRIORITY[child.priority]
+                    const isBusy = runningId === child.id || runningAll
+                    return (
+                      <button
+                        key={child.id}
+                        type="button"
+                        onClick={() => setSelectedId(child.id)}
+                        className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors ${
+                          active ? 'bg-violet-500/15' : 'hover:bg-white/5'
                         }`}
                       >
-                        {child._done ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : i + 1}
-                      </span>
-                      <span
-                        className={`min-w-0 flex-1 truncate text-[13px] ${
-                          child._done ? 'text-white/45 line-through' : active ? 'text-white' : 'text-white/75'
-                        }`}
-                      >
-                        {child.title}
-                      </span>
-                      {child.result && <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${cpr.dot}`} />}
-                    </button>
-                  )
-                })}
+                        <span
+                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold ${
+                            child._done
+                              ? 'border-violet-400 bg-violet-500 text-white'
+                              : isBusy
+                                ? 'animate-pulse border-violet-400/70 text-violet-200'
+                                : 'border-white/20 text-white/50'
+                          }`}
+                        >
+                          {child._done ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : i + 1}
+                        </span>
+                        <span
+                          className={`min-w-0 flex-1 truncate text-[13px] ${
+                            child._done
+                              ? 'text-white/45 line-through'
+                              : active
+                                ? 'text-white'
+                                : 'text-white/75'
+                          }`}
+                        >
+                          {child.title}
+                        </span>
+                        {child.result && (
+                          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${cpr.dot}`} />
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Right: detail canvas */}
+              <div className="min-h-0 overflow-y-auto p-5">
+                {selectedId === OVERVIEW ? (
+                  <OverviewPane
+                    description={task.description}
+                    summary={summary}
+                    done={doneCount}
+                    total={children.length}
+                    onSummarize={summarize}
+                    summarizing={summarizing}
+                  />
+                ) : selected ? (
+                  <StepDetail
+                    key={selected.id}
+                    child={selected}
+                    busy={runningId === selected.id || runningAll}
+                    onRun={(reply) => runChild(selected.id, reply)}
+                    onToggle={() => toggleChild(selected)}
+                    onDelete={() => deleteChild(selected)}
+                  />
+                ) : null}
               </div>
             </div>
+          ) : (
+            /* Leaf task — single canvas */
+            <div className="min-h-0 flex-1 overflow-y-auto p-5">
+              <div className="mb-4 flex items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => runParent()}
+                  disabled={runningParent}
+                  className="btn-accent"
+                >
+                  <Play className={`mr-1 h-3.5 w-3.5 ${runningParent ? 'animate-pulse' : ''}`} />
+                  {runningParent ? 'Working…' : 'Do it'}
+                </Button>
+              </div>
+              {parentResult ? (
+                <ResultView
+                  result={parentResult}
+                  sources={parentSources}
+                  busy={runningParent}
+                  ranSecs={parentRanSecs}
+                  onReply={(t) => runParent(t)}
+                />
+              ) : (
+                <EmptyResult onRun={() => runParent()} busy={runningParent} />
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
-            {/* Right: detail canvas */}
-            <div className="min-h-0 overflow-y-auto p-5">
-              {selectedId === OVERVIEW ? (
-                <OverviewPane
-                  description={task.description}
-                  summary={summary}
-                  done={doneCount}
-                  total={children.length}
-                  onSummarize={summarize}
-                  summarizing={summarizing}
-                />
-              ) : selected ? (
-                <StepDetail
-                  key={selected.id}
-                  child={selected}
-                  busy={runningId === selected.id || runningAll}
-                  onRun={(reply) => runChild(selected.id, reply)}
-                  onToggle={() => toggleChild(selected)}
-                  onDelete={() => deleteChild(selected)}
-                />
-              ) : null}
-            </div>
-          </div>
-        ) : (
-          /* Leaf task — single canvas */
-          <div className="min-h-0 flex-1 overflow-y-auto p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <Button size="sm" onClick={() => runParent()} disabled={runningParent} className="btn-accent">
-                <Play className={`mr-1 h-3.5 w-3.5 ${runningParent ? 'animate-pulse' : ''}`} />
-                {runningParent ? 'Working…' : 'Do it'}
-              </Button>
-            </div>
-            {parentResult ? (
-              <ResultView
-                result={parentResult}
-                sources={parentSources}
-                busy={runningParent}
-                ranSecs={parentRanSecs}
-                onReply={(t) => runParent(t)}
-              />
-            ) : (
-              <EmptyResult onRun={() => runParent()} busy={runningParent} />
-            )}
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+      <EmailAgentDialog task={task} open={emailOpen} onOpenChange={setEmailOpen} />
+      <ScheduleAgentDialog task={task} open={scheduleOpen} onOpenChange={setScheduleOpen} />
+    </>
   )
 }
 
@@ -417,7 +481,10 @@ function OverviewPane({
           </span>
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full rounded-full bg-violet-400/80 transition-all" style={{ width: `${pct}%` }} />
+          <div
+            className="h-full rounded-full bg-violet-400/80 transition-all"
+            style={{ width: `${pct}%` }}
+          />
         </div>
       </div>
 
@@ -429,7 +496,7 @@ function OverviewPane({
           Plan summary
         </div>
         {summary ? (
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/75">{summary}</p>
+          <p className="text-sm leading-relaxed whitespace-pre-wrap text-white/75">{summary}</p>
         ) : (
           <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-5 text-center">
             <p className="text-sm text-white/50">No summary yet.</p>
@@ -469,7 +536,9 @@ function StepDetail({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className={`text-lg font-semibold leading-snug ${done ? 'text-white/55 line-through' : 'text-white'}`}>
+          <h3
+            className={`text-lg leading-snug font-semibold ${done ? 'text-white/55 line-through' : 'text-white'}`}
+          >
             {child.title}
           </h3>
           <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-white/50">
@@ -569,11 +638,11 @@ function ResultView({
           Agent did it in {ranSecs}s
         </div>
       )}
-      <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/80">{result}</p>
+      <p className="text-sm leading-relaxed whitespace-pre-wrap text-white/80">{result}</p>
 
       {sources.length > 0 && (
         <div>
-          <p className="mb-2 text-[10px] uppercase tracking-wider text-white/40">
+          <p className="mb-2 text-[10px] tracking-wider text-white/40 uppercase">
             Results &amp; sources
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -640,7 +709,9 @@ function SourceCard({ s }: { s: Source }) {
         </div>
         <div className="mt-0.5 truncate text-[10px] text-white/40">{s.siteName}</div>
         {s.description && (
-          <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-white/50">{s.description}</p>
+          <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-white/50">
+            {s.description}
+          </p>
         )}
       </div>
     </a>

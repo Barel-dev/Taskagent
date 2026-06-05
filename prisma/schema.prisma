@@ -115,6 +115,13 @@ model Task {
   // and stop asking the same questions.
   context String? @db.Text
 
+  // Set by the Schedule agent when the user approves a proposed time slot: the
+  // task gets a calendar block and we keep the Google event id so it can be
+  // referenced later.
+  scheduledStart  DateTime?
+  scheduledEnd    DateTime?
+  calendarEventId String?
+
   // Self-relation: a task can be broken down into ordered subtasks.
   estimatedMinutes Int?
   parentId         String?

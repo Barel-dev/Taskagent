@@ -34,5 +34,32 @@ export const executeRequestSchema = z.object({
   reply: z.string().max(2000).optional(),
 })
 
+// Email agent. Drafting takes a plain-language instruction (and optional task
+// the email is about). Sending takes the reviewed, user-approved draft.
+export const draftEmailRequestSchema = z.object({
+  taskId: z.string().min(1).optional(),
+  instruction: z.string().min(1, 'Describe the email you want').max(2000),
+})
+
+export const sendEmailRequestSchema = z.object({
+  to: z.string().email('Enter a valid recipient email'),
+  subject: z.string().min(1, 'Subject is required').max(300),
+  body: z.string().min(1, 'Body is required').max(20000),
+})
+
+// Schedule agent. Proposing takes the task (+ the browser's timezone). Committing
+// takes the user-approved slot to write to Google Calendar.
+export const scheduleRequestSchema = z.object({
+  taskId: z.string().min(1, 'taskId is required'),
+  timeZone: z.string().min(1).max(64).optional(),
+})
+
+export const scheduleCommitSchema = z.object({
+  taskId: z.string().min(1, 'taskId is required'),
+  start: z.coerce.date(),
+  end: z.coerce.date(),
+  timeZone: z.string().min(1).max(64).optional(),
+})
+
 export type CreateTaskInput = z.infer<typeof createTaskSchema>
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>

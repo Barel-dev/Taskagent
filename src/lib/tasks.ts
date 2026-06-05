@@ -63,3 +63,16 @@ export async function deleteTaskForUser(userId: string, taskId: string) {
   const result = await prisma.task.deleteMany({ where: { id: taskId, userId } })
   return result.count > 0
 }
+
+/**
+ * Record the calendar block the Schedule agent created on a task the caller
+ * owns. Returns false when the task isn't found / not owned by the user.
+ */
+export async function setTaskSchedule(
+  userId: string,
+  taskId: string,
+  data: { scheduledStart: Date; scheduledEnd: Date; calendarEventId: string },
+) {
+  const result = await prisma.task.updateMany({ where: { id: taskId, userId }, data })
+  return result.count > 0
+}

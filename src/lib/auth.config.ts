@@ -15,7 +15,14 @@ export default {
           prompt: 'consent',
           access_type: 'offline',
           response_type: 'code',
-          scope: 'openid email profile',
+          // gmail.send lets the Email agent send on the user's behalf, and the
+          // calendar.events / calendar.freebusy scopes let the Schedule agent
+          // read busy times and create events — all only after explicit in-app
+          // approval. access_type:offline + prompt:consent ensure Google issues
+          // a refresh token so we can mint access tokens for these APIs later.
+          // Adding scopes requires the user to re-consent (sign out and back in).
+          scope:
+            'openid email profile https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.freebusy',
         },
       },
     }),
