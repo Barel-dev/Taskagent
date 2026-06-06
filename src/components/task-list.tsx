@@ -31,6 +31,8 @@ export type TaskNodeUI = {
   status: 'TODO' | 'IN_PROGRESS' | 'DONE'
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   dueDate: string | Date | null
+  scheduledStart?: string | Date | null
+  scheduledEnd?: string | Date | null
   estimatedMinutes?: number | null
   result?: string | null
   resultData?: { sources?: RichSourceUI[] } | null

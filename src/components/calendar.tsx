@@ -50,6 +50,17 @@ function sameDay(a: Date, b: Date): boolean {
     a.getDate() === b.getDate()
   )
 }
+// A task sits on its scheduled day if the Schedule agent placed it, else its due day.
+function effectiveDate(t: TaskNodeUI): string | Date | null {
+  return t.scheduledStart ?? t.dueDate ?? null
+}
+function scheduledTime(t: TaskNodeUI): string | null {
+  if (!t.scheduledStart) return null
+  return new Date(t.scheduledStart).toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
 
 type View = 'week' | 'month'
 
@@ -69,9 +80,10 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
   }, [view])
 
   const today = new Date()
-  const dated = tasks.filter((t) => t.dueDate)
-  const unscheduled = tasks.filter((t) => !t.dueDate)
-  const tasksOn = (day: Date) => dated.filter((t) => sameDay(new Date(t.dueDate as string), day))
+  const placed = tasks.filter((t) => effectiveDate(t))
+  const unscheduled = tasks.filter((t) => !t.scheduledStart && !t.dueDate)
+  const tasksOn = (day: Date) =>
+    placed.filter((t) => sameDay(new Date(effectiveDate(t) as string), day))
 
   function goPrev() {
     if (view === 'week') setWeekOffset((w) => w - 1)
@@ -106,7 +118,7 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
             Your <span className="text-violet-300">{view === 'week' ? 'week' : 'month'}</span>
           </h2>
           <p className="mt-1.5 text-sm text-white/50">
-            Tasks laid out by due date. Click any task to open its agents.
+            Tasks by due date and scheduled time. Click any task to open its agents.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -199,7 +211,7 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
         </div>
       )}
 
-      {dated.length === 0 && unscheduled.length === 0 && (
+      {placed.length === 0 && unscheduled.length === 0 && (
         <div className="tl-rise rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
           <CalendarDays className="mx-auto h-6 w-6 text-violet-300/60" />
           <p className="mt-3 text-sm text-white/60">Nothing scheduled.</p>
@@ -266,6 +278,7 @@ function WeekGrid({
                   items.map((t) => {
                     const done = t.status === 'DONE'
                     const subN = t.children?.length ?? 0
+                    const time = scheduledTime(t)
                     return (
                       <button
                         key={t.id}
@@ -275,6 +288,11 @@ function WeekGrid({
                           CARD[t.priority]
                         } ${done ? 'opacity-50' : ''}`}
                       >
+                        {time && (
+                          <div className="mb-0.5 text-[10px] font-semibold tabular-nums opacity-80">
+                            {time}
+                          </div>
+                        )}
                         <div
                           className={`line-clamp-3 text-xs leading-snug font-medium ${done ? 'line-through' : ''}`}
                         >
@@ -352,17 +370,19 @@ function MonthGrid({
                 </div>
                 {items.slice(0, MAX_CHIPS).map((t) => {
                   const done = t.status === 'DONE'
+                  const time = scheduledTime(t)
                   return (
                     <button
                       key={t.id}
                       type="button"
                       onClick={() => onOpen(t)}
-                      title={t.title}
+                      title={time ? `${time} · ${t.title}` : t.title}
                       className={`flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-left text-[10px] font-medium transition-colors hover:bg-white/10 ${
                         CARD[t.priority]
                       } ${done ? 'opacity-50' : ''}`}
                     >
                       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${DOT[t.priority]}`} />
+                      {time && <span className="shrink-0 tabular-nums opacity-80">{time}</span>}
                       <span className={`truncate ${done ? 'line-through' : ''}`}>{t.title}</span>
                     </button>
                   )

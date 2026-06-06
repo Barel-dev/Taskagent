@@ -87,6 +87,14 @@ export function TaskDetail({
   const selected = children.find((c) => c.id === selectedId) ?? null
   const pr = PRIORITY[task.priority]
   const due = formatDue(task.dueDate, task.status)
+  const scheduled = task.scheduledStart
+    ? new Date(task.scheduledStart).toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      })
+    : null
 
   function close() {
     onClose()
@@ -243,6 +251,7 @@ export function TaskDetail({
               <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
               <span className={`font-medium ${pr.label}`}>{task.priority}</span>
               {due && <span className={`ml-2 ${dueToneClass(due)}`}>due {due.label}</span>}
+              {scheduled && <span className="ml-2 text-violet-300">· scheduled {scheduled}</span>}
             </span>
             <DialogTitle className="mt-1.5 text-xl font-semibold tracking-tight text-white">
               {task.title}

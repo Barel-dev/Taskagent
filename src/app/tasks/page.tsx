@@ -14,6 +14,8 @@ export default async function TasksPage() {
   const serialize = (t: TaskNode): unknown => ({
     ...t,
     dueDate: t.dueDate?.toISOString() ?? null,
+    scheduledStart: t.scheduledStart?.toISOString() ?? null,
+    scheduledEnd: t.scheduledEnd?.toISOString() ?? null,
     children: t.children.map(serialize),
   })
   const initial = tasks.map(serialize) as Parameters<typeof TaskList>[0]['initialTasks']
