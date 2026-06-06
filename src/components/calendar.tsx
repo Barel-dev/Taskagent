@@ -10,6 +10,7 @@ import {
   CalendarRange,
   Grid3x3,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { TaskDetail } from '@/components/task-detail'
 import type { TaskNodeUI } from '@/components/task-list'
@@ -102,6 +103,20 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
   function goToday() {
     setWeekOffset(0)
     setMonthOffset(0)
+  }
+
+  async function addOnDay(date: Date, title: string) {
+    const res = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, dueDate: date.toISOString() }),
+    })
+    if (!res.ok) {
+      toast.error('Could not add task')
+      return
+    }
+    toast.success('Task added')
+    router.refresh()
   }
 
   // Range label depends on the active view.
@@ -213,7 +228,13 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
           onOpen={setSelected}
         />
       ) : (
-        <MonthGrid monthBase={monthBase} today={today} tasksOn={tasksOn} onOpen={setSelected} />
+        <MonthGrid
+          monthBase={monthBase}
+          today={today}
+          tasksOn={tasksOn}
+          onOpen={setSelected}
+          onAddOnDay={addOnDay}
+        />
       )}
 
       {/* Unscheduled */}
@@ -349,12 +370,16 @@ function MonthGrid({
   today,
   tasksOn,
   onOpen,
+  onAddOnDay,
 }: {
   monthBase: Date
   today: Date
   tasksOn: (d: Date) => TaskNodeUI[]
   onOpen: (t: TaskNodeUI) => void
+  onAddOnDay: (date: Date, title: string) => void
 }) {
+  const [addKey, setAddKey] = useState<string | null>(null)
+  const [title, setTitle] = useState('')
   const month = monthBase.getMonth()
   const leading = (monthBase.getDay() + 6) % 7 // Mon-start offset of the 1st
   const daysInMonth = new Date(monthBase.getFullYear(), month + 1, 0).getDate()
@@ -381,10 +406,11 @@ function MonthGrid({
             const inMonth = day.getMonth() === month
             const isToday = sameDay(day, today)
             const items = tasksOn(day)
+            const key = day.toISOString().slice(0, 10)
             return (
               <div
                 key={i}
-                className={`flex min-h-[104px] flex-col gap-1 rounded-xl border p-1.5 ${
+                className={`group flex min-h-[104px] flex-col gap-1 rounded-xl border p-1.5 ${
                   isToday
                     ? 'border-violet-400/40 bg-violet-500/[0.07]'
                     : 'border-white/5 bg-white/[0.015]'
@@ -425,6 +451,43 @@ function MonthGrid({
                     +{items.length - MAX_CHIPS} more
                   </button>
                 )}
+                {inMonth &&
+                  (addKey === key ? (
+                    <input
+                      autoFocus
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          const t = title.trim()
+                          setAddKey(null)
+                          setTitle('')
+                          if (t) onAddOnDay(day, t)
+                        } else if (e.key === 'Escape') {
+                          setAddKey(null)
+                          setTitle('')
+                        }
+                      }}
+                      onBlur={() => {
+                        setAddKey(null)
+                        setTitle('')
+                      }}
+                      placeholder="New task…"
+                      className="mt-auto w-full rounded-md border border-white/10 bg-white/10 px-1.5 py-0.5 text-[10px] text-white placeholder:text-white/35 focus:border-violet-400/40 focus:outline-none"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTitle('')
+                        setAddKey(key)
+                      }}
+                      className="mt-auto px-1.5 text-left text-[10px] text-white/0 transition-colors group-hover:text-white/40 hover:!text-white/70"
+                    >
+                      + add
+                    </button>
+                  ))}
               </div>
             )
           })}
