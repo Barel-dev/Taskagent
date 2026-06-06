@@ -15,14 +15,14 @@ export default {
           prompt: 'consent',
           access_type: 'offline',
           response_type: 'code',
-          // gmail.send lets the Email agent send on the user's behalf, and the
-          // calendar.events / calendar.freebusy scopes let the Schedule agent
-          // read busy times and create events — all only after explicit in-app
-          // approval. access_type:offline + prompt:consent ensure Google issues
-          // a refresh token so we can mint access tokens for these APIs later.
-          // Adding scopes requires the user to re-consent (sign out and back in).
-          scope:
-            'openid email profile https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.freebusy',
+          // Base login scopes ONLY. Do not bundle sensitive Gmail/Calendar
+          // scopes here: Google rejects the whole authorization request — which
+          // blocks sign-in entirely — until those scopes are enabled + listed on
+          // the OAuth consent screen. The Email/Schedule agents should obtain
+          // gmail.send / calendar.events / calendar.freebusy via incremental
+          // authorization (a separate "Connect Google" re-consent) when first
+          // used, so login is never gated on them.
+          scope: 'openid email profile',
         },
       },
     }),
