@@ -6,6 +6,7 @@ import { Sparkles, Plus, Sun, ArrowDownUp, LayoutGrid, Columns3, Search } from '
 import { toast } from 'sonner'
 import { TaskTile } from '@/components/task-tile'
 import { TaskBoard } from '@/components/task-board'
+import { ChatSidebar } from '@/components/chat-sidebar'
 import { TaskDetail } from '@/components/task-detail'
 import { TaskForm } from '@/components/task-form'
 import { Button } from '@/components/ui/button'
@@ -365,6 +366,8 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
           {editing && <TaskForm task={editing} onDone={() => setEditing(null)} />}
         </DialogContent>
       </Dialog>
+
+      <ChatSidebar />
     </div>
   )
 }

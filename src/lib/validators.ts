@@ -61,5 +61,19 @@ export const scheduleCommitSchema = z.object({
   timeZone: z.string().min(1).max(64).optional(),
 })
 
+// Chat router. A free-text message plus a short rolling history for context.
+export const chatRequestSchema = z.object({
+  message: z.string().min(1, 'Type a message').max(2000),
+  history: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant']),
+        content: z.string().max(4000),
+      }),
+    )
+    .max(20)
+    .optional(),
+})
+
 export type CreateTaskInput = z.infer<typeof createTaskSchema>
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>
