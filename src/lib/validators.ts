@@ -20,6 +20,10 @@ export const createTagSchema = z.object({
   name: z.string().min(1, 'Tag name is required').max(40),
 })
 
+export const refineRequestSchema = z.object({
+  taskId: z.string().min(1, 'taskId is required'),
+})
+
 export const updateTaskSchema = createTaskSchema
   .partial()
   .extend({

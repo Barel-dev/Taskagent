@@ -19,6 +19,7 @@ import {
   CalendarPlus,
   Plus,
   Copy,
+  Wand2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -26,6 +27,7 @@ import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { EmailAgentDialog } from '@/components/email-agent-dialog'
 import { ScheduleAgentDialog } from '@/components/schedule-agent-dialog'
+import { RefineDialog } from '@/components/refine-dialog'
 import { TagChips } from '@/components/tag-chip'
 import { formatDue, dueToneClass } from '@/lib/format-due'
 import type { TaskNodeUI, RichSourceUI } from '@/components/task-list'
@@ -76,6 +78,7 @@ export function TaskDetail({
   const [runningId, setRunningId] = useState<string | null>(null)
   const [emailOpen, setEmailOpen] = useState(false)
   const [scheduleOpen, setScheduleOpen] = useState(false)
+  const [refineOpen, setRefineOpen] = useState(false)
   const [title, setTitle] = useState(task.title)
   const [editingTitle, setEditingTitle] = useState(false)
 
@@ -358,6 +361,15 @@ export function TaskDetail({
               <Button
                 size="sm"
                 variant="outline"
+                onClick={() => setRefineOpen(true)}
+                className="border-white/15 text-white/75 hover:bg-white/5"
+              >
+                <Wand2 className="mr-1 h-3.5 w-3.5" />
+                Refine
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => setEmailOpen(true)}
                 className="border-white/15 text-white/75 hover:bg-white/5"
               >
@@ -532,6 +544,7 @@ export function TaskDetail({
 
       <EmailAgentDialog task={task} open={emailOpen} onOpenChange={setEmailOpen} />
       <ScheduleAgentDialog task={task} open={scheduleOpen} onOpenChange={setScheduleOpen} />
+      <RefineDialog task={task} open={refineOpen} onOpenChange={setRefineOpen} />
     </>
   )
 }
