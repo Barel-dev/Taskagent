@@ -182,7 +182,11 @@ export default async function DashboardPage() {
                 {priorityBreakdown.map(({ p, n }) => {
                   const pct = totalTasks ? Math.round((n / totalTasks) * 100) : 0
                   return (
-                    <div key={p}>
+                    <Link
+                      key={p}
+                      href={`/tasks?priority=${p}`}
+                      className="block rounded-lg p-1 transition-colors hover:bg-white/5"
+                    >
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-white/75">{p[0] + p.slice(1).toLowerCase()}</span>
                         <span className="text-white/45 tabular-nums">{n}</span>
@@ -193,7 +197,7 @@ export default async function DashboardPage() {
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                    </div>
+                    </Link>
                   )
                 })}
               </div>

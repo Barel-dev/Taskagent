@@ -69,10 +69,12 @@ export function TaskList({
   initialTasks,
   openTaskId,
   userName,
+  initialPriority,
 }: {
   initialTasks: TaskNodeUI[]
   openTaskId?: string
   userName?: string
+  initialPriority?: PriorityFilter
 }) {
   const router = useRouter()
   const [selected, setSelected] = useState<TaskNodeUI | null>(null)
@@ -142,7 +144,7 @@ export function TaskList({
 
   // Search + priority filter, applied to both views.
   const [query, setQuery] = useState('')
-  const [priority, setPriority] = useState<PriorityFilter>('ALL')
+  const [priority, setPriority] = useState<PriorityFilter>(initialPriority ?? 'ALL')
   const [tagFilter, setTagFilter] = useState<string>('ALL')
   const [manageTagsOpen, setManageTagsOpen] = useState(false)
   // Unique tags across the user's tasks, for the filter dropdown.
