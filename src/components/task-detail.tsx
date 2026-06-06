@@ -75,6 +75,8 @@ export function TaskDetail({
   const [runningId, setRunningId] = useState<string | null>(null)
   const [emailOpen, setEmailOpen] = useState(false)
   const [scheduleOpen, setScheduleOpen] = useState(false)
+  const [title, setTitle] = useState(task.title)
+  const [editingTitle, setEditingTitle] = useState(false)
 
   // Parent-as-leaf execute state (task with no subtasks)
   const [parentResult, setParentResult] = useState<string | null>(task.result ?? null)
@@ -252,6 +254,23 @@ export function TaskDetail({
     }
   }
 
+  async function renameTask(next: string) {
+    const trimmed = next.trim()
+    setEditingTitle(false)
+    if (!trimmed || trimmed === title) return
+    const prev = title
+    setTitle(trimmed)
+    const res = await fetch(`/api/tasks/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: trimmed }),
+    })
+    if (!res.ok) {
+      setTitle(prev)
+      toast.error('Could not rename task')
+    }
+  }
+
   return (
     <>
       <Dialog open onOpenChange={(o) => !o && close()}>
@@ -265,7 +284,30 @@ export function TaskDetail({
               {scheduled && <span className="ml-2 text-violet-300">· scheduled {scheduled}</span>}
             </span>
             <DialogTitle className="mt-1.5 text-xl font-semibold tracking-tight text-white">
-              {task.title}
+              {editingTitle ? (
+                <input
+                  autoFocus
+                  defaultValue={title}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      renameTask((e.target as HTMLInputElement).value)
+                    } else if (e.key === 'Escape') {
+                      setEditingTitle(false)
+                    }
+                  }}
+                  onBlur={(e) => renameTask(e.target.value)}
+                  className="w-full rounded-md border border-white/15 bg-white/10 px-2 py-0.5 text-xl font-semibold text-white focus:border-violet-400/40 focus:outline-none"
+                />
+              ) : (
+                <span
+                  onDoubleClick={() => setEditingTitle(true)}
+                  title="Double-click to rename"
+                  className="cursor-text"
+                >
+                  {title}
+                </span>
+              )}
             </DialogTitle>
             {task.description && <p className="mt-1 text-sm text-white/55">{task.description}</p>}
 
