@@ -258,14 +258,20 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
           <div className="mb-2 flex items-center gap-2 text-[11px] font-medium tracking-wider text-white/35 uppercase">
             <Inbox className="h-3.5 w-3.5" />
             No due date
+            <span className="ml-1 text-white/25 normal-case">· drag onto a day to schedule</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {unscheduled.map((t) => (
               <button
                 key={t.id}
                 type="button"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('text/plain', t.id)
+                  e.dataTransfer.effectAllowed = 'move'
+                }}
                 onClick={() => setSelected(t)}
-                className={`rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition-transform hover:-translate-y-0.5 ${
+                className={`cursor-grab rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition-transform hover:-translate-y-0.5 active:cursor-grabbing ${
                   CARD[t.priority]
                 } ${t.status === 'DONE' ? 'opacity-50' : ''}`}
               >
