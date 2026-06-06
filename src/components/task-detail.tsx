@@ -18,6 +18,7 @@ import {
   Mail,
   CalendarPlus,
   Plus,
+  Copy,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -244,6 +245,13 @@ export function TaskDetail({
     close()
   }
 
+  async function duplicate() {
+    const res = await fetch(`/api/tasks/${task.id}/duplicate`, { method: 'POST' })
+    if (!res.ok) return toast.error('Could not duplicate')
+    toast.success('Task duplicated')
+    close()
+  }
+
   async function addStep(title: string) {
     const { ok, data } = await postJson('/api/tasks', { title, parentId: task.id })
     if (!ok) return toast.error('Could not add step')
@@ -366,6 +374,15 @@ export function TaskDetail({
                 Schedule
               </Button>
               <span className="ml-auto flex items-center gap-1">
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  onClick={duplicate}
+                  title="Duplicate"
+                  className="text-white/40 hover:text-white"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
                 <Button
                   size="icon-sm"
                   variant="ghost"

@@ -102,6 +102,45 @@ export async function deleteTaskForUser(userId: string, taskId: string) {
 }
 
 /**
+ * Duplicate a task the user owns — copies its fields, subtasks, and tags into a
+ * fresh "(copy)" with status reset to TODO. Returns the new task, or null if not
+ * found. Agent results/summaries are intentionally not carried over.
+ */
+export async function duplicateTaskForUser(userId: string, taskId: string) {
+  const orig = await prisma.task.findFirst({
+    where: { id: taskId, userId },
+    include: {
+      children: { orderBy: { createdAt: 'asc' } },
+      tags: { select: { tagId: true } },
+    },
+  })
+  if (!orig) return null
+
+  return prisma.task.create({
+    data: {
+      userId,
+      title: `${orig.title} (copy)`,
+      description: orig.description,
+      priority: orig.priority,
+      dueDate: orig.dueDate,
+      estimatedMinutes: orig.estimatedMinutes,
+      tags: orig.tags.length ? { create: orig.tags.map((t) => ({ tagId: t.tagId })) } : undefined,
+      children: orig.children.length
+        ? {
+            create: orig.children.map((c) => ({
+              userId,
+              title: c.title,
+              description: c.description,
+              priority: c.priority,
+              estimatedMinutes: c.estimatedMinutes,
+            })),
+          }
+        : undefined,
+    },
+  })
+}
+
+/**
  * Record the calendar block the Schedule agent created on a task the caller
  * owns. Returns false when the task isn't found / not owned by the user.
  */
