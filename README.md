@@ -15,6 +15,7 @@ You sign in with Google, then work with a grid of task tiles. Open any task to r
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Plan**           | Turns a plain-language goal ("plan a trip to Lisbon") into a task with ordered subtasks.                                                               |
 | **Breakdown**      | Splits a task into 3–7 ordered, time-estimated steps.                                                                                                  |
+| **Refine**         | Sharpens a vague task into a clear title, description, and acceptance criteria — you review and apply.                                                 |
 | **Do it**          | **Actually performs the task** using Gemini + live Google Search, and returns real results as rich preview cards (image, title, sources).              |
 | **Do all**         | Runs _every_ subtask in sequence, sharing each result as context for the next.                                                                         |
 | **Prioritizer**    | Reweighs every open task by urgency, due date, and effort, then reorders your day — and explains why.                                                  |
