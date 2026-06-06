@@ -28,3 +28,32 @@ export function filterTasks<
     return haystack.includes(q)
   })
 }
+
+// 'default' keeps the server order (open first, then due date, then newest).
+export type SortKey = 'default' | 'due' | 'priority' | 'title'
+
+const PRIORITY_RANK: Record<TaskNodeUI['priority'], number> = {
+  URGENT: 0,
+  HIGH: 1,
+  MEDIUM: 2,
+  LOW: 3,
+}
+
+/** Pure, non-mutating sort of tasks by the chosen key. */
+export function sortTasks<T extends Pick<TaskNodeUI, 'title' | 'priority' | 'dueDate'>>(
+  tasks: T[],
+  key: SortKey = 'default',
+): T[] {
+  if (key === 'default') return tasks
+  const copy = [...tasks]
+  if (key === 'title') return copy.sort((a, b) => a.title.localeCompare(b.title))
+  if (key === 'priority') {
+    return copy.sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority])
+  }
+  // 'due' — earliest first, undated tasks last.
+  return copy.sort((a, b) => {
+    const at = a.dueDate ? new Date(a.dueDate).getTime() : Infinity
+    const bt = b.dueDate ? new Date(b.dueDate).getTime() : Infinity
+    return at - bt
+  })
+}

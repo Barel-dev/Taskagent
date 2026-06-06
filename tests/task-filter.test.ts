@@ -1,16 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { filterTasks } from '@/lib/task-filter'
+import { filterTasks, sortTasks } from '@/lib/task-filter'
 
 type T = {
   title: string
   description: string | null
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+  dueDate: string | null
 }
 
 const tasks: T[] = [
-  { title: 'Plan trip to Lisbon', description: 'flights and hotel', priority: 'HIGH' },
-  { title: 'Write report', description: null, priority: 'MEDIUM' },
-  { title: 'Buy groceries', description: 'Milk and EGGS', priority: 'LOW' },
+  {
+    title: 'Plan trip to Lisbon',
+    description: 'flights and hotel',
+    priority: 'HIGH',
+    dueDate: null,
+  },
+  { title: 'Write report', description: null, priority: 'MEDIUM', dueDate: null },
+  { title: 'Buy groceries', description: 'Milk and EGGS', priority: 'LOW', dueDate: null },
 ]
 
 describe('filterTasks', () => {
@@ -44,5 +50,47 @@ describe('filterTasks', () => {
   it('combines query and priority', () => {
     expect(filterTasks(tasks, { query: 'report', priority: 'HIGH' })).toHaveLength(0)
     expect(filterTasks(tasks, { query: 'report', priority: 'MEDIUM' })).toHaveLength(1)
+  })
+})
+
+describe('sortTasks', () => {
+  it('keeps the original order for "default" (and does not mutate)', () => {
+    const result = sortTasks(tasks, 'default')
+    expect(result.map((t) => t.title)).toEqual([
+      'Plan trip to Lisbon',
+      'Write report',
+      'Buy groceries',
+    ])
+  })
+
+  it('sorts by title A–Z', () => {
+    expect(sortTasks(tasks, 'title').map((t) => t.title)).toEqual([
+      'Buy groceries',
+      'Plan trip to Lisbon',
+      'Write report',
+    ])
+  })
+
+  it('sorts by priority (urgent first)', () => {
+    expect(sortTasks(tasks, 'priority').map((t) => t.priority)).toEqual(['HIGH', 'MEDIUM', 'LOW'])
+  })
+
+  it('sorts by due date with undated last', () => {
+    const dated: T[] = [
+      { title: 'b', description: null, priority: 'LOW', dueDate: '2026-06-10' },
+      { title: 'a', description: null, priority: 'LOW', dueDate: null },
+      { title: 'c', description: null, priority: 'LOW', dueDate: '2026-06-08' },
+    ]
+    expect(sortTasks(dated, 'due').map((t) => t.title)).toEqual(['c', 'b', 'a'])
+  })
+
+  it('does not mutate the input array', () => {
+    const input = [...tasks]
+    sortTasks(input, 'title')
+    expect(input.map((t) => t.title)).toEqual([
+      'Plan trip to Lisbon',
+      'Write report',
+      'Buy groceries',
+    ])
   })
 })

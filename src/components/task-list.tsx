@@ -12,7 +12,7 @@ import { TaskForm } from '@/components/task-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { filterTasks, type PriorityFilter } from '@/lib/task-filter'
+import { filterTasks, sortTasks, type PriorityFilter, type SortKey } from '@/lib/task-filter'
 
 export type TaskNodeUI = {
   id: string
@@ -74,7 +74,8 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
   const allTags = Array.from(
     new Map(tasks.flatMap((t) => t.tags ?? []).map((tag) => [tag.id, tag])).values(),
   ).sort((a, b) => a.name.localeCompare(b.name))
-  const visible = filterTasks(tasks, { query, priority, tagId: tagFilter })
+  const [sort, setSort] = useState<SortKey>('default')
+  const visible = sortTasks(filterTasks(tasks, { query, priority, tagId: tagFilter }), sort)
   const filtering = query.trim() !== '' || priority !== 'ALL' || tagFilter !== 'ALL'
 
   async function moveTask(taskId: string, status: TaskNodeUI['status']) {
@@ -241,6 +242,17 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
               ))}
             </select>
           )}
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as SortKey)}
+            aria-label="Sort tasks"
+            className="h-9 rounded-md border border-white/10 bg-white/5 px-2.5 text-sm text-white/75 focus:border-violet-400/40 focus:outline-none"
+          >
+            <option value="default">Sort: Smart</option>
+            <option value="due">Sort: Due date</option>
+            <option value="priority">Sort: Priority</option>
+            <option value="title">Sort: Title</option>
+          </select>
           <div className="inline-flex rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
             <button
               type="button"
