@@ -467,6 +467,7 @@ export function TaskDetail({
                     summary={summary}
                     done={doneCount}
                     total={children.length}
+                    totalMinutes={children.reduce((s, c) => s + (c.estimatedMinutes ?? 0), 0)}
                     onSummarize={summarize}
                     summarizing={summarizing}
                   />
@@ -571,6 +572,7 @@ function OverviewPane({
   summary,
   done,
   total,
+  totalMinutes,
   onSummarize,
   summarizing,
 }: {
@@ -578,10 +580,15 @@ function OverviewPane({
   summary: string | null
   done: number
   total: number
+  totalMinutes: number
   onSummarize: () => void
   summarizing: boolean
 }) {
   const pct = total ? Math.round((done / total) * 100) : 0
+  const hrs = Math.floor(totalMinutes / 60)
+  const mins = totalMinutes % 60
+  const timeLabel =
+    totalMinutes > 0 ? (hrs ? `${hrs}h${mins ? ` ${mins}m` : ''}` : `${mins}m`) : null
   return (
     <div className="space-y-5">
       <div>
@@ -597,6 +604,11 @@ function OverviewPane({
             style={{ width: `${pct}%` }}
           />
         </div>
+        {timeLabel && (
+          <p className="mt-2 inline-flex items-center gap-1 text-[11px] text-white/45">
+            <Clock className="h-3 w-3" />~{timeLabel} of focused work across {total} steps
+          </p>
+        )}
       </div>
 
       {description && <p className="text-sm leading-relaxed text-white/70">{description}</p>}
