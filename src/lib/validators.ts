@@ -11,6 +11,8 @@ export const createTaskSchema = z.object({
   dueDate: z.coerce.date().optional().nullable(),
   // Tag ids to attach (validated against the user's own tags in the data layer).
   tagIds: z.array(z.string()).max(20).optional(),
+  // Attach as a subtask of this task (ownership validated in the data layer).
+  parentId: z.string().min(1).optional(),
 })
 
 export const createTagSchema = z.object({

@@ -17,6 +17,7 @@ import {
   Zap,
   Mail,
   CalendarPlus,
+  Plus,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -241,6 +242,16 @@ export function TaskDetail({
     close()
   }
 
+  async function addStep(title: string) {
+    const { ok, data } = await postJson('/api/tasks', { title, parentId: task.id })
+    if (!ok) return toast.error('Could not add step')
+    const child = data?.task as Child | undefined
+    if (child) {
+      setChildren((prev) => [...prev, { ...child, _done: child.status === 'DONE' }])
+      setSelectedId(child.id)
+    }
+  }
+
   return (
     <>
       <Dialog open onOpenChange={(o) => !o && close()}>
@@ -403,6 +414,7 @@ export function TaskDetail({
                     )
                   })}
                 </div>
+                <StepAdd onAdd={addStep} />
               </div>
 
               {/* Right: detail canvas */}
@@ -461,6 +473,53 @@ export function TaskDetail({
       <EmailAgentDialog task={task} open={emailOpen} onOpenChange={setEmailOpen} />
       <ScheduleAgentDialog task={task} open={scheduleOpen} onOpenChange={setScheduleOpen} />
     </>
+  )
+}
+
+/* ───────── Add a step (manual subtask) ───────── */
+function StepAdd({ onAdd }: { onAdd: (title: string) => void }) {
+  const [adding, setAdding] = useState(false)
+  const [title, setTitle] = useState('')
+
+  function submit() {
+    const t = title.trim()
+    if (!t) return
+    onAdd(t)
+    setTitle('')
+    setAdding(false)
+  }
+
+  if (!adding) {
+    return (
+      <button
+        type="button"
+        onClick={() => setAdding(true)}
+        className="mt-1 flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-white/40 hover:bg-white/5 hover:text-white/70"
+      >
+        <Plus className="h-4 w-4 shrink-0" />
+        Add step
+      </button>
+    )
+  }
+
+  return (
+    <input
+      autoFocus
+      value={title}
+      onChange={(e) => setTitle(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          submit()
+        } else if (e.key === 'Escape') {
+          setTitle('')
+          setAdding(false)
+        }
+      }}
+      onBlur={submit}
+      placeholder="Step title…"
+      className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-sm text-white placeholder:text-white/35 focus:border-violet-400/40 focus:outline-none"
+    />
   )
 }
 

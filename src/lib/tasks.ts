@@ -50,12 +50,19 @@ export async function listTasksForUser(userId: string): Promise<TaskNode[]> {
 }
 
 export async function createTaskForUser(userId: string, input: CreateTaskInput) {
-  const { tagIds, ...data } = input
+  const { tagIds, parentId, ...data } = input
   const validTagIds = await ownedTagIds(userId, tagIds)
+  // Only attach to a parent the user owns; otherwise create it top-level.
+  let validParentId: string | undefined
+  if (parentId) {
+    const owned = await prisma.task.count({ where: { id: parentId, userId } })
+    if (owned) validParentId = parentId
+  }
   return prisma.task.create({
     data: {
       ...data,
       userId,
+      ...(validParentId ? { parentId: validParentId } : {}),
       ...(validTagIds.length ? { tags: { create: validTagIds.map((tagId) => ({ tagId })) } } : {}),
     },
   })
