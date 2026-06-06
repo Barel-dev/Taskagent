@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { Header } from '@/components/header'
@@ -50,7 +51,7 @@ export default async function DashboardPage() {
     }),
     prisma.task.findMany({
       where: { userId, parentId: null },
-      select: { status: true, priority: true, dueDate: true },
+      select: { id: true, title: true, status: true, priority: true, dueDate: true },
     }),
     prisma.tag.findMany({
       where: { userId },
@@ -99,6 +100,15 @@ export default async function DashboardPage() {
     .filter((t) => t._count.tasks > 0)
     .sort((a, b) => b._count.tasks - a._count.tasks)
     .slice(0, 12)
+
+  const weekEnd = new Date(todayStart)
+  weekEnd.setDate(weekEnd.getDate() + 7)
+  const upcoming = tasksAll
+    .filter(
+      (t) => t.status !== 'DONE' && t.dueDate && t.dueDate >= todayStart && t.dueDate <= weekEnd,
+    )
+    .sort((a, b) => (a.dueDate?.getTime() ?? 0) - (b.dueDate?.getTime() ?? 0))
+    .slice(0, 6)
 
   const stats = [
     { label: 'Agent runs', value: total.toLocaleString(), Icon: Zap },
@@ -201,6 +211,29 @@ export default async function DashboardPage() {
                     {t.name}
                     <span className="tabular-nums opacity-70">{t._count.tasks}</span>
                   </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {upcoming.length > 0 && (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+              <h4 className="text-sm font-semibold text-white/80">Due this week</h4>
+              <div className="mt-3 space-y-1">
+                {upcoming.map((t) => (
+                  <Link
+                    key={t.id}
+                    href={`/tasks?task=${t.id}`}
+                    className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-white/5"
+                  >
+                    <span className="truncate text-white/80">{t.title}</span>
+                    <span className="shrink-0 text-xs text-white/45 tabular-nums">
+                      {t.dueDate?.toLocaleDateString(undefined, {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </span>
+                  </Link>
                 ))}
               </div>
             </div>
