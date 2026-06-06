@@ -32,7 +32,11 @@ export default async function TasksPage({
       {/* Heavy dark overlay so cards/text stay legible against the moving shader */}
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-black/55" />
       <Header />
-      <TaskList initialTasks={initial} openTaskId={task} />
+      <TaskList
+        initialTasks={initial}
+        openTaskId={task}
+        userName={session.user.name ?? undefined}
+      />
     </div>
   )
 }

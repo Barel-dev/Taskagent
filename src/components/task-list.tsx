@@ -66,9 +66,11 @@ function csvCell(v: string): string {
 export function TaskList({
   initialTasks,
   openTaskId,
+  userName,
 }: {
   initialTasks: TaskNodeUI[]
   openTaskId?: string
+  userName?: string
 }) {
   const router = useRouter()
   const [selected, setSelected] = useState<TaskNodeUI | null>(null)
@@ -153,6 +155,15 @@ export function TaskList({
   const todayCount = filterTasks(tasks, { due: 'today' }).length
   const doneCount = tasks.filter((t) => t.status === 'DONE').length
   const donePct = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0
+
+  // Greeting computed on the client to avoid SSR/timezone hydration mismatch.
+  const [greeting, setGreeting] = useState('TaskAgent')
+  useEffect(() => {
+    const h = new Date().getHours()
+    const part = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
+    const first = userName?.trim().split(' ')[0]
+    setGreeting(first ? `${part}, ${first}` : part)
+  }, [userName])
 
   function exportCsv() {
     const header = ['Title', 'Status', 'Priority', 'Due', 'Scheduled', 'Tags', 'Subtasks']
@@ -317,7 +328,7 @@ export function TaskList({
     <div className="mx-auto max-w-5xl space-y-6 px-6 py-10">
       <header className="tl-rise">
         <p className="text-[11px] font-medium tracking-[0.25em] text-violet-300/70 uppercase">
-          TaskAgent
+          {greeting}
         </p>
         <h2 className="mt-1.5 text-3xl font-semibold tracking-tight text-white">
           Your <span className="text-violet-300">tasks</span>
