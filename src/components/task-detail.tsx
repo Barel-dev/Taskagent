@@ -772,12 +772,25 @@ function ResultView({
   const [reply, setReply] = useState('')
   return (
     <div className="space-y-4">
-      {ranSecs != null && (
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-300">
-          <Zap className="h-3 w-3" />
-          Agent did it in {ranSecs}s
-        </div>
-      )}
+      <div className="flex items-center gap-2">
+        {ranSecs != null && (
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-300">
+            <Zap className="h-3 w-3" />
+            Agent did it in {ranSecs}s
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => {
+            navigator.clipboard?.writeText(result)
+            toast.success('Copied to clipboard')
+          }}
+          className="ml-auto inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] text-white/45 hover:bg-white/5 hover:text-white/75"
+        >
+          <Copy className="h-3 w-3" />
+          Copy
+        </button>
+      </div>
       <p className="text-sm leading-relaxed whitespace-pre-wrap text-white/80">{result}</p>
 
       {sources.length > 0 && (
