@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { Header } from '@/components/header'
 import { prisma } from '@/lib/prisma'
 import { ShaderBackground } from '@/components/ui/shader-background'
-import { Zap, CheckCircle2, Coins, Bot } from 'lucide-react'
+import { Zap, CheckCircle2, Coins, Bot, ListTodo, Clock, AlertTriangle } from 'lucide-react'
 import type { AgentType, AgentRunStatus } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
@@ -32,7 +32,7 @@ export default async function DashboardPage() {
   since.setHours(0, 0, 0, 0)
   since.setDate(since.getDate() - 13)
 
-  const [total, success, tokensAgg, byType, recent, last14] = await Promise.all([
+  const [total, success, tokensAgg, byType, recent, last14, tasksAll] = await Promise.all([
     prisma.agentRun.count({ where: { userId } }),
     prisma.agentRun.count({ where: { userId, status: 'SUCCESS' } }),
     prisma.agentRun.aggregate({ where: { userId }, _sum: { tokensUsed: true } }),
@@ -46,6 +46,10 @@ export default async function DashboardPage() {
     prisma.agentRun.findMany({
       where: { userId, createdAt: { gte: since } },
       select: { createdAt: true },
+    }),
+    prisma.task.findMany({
+      where: { userId, parentId: null },
+      select: { status: true, priority: true, dueDate: true },
     }),
   ])
 
@@ -66,6 +70,27 @@ export default async function DashboardPage() {
   const dayCounts = days.map((d) => last14.filter((r) => sameDay(r.createdAt, d)).length)
   const maxDay = Math.max(1, ...dayCounts)
 
+  // Task-centric stats.
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  const totalTasks = tasksAll.length
+  const doneTasks = tasksAll.filter((t) => t.status === 'DONE').length
+  const inProgress = tasksAll.filter((t) => t.status === 'IN_PROGRESS').length
+  const overdueTasks = tasksAll.filter(
+    (t) => t.dueDate && t.status !== 'DONE' && t.dueDate < todayStart,
+  ).length
+  const taskPct = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0
+  const priorityBreakdown = (['URGENT', 'HIGH', 'MEDIUM', 'LOW'] as const).map((p) => ({
+    p,
+    n: tasksAll.filter((t) => t.priority === p).length,
+  }))
+  const PRIORITY_BAR: Record<string, string> = {
+    URGENT: 'bg-rose-400/70',
+    HIGH: 'bg-amber-400/70',
+    MEDIUM: 'bg-sky-400/70',
+    LOW: 'bg-slate-400/70',
+  }
+
   const stats = [
     { label: 'Agent runs', value: total.toLocaleString(), Icon: Zap },
     { label: 'Success rate', value: `${successRate}%`, Icon: CheckCircle2 },
@@ -82,17 +107,83 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-5xl space-y-8 px-6 py-10">
         <header>
           <p className="text-[11px] font-medium tracking-[0.25em] text-violet-300/70 uppercase">
-            Agent activity
+            Dashboard
           </p>
           <h2 className="mt-1.5 text-3xl font-semibold tracking-tight text-white">
-            Your <span className="text-violet-300">agents</span> at work
+            Your <span className="text-violet-300">dashboard</span>
           </h2>
           <p className="mt-1.5 text-sm text-white/50">
-            Every agent run is logged — what ran, whether it succeeded, and how many tokens it used.
+            A snapshot of your tasks and every agent run.
           </p>
         </header>
 
-        {/* Stat cards */}
+        {/* Tasks at a glance */}
+        <section className="space-y-4">
+          <h3 className="text-sm font-semibold text-white/70">Tasks at a glance</h3>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+              <ListTodo className="h-5 w-5 text-violet-300" />
+              <div className="mt-3 text-3xl font-semibold tracking-tight text-white">
+                {totalTasks}
+              </div>
+              <div className="mt-1 text-xs text-white/50">Total tasks</div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+              <CheckCircle2 className="h-5 w-5 text-emerald-300" />
+              <div className="mt-3 text-3xl font-semibold tracking-tight text-white">
+                {taskPct}%
+              </div>
+              <div className="mt-1 text-xs text-white/50">
+                Completed ({doneTasks}/{totalTasks})
+              </div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+              <Clock className="h-5 w-5 text-sky-300" />
+              <div className="mt-3 text-3xl font-semibold tracking-tight text-white">
+                {inProgress}
+              </div>
+              <div className="mt-1 text-xs text-white/50">In progress</div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+              <AlertTriangle className="h-5 w-5 text-rose-300" />
+              <div
+                className={`mt-3 text-3xl font-semibold tracking-tight ${
+                  overdueTasks ? 'text-rose-300' : 'text-white'
+                }`}
+              >
+                {overdueTasks}
+              </div>
+              <div className="mt-1 text-xs text-white/50">Overdue</div>
+            </div>
+          </div>
+          {totalTasks > 0 && (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+              <h4 className="text-sm font-semibold text-white/80">By priority</h4>
+              <div className="mt-4 space-y-3">
+                {priorityBreakdown.map(({ p, n }) => {
+                  const pct = totalTasks ? Math.round((n / totalTasks) * 100) : 0
+                  return (
+                    <div key={p}>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-white/75">{p[0] + p.slice(1).toLowerCase()}</span>
+                        <span className="text-white/45 tabular-nums">{n}</span>
+                      </div>
+                      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+                        <div
+                          className={`h-full rounded-full ${PRIORITY_BAR[p]}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Agent stat cards */}
+        <h3 className="text-sm font-semibold text-white/70">Agent activity</h3>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {stats.map((s) => (
             <div
