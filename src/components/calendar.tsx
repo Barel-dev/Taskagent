@@ -240,6 +240,7 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
           today={today}
           tasksOn={tasksOn}
           onOpen={setSelected}
+          onReschedule={reschedule}
         />
       ) : (
         <MonthGrid
@@ -312,12 +313,15 @@ function WeekGrid({
   today,
   tasksOn,
   onOpen,
+  onReschedule,
 }: {
   days: Date[]
   today: Date
   tasksOn: (d: Date) => TaskNodeUI[]
   onOpen: (t: TaskNodeUI) => void
+  onReschedule: (taskId: string, date: Date) => void
 }) {
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
   return (
     <div className="tl-rise overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.025] p-3 backdrop-blur-sm">
       <div className="grid min-w-[760px] grid-cols-7 gap-2">
@@ -339,8 +343,25 @@ function WeekGrid({
                 </div>
               </div>
               <div
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  setDragOverIdx(i)
+                }}
+                onDragLeave={(e) => {
+                  if (e.currentTarget === e.target) setDragOverIdx(null)
+                }}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  const id = e.dataTransfer.getData('text/plain')
+                  setDragOverIdx(null)
+                  if (id) onReschedule(id, day)
+                }}
                 className={`flex min-h-[60vh] flex-col gap-2 rounded-xl p-2 ${
-                  isToday ? 'bg-violet-500/[0.06]' : 'bg-white/[0.015]'
+                  dragOverIdx === i
+                    ? 'bg-violet-500/15 ring-1 ring-violet-400/40'
+                    : isToday
+                      ? 'bg-violet-500/[0.06]'
+                      : 'bg-white/[0.015]'
                 }`}
               >
                 {items.length === 0 ? (
@@ -354,8 +375,13 @@ function WeekGrid({
                       <button
                         key={t.id}
                         type="button"
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', t.id)
+                          e.dataTransfer.effectAllowed = 'move'
+                        }}
                         onClick={() => onOpen(t)}
-                        className={`rounded-lg border p-2 text-left transition-transform hover:-translate-y-0.5 ${
+                        className={`cursor-grab rounded-lg border p-2 text-left transition-transform hover:-translate-y-0.5 active:cursor-grabbing ${
                           CARD[t.priority]
                         } ${done ? 'opacity-50' : ''}`}
                       >
