@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Sparkles,
@@ -62,7 +62,13 @@ function csvCell(v: string): string {
   return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
 }
 
-export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
+export function TaskList({
+  initialTasks,
+  openTaskId,
+}: {
+  initialTasks: TaskNodeUI[]
+  openTaskId?: string
+}) {
   const router = useRouter()
   const [selected, setSelected] = useState<TaskNodeUI | null>(null)
   const [editing, setEditing] = useState<TaskNodeUI | null>(null)
@@ -80,6 +86,18 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
   useEffect(() => {
     setTasks(initialTasks)
   }, [initialTasks])
+
+  // Open a task deep-linked from the command palette (/tasks?task=<id>), once
+  // per distinct id so closing it doesn't reopen on the next refresh.
+  const lastOpened = useRef<string | null>(null)
+  useEffect(() => {
+    if (!openTaskId || openTaskId === lastOpened.current) return
+    const found = tasks.find((t) => t.id === openTaskId)
+    if (found) {
+      setSelected(found)
+      lastOpened.current = openTaskId
+    }
+  }, [openTaskId, tasks])
 
   // View toggle (list grid vs kanban board), remembered across visits.
   const [view, setView] = useState<'list' | 'board'>('list')

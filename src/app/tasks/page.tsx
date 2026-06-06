@@ -5,9 +5,14 @@ import { TaskList } from '@/components/task-list'
 import { listTasksForUser, type TaskNode } from '@/lib/tasks'
 import { ShaderBackground } from '@/components/ui/shader-background'
 
-export default async function TasksPage() {
+export default async function TasksPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ task?: string }>
+}) {
   const session = await auth()
   if (!session?.user?.id) redirect('/signin')
+  const { task } = await searchParams
 
   const tasks = await listTasksForUser(session.user.id)
   // Recursively serialize Date fields for client components (tree of any depth).
@@ -27,7 +32,7 @@ export default async function TasksPage() {
       {/* Heavy dark overlay so cards/text stay legible against the moving shader */}
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-black/55" />
       <Header />
-      <TaskList initialTasks={initial} />
+      <TaskList initialTasks={initial} openTaskId={task} />
     </div>
   )
 }

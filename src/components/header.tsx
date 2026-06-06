@@ -3,6 +3,7 @@ import { Sparkles } from 'lucide-react'
 import { auth, signOut } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { MainNav } from '@/components/main-nav'
+import { CommandPalette } from '@/components/command-palette'
 
 export async function Header() {
   const session = await auth()
@@ -23,6 +24,7 @@ export async function Header() {
 
         {user && (
           <div className="flex items-center gap-3">
+            <CommandPalette />
             <span className="hidden text-sm text-white/50 md:inline">{user.email}</span>
             {user.image ? (
               // eslint-disable-next-line @next/next/no-img-element
