@@ -78,6 +78,28 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
     localStorage.setItem('taskagent:view', view)
   }, [view])
 
+  // Keyboard shortcuts: "n" opens a new task, "/" focuses search (or the goal
+  // bar). Ignored while typing in a field.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      const el = e.target as HTMLElement | null
+      const tag = el?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el?.isContentEditable) return
+      if (e.key === 'n') {
+        e.preventDefault()
+        setCreating(true)
+      } else if (e.key === '/') {
+        e.preventDefault()
+        const target = (document.getElementById('task-search') ??
+          document.getElementById('goal-input')) as HTMLInputElement | null
+        target?.focus()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   // Search + priority filter, applied to both views.
   const [query, setQuery] = useState('')
   const [priority, setPriority] = useState<PriorityFilter>('ALL')
@@ -194,6 +216,7 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
         <div className="ai-bar relative flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-2 backdrop-blur-sm transition-colors focus-within:border-violet-400/40">
           <Sparkles className="ml-2 h-4 w-4 shrink-0 text-violet-300" />
           <input
+            id="goal-input"
             value={goal}
             onChange={(e) => setGoal(e.target.value)}
             placeholder="Describe a goal — e.g. “plan a weekend trip to Lisbon”"
@@ -221,6 +244,7 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
           <div className="relative min-w-[180px] flex-1">
             <Search className="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-white/35" />
             <Input
+              id="task-search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search tasks…"
