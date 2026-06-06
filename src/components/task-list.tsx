@@ -1,14 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Sparkles, Plus, Sun, ArrowDownUp } from 'lucide-react'
+import { Sparkles, Plus, Sun, ArrowDownUp, LayoutGrid, Columns3, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { TaskTile } from '@/components/task-tile'
+import { TaskBoard } from '@/components/task-board'
 import { TaskDetail } from '@/components/task-detail'
 import { TaskForm } from '@/components/task-form'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { filterTasks, type PriorityFilter } from '@/lib/task-filter'
 
 export type TaskNodeUI = {
   id: string
@@ -43,6 +46,48 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
   const [briefingLoading, setBriefingLoading] = useState(false)
   const [briefing, setBriefing] = useState<string | null>(null)
   const [briefingOpen, setBriefingOpen] = useState(false)
+
+  // Local copy of the tasks so the board can update optimistically on drag.
+  // Re-syncs whenever the server re-renders with fresh data (after refresh()).
+  const [tasks, setTasks] = useState<TaskNodeUI[]>(initialTasks)
+  useEffect(() => {
+    setTasks(initialTasks)
+  }, [initialTasks])
+
+  // View toggle (list grid vs kanban board), remembered across visits.
+  const [view, setView] = useState<'list' | 'board'>('list')
+  useEffect(() => {
+    const saved = localStorage.getItem('taskagent:view')
+    if (saved === 'board' || saved === 'list') setView(saved)
+  }, [])
+  useEffect(() => {
+    localStorage.setItem('taskagent:view', view)
+  }, [view])
+
+  // Search + priority filter, applied to both views.
+  const [query, setQuery] = useState('')
+  const [priority, setPriority] = useState<PriorityFilter>('ALL')
+  const visible = filterTasks(tasks, { query, priority })
+  const filtering = query.trim() !== '' || priority !== 'ALL'
+
+  async function moveTask(taskId: string, status: TaskNodeUI['status']) {
+    const prev = tasks
+    setTasks((ts) => ts.map((t) => (t.id === taskId ? { ...t, status } : t)))
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status,
+        completedAt: status === 'DONE' ? new Date().toISOString() : null,
+      }),
+    })
+    if (!res.ok) {
+      setTasks(prev) // roll back
+      toast.error('Failed to move task')
+      return
+    }
+    router.refresh()
+  }
 
   async function prioritize() {
     setPrioritizing(true)
@@ -112,7 +157,7 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-6 py-10">
       <header className="tl-rise">
-        <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-violet-300/70">
+        <p className="text-[11px] font-medium tracking-[0.25em] text-violet-300/70 uppercase">
           TaskAgent
         </p>
         <h2 className="mt-1.5 text-3xl font-semibold tracking-tight text-white">
@@ -135,22 +180,82 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
             aria-label="Describe a goal for the agent"
             className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/35 focus:outline-none"
           />
-          <Button type="submit" size="sm" disabled={planning || !goal.trim()} className="btn-accent">
+          <Button
+            type="submit"
+            size="sm"
+            disabled={planning || !goal.trim()}
+            className="btn-accent"
+          >
             <Sparkles className={`mr-1 h-3.5 w-3.5 ${planning ? 'animate-spin' : ''}`} />
             {planning ? 'Planning…' : 'Plan with AI'}
           </Button>
         </div>
       </form>
 
+      {tasks.length > 0 && (
+        <div
+          className="tl-rise flex flex-wrap items-center gap-2"
+          style={{ animationDelay: '100ms' }}
+        >
+          <div className="relative min-w-[180px] flex-1">
+            <Search className="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-white/35" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search tasks…"
+              aria-label="Search tasks"
+              className="h-9 border-white/10 bg-white/5 pl-9 text-sm text-white placeholder:text-white/35"
+            />
+          </div>
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value as PriorityFilter)}
+            aria-label="Filter by priority"
+            className="h-9 rounded-md border border-white/10 bg-white/5 px-2.5 text-sm text-white/75 focus:border-violet-400/40 focus:outline-none"
+          >
+            <option value="ALL">All priorities</option>
+            <option value="URGENT">Urgent</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+          <div className="inline-flex rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
+            <button
+              type="button"
+              onClick={() => setView('list')}
+              aria-pressed={view === 'list'}
+              className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs transition-colors ${
+                view === 'list' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/80'
+              }`}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              List
+            </button>
+            <button
+              type="button"
+              onClick={() => setView('board')}
+              aria-pressed={view === 'board'}
+              className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs transition-colors ${
+                view === 'board' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/80'
+              }`}
+            >
+              <Columns3 className="h-3.5 w-3.5" />
+              Board
+            </button>
+          </div>
+        </div>
+      )}
+
       <div
-        className="flex items-center justify-between tl-rise"
+        className="tl-rise flex items-center justify-between"
         style={{ animationDelay: '120ms' }}
       >
         <span className="text-xs text-white/40">
-          {initialTasks.length} {initialTasks.length === 1 ? 'task' : 'tasks'}
+          {filtering ? `${visible.length} of ${tasks.length}` : tasks.length}{' '}
+          {tasks.length === 1 && !filtering ? 'task' : 'tasks'}
         </span>
         <div className="flex flex-wrap items-center gap-2">
-          {initialTasks.length > 0 && (
+          {tasks.length > 0 && (
             <>
               <Button
                 size="sm"
@@ -169,7 +274,9 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
                 disabled={prioritizing}
                 className="border-white/15 text-white/75 hover:bg-white/5"
               >
-                <ArrowDownUp className={`mr-1 h-3.5 w-3.5 ${prioritizing ? 'animate-pulse' : ''}`} />
+                <ArrowDownUp
+                  className={`mr-1 h-3.5 w-3.5 ${prioritizing ? 'animate-pulse' : ''}`}
+                />
                 {prioritizing ? 'Prioritizing…' : 'Prioritize'}
               </Button>
             </>
@@ -186,7 +293,7 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
         </div>
       </div>
 
-      {initialTasks.length === 0 && (
+      {tasks.length === 0 && (
         <div className="tl-rise rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
           <Sparkles className="mx-auto h-6 w-6 text-violet-300/60" />
           <p className="mt-3 text-sm text-white/60">No tasks yet.</p>
@@ -196,13 +303,27 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {initialTasks.map((t, i) => (
-          <div key={t.id} className="tl-rise" style={{ animationDelay: `${160 + i * 45}ms` }}>
-            <TaskTile task={t} onOpen={() => setSelected(t)} />
+      {tasks.length > 0 && visible.length === 0 && (
+        <div className="tl-rise rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
+          <Search className="mx-auto h-6 w-6 text-white/40" />
+          <p className="mt-3 text-sm text-white/60">No tasks match your filters.</p>
+        </div>
+      )}
+
+      {visible.length > 0 &&
+        (view === 'board' ? (
+          <div className="tl-rise" style={{ animationDelay: '150ms' }}>
+            <TaskBoard tasks={visible} onOpen={setSelected} onMove={moveTask} />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.map((t, i) => (
+              <div key={t.id} className="tl-rise" style={{ animationDelay: `${160 + i * 45}ms` }}>
+                <TaskTile task={t} onOpen={() => setSelected(t)} />
+              </div>
+            ))}
           </div>
         ))}
-      </div>
 
       {selected && (
         <TaskDetail
@@ -223,7 +344,7 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
               Daily briefing
             </DialogTitle>
           </DialogHeader>
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/80">{briefing}</p>
+          <p className="text-sm leading-relaxed whitespace-pre-wrap text-white/80">{briefing}</p>
         </DialogContent>
       </Dialog>
 
