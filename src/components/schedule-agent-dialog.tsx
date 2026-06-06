@@ -6,6 +6,7 @@ import { CalendarPlus, CalendarCheck, Clock, Loader2, AlertTriangle } from 'luci
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { connectGoogle } from '@/lib/connect-google'
 
 type Slot = { start: string; end: string; reason: string }
 
@@ -108,12 +109,12 @@ export function ScheduleAgentDialog({
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) {
-        toast.error(
-          data?.error ?? 'Could not add to calendar',
-          data?.needsReconnect
-            ? { description: 'Sign out and back in to grant Calendar access.' }
-            : undefined,
-        )
+        if (data?.needsReconnect) {
+          setNeedsReconnect(true)
+          toast.error('Connect Google to grant Calendar access')
+        } else {
+          toast.error(data?.error ?? 'Could not add to calendar')
+        }
         return
       }
       toast.success(
@@ -161,12 +162,21 @@ export function ScheduleAgentDialog({
               </div>
             )}
             {needsReconnect && (
-              <div className="flex items-start gap-2 rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-200">
+              <div className="flex items-start gap-2 rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 py-2.5 text-xs text-amber-200">
                 <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                <span>
-                  Calendar access isn’t granted yet — these times don’t account for your existing
-                  events, and adding to the calendar needs you to sign out and back in.
-                </span>
+                <div>
+                  <p>
+                    Calendar access isn’t granted yet — these times don’t account for your existing
+                    events, and adding to the calendar needs access.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => connectGoogle()}
+                    className="mt-2 rounded-md border border-amber-300/40 bg-amber-400/10 px-2.5 py-1 font-medium text-amber-100 hover:bg-amber-400/20"
+                  >
+                    Connect Google
+                  </button>
+                </div>
               </div>
             )}
 

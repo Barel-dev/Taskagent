@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { connectGoogle } from '@/lib/connect-google'
 
 type Phase = 'compose' | 'review'
 
@@ -31,6 +32,7 @@ export function EmailAgentDialog({
   const [to, setTo] = useState('')
   const [subject, setSubject] = useState('')
   const [emailBody, setEmailBody] = useState('')
+  const [needsReconnect, setNeedsReconnect] = useState(false)
 
   function reset() {
     setPhase('compose')
@@ -41,6 +43,7 @@ export function EmailAgentDialog({
     setTo('')
     setSubject('')
     setEmailBody('')
+    setNeedsReconnect(false)
   }
 
   function handleOpenChange(o: boolean) {
@@ -90,12 +93,12 @@ export function EmailAgentDialog({
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) {
-        toast.error(
-          data?.error ?? 'Could not send the email',
-          data?.needsReconnect
-            ? { description: 'Sign out and back in to grant Gmail send access.' }
-            : undefined,
-        )
+        if (data?.needsReconnect) {
+          setNeedsReconnect(true)
+          toast.error('Connect Google to grant send access')
+        } else {
+          toast.error(data?.error ?? 'Could not send the email')
+        }
         return
       }
       toast.success('Email sent')
@@ -152,6 +155,18 @@ export function EmailAgentDialog({
             {demo && (
               <div className="rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-200">
                 Demo draft — add a GEMINI_API_KEY for a real AI-written email.
+              </div>
+            )}
+            {needsReconnect && (
+              <div className="rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 py-2.5 text-xs text-amber-200">
+                <p>Gmail send access isn’t granted yet.</p>
+                <button
+                  type="button"
+                  onClick={() => connectGoogle()}
+                  className="mt-2 rounded-md border border-amber-300/40 bg-amber-400/10 px-2.5 py-1 font-medium text-amber-100 hover:bg-amber-400/20"
+                >
+                  Connect Google
+                </button>
               </div>
             )}
             <div className="space-y-2">
