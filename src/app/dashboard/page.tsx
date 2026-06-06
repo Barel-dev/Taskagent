@@ -34,30 +34,35 @@ export default async function DashboardPage() {
   since.setHours(0, 0, 0, 0)
   since.setDate(since.getDate() - 13)
 
-  const [total, success, tokensAgg, byType, recent, last14, tasksAll, tagsRaw] = await Promise.all([
-    prisma.agentRun.count({ where: { userId } }),
-    prisma.agentRun.count({ where: { userId, status: 'SUCCESS' } }),
-    prisma.agentRun.aggregate({ where: { userId }, _sum: { tokensUsed: true } }),
-    prisma.agentRun.groupBy({
-      by: ['agentType'],
-      where: { userId },
-      _count: { _all: true },
-      _sum: { tokensUsed: true },
-    }),
-    prisma.agentRun.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 12 }),
-    prisma.agentRun.findMany({
-      where: { userId, createdAt: { gte: since } },
-      select: { createdAt: true },
-    }),
-    prisma.task.findMany({
-      where: { userId, parentId: null },
-      select: { id: true, title: true, status: true, priority: true, dueDate: true },
-    }),
-    prisma.tag.findMany({
-      where: { userId },
-      select: { id: true, name: true, color: true, _count: { select: { tasks: true } } },
-    }),
-  ])
+  const [total, success, tokensAgg, byType, recent, last14, tasksAll, tagsRaw, completedRecent] =
+    await Promise.all([
+      prisma.agentRun.count({ where: { userId } }),
+      prisma.agentRun.count({ where: { userId, status: 'SUCCESS' } }),
+      prisma.agentRun.aggregate({ where: { userId }, _sum: { tokensUsed: true } }),
+      prisma.agentRun.groupBy({
+        by: ['agentType'],
+        where: { userId },
+        _count: { _all: true },
+        _sum: { tokensUsed: true },
+      }),
+      prisma.agentRun.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 12 }),
+      prisma.agentRun.findMany({
+        where: { userId, createdAt: { gte: since } },
+        select: { createdAt: true },
+      }),
+      prisma.task.findMany({
+        where: { userId, parentId: null },
+        select: { id: true, title: true, status: true, priority: true, dueDate: true },
+      }),
+      prisma.tag.findMany({
+        where: { userId },
+        select: { id: true, name: true, color: true, _count: { select: { tasks: true } } },
+      }),
+      prisma.task.findMany({
+        where: { userId, completedAt: { gte: since } },
+        select: { completedAt: true },
+      }),
+    ])
 
   const tokens = tokensAgg._sum.tokensUsed ?? 0
   const successRate = total ? Math.round((success / total) * 100) : 0
@@ -75,6 +80,10 @@ export default async function DashboardPage() {
   })
   const dayCounts = days.map((d) => last14.filter((r) => sameDay(r.createdAt, d)).length)
   const maxDay = Math.max(1, ...dayCounts)
+  const doneByDay = days.map(
+    (d) => completedRecent.filter((t) => t.completedAt && sameDay(t.completedAt, d)).length,
+  )
+  const maxDoneDay = Math.max(1, ...doneByDay)
 
   // Task-centric stats.
   const todayStart = new Date()
@@ -200,6 +209,27 @@ export default async function DashboardPage() {
                     </Link>
                   )
                 })}
+              </div>
+            </div>
+          )}
+          {totalTasks > 0 && (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+              <h4 className="text-sm font-semibold text-white/80">Completed · last 14 days</h4>
+              <div className="mt-4 flex items-end gap-1.5">
+                {doneByDay.map((c, i) => (
+                  <div key={i} className="flex flex-1 flex-col items-center gap-1">
+                    <div className="flex h-20 w-full items-end">
+                      <div
+                        className="w-full rounded-t bg-emerald-400/70"
+                        style={{ height: `${Math.round((c / maxDoneDay) * 100)}%` }}
+                        title={`${c} completed`}
+                      />
+                    </div>
+                    <span className="text-[9px] text-white/30 tabular-nums">
+                      {days[i].getDate()}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           )}
