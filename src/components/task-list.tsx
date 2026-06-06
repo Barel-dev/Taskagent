@@ -2,11 +2,21 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Sparkles, Plus, Sun, ArrowDownUp, LayoutGrid, Columns3, Search } from 'lucide-react'
+import {
+  Sparkles,
+  Plus,
+  Sun,
+  ArrowDownUp,
+  LayoutGrid,
+  Columns3,
+  Search,
+  Settings2,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { TaskTile } from '@/components/task-tile'
 import { TaskBoard } from '@/components/task-board'
 import { ChatSidebar } from '@/components/chat-sidebar'
+import { ManageTagsDialog } from '@/components/manage-tags-dialog'
 import { TaskDetail } from '@/components/task-detail'
 import { TaskForm } from '@/components/task-form'
 import { Button } from '@/components/ui/button'
@@ -70,6 +80,7 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
   const [query, setQuery] = useState('')
   const [priority, setPriority] = useState<PriorityFilter>('ALL')
   const [tagFilter, setTagFilter] = useState<string>('ALL')
+  const [manageTagsOpen, setManageTagsOpen] = useState(false)
   // Unique tags across the user's tasks, for the filter dropdown.
   const allTags = Array.from(
     new Map(tasks.flatMap((t) => t.tags ?? []).map((tag) => [tag.id, tag])).values(),
@@ -228,19 +239,31 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
             <option value="LOW">Low</option>
           </select>
           {allTags.length > 0 && (
-            <select
-              value={tagFilter}
-              onChange={(e) => setTagFilter(e.target.value)}
-              aria-label="Filter by tag"
-              className="h-9 rounded-md border border-white/10 bg-white/5 px-2.5 text-sm text-white/75 focus:border-violet-400/40 focus:outline-none"
-            >
-              <option value="ALL">All tags</option>
-              {allTags.map((tag) => (
-                <option key={tag.id} value={tag.id}>
-                  {tag.name}
-                </option>
-              ))}
-            </select>
+            <>
+              <select
+                value={tagFilter}
+                onChange={(e) => setTagFilter(e.target.value)}
+                aria-label="Filter by tag"
+                className="h-9 rounded-md border border-white/10 bg-white/5 px-2.5 text-sm text-white/75 focus:border-violet-400/40 focus:outline-none"
+              >
+                <option value="ALL">All tags</option>
+                {allTags.map((tag) => (
+                  <option key={tag.id} value={tag.id}>
+                    {tag.name}
+                  </option>
+                ))}
+              </select>
+              <Button
+                size="icon-sm"
+                variant="outline"
+                onClick={() => setManageTagsOpen(true)}
+                title="Manage tags"
+                aria-label="Manage tags"
+                className="h-9 w-9 border-white/15 text-white/70 hover:bg-white/5"
+              >
+                <Settings2 className="h-3.5 w-3.5" />
+              </Button>
+            </>
           )}
           <select
             value={sort}
@@ -400,6 +423,7 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
         </DialogContent>
       </Dialog>
 
+      <ManageTagsDialog tags={allTags} open={manageTagsOpen} onOpenChange={setManageTagsOpen} />
       <ChatSidebar />
     </div>
   )

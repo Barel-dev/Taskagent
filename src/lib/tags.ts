@@ -41,6 +41,32 @@ export async function createTagForUser(userId: string, name: string): Promise<Ta
   }
 }
 
+/**
+ * Rename a tag the user owns. Returns the updated tag, or null if not found.
+ * Throws Prisma P2002 if the new name collides with another of the user's tags.
+ */
+export async function renameTagForUser(
+  userId: string,
+  id: string,
+  name: string,
+): Promise<TagLite | null> {
+  const result = await prisma.tag.updateMany({
+    where: { id, userId },
+    data: { name: name.trim() },
+  })
+  if (result.count === 0) return null
+  return prisma.tag.findUnique({
+    where: { id },
+    select: { id: true, name: true, color: true },
+  })
+}
+
+/** Delete a tag the user owns (cascades its task links). */
+export async function deleteTagForUser(userId: string, id: string): Promise<boolean> {
+  const result = await prisma.tag.deleteMany({ where: { id, userId } })
+  return result.count > 0
+}
+
 /** Narrow a list of tag ids to those actually owned by the user. */
 export async function ownedTagIds(userId: string, tagIds?: string[]): Promise<string[]> {
   if (!tagIds || tagIds.length === 0) return []
