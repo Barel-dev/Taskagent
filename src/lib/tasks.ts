@@ -1,8 +1,9 @@
 import { prisma } from '@/lib/prisma'
 import type { Task } from '@prisma/client'
 import type { CreateTaskInput, UpdateTaskInput } from '@/lib/validators'
+import { ownedTagIds, type TagLite } from '@/lib/tags'
 
-export type TaskNode = Task & { children: TaskNode[] }
+export type TaskNode = Task & { children: TaskNode[]; tags: TagLite[] }
 
 const STATUS_ORDER = { TODO: 0, IN_PROGRESS: 1, DONE: 2 } as const
 
@@ -10,9 +11,17 @@ export async function listTasksForUser(userId: string): Promise<TaskNode[]> {
   // Fetch every task for the user and assemble the parent → children tree in
   // memory. This supports subtasks nested to any depth (a subtask can itself
   // be broken down), which fixed-depth Prisma `include`s can't express.
-  const all = await prisma.task.findMany({ where: { userId } })
+  const all = await prisma.task.findMany({
+    where: { userId },
+    include: { tags: { select: { tag: { select: { id: true, name: true, color: true } } } } },
+  })
 
-  const nodes = new Map<string, TaskNode>(all.map((t) => [t.id, { ...t, children: [] }]))
+  const nodes = new Map<string, TaskNode>(
+    all.map((t) => {
+      const { tags, ...rest } = t
+      return [t.id, { ...rest, children: [], tags: tags.map((tt) => tt.tag) }]
+    }),
+  )
   const roots: TaskNode[] = []
   for (const t of all) {
     const node = nodes.get(t.id)!
@@ -41,8 +50,14 @@ export async function listTasksForUser(userId: string): Promise<TaskNode[]> {
 }
 
 export async function createTaskForUser(userId: string, input: CreateTaskInput) {
+  const { tagIds, ...data } = input
+  const validTagIds = await ownedTagIds(userId, tagIds)
   return prisma.task.create({
-    data: { ...input, userId },
+    data: {
+      ...data,
+      userId,
+      ...(validTagIds.length ? { tags: { create: validTagIds.map((tagId) => ({ tagId })) } } : {}),
+    },
   })
 }
 
@@ -51,11 +66,26 @@ export async function getTaskForUser(userId: string, taskId: string) {
 }
 
 export async function updateTaskForUser(userId: string, taskId: string, input: UpdateTaskInput) {
-  const result = await prisma.task.updateMany({
-    where: { id: taskId, userId },
-    data: input,
-  })
+  const { tagIds, ...data } = input
+
+  // Update scalar fields (if any) and confirm ownership in one go.
+  const result =
+    Object.keys(data).length > 0
+      ? await prisma.task.updateMany({ where: { id: taskId, userId }, data })
+      : { count: await prisma.task.count({ where: { id: taskId, userId } }) }
   if (result.count === 0) return null
+
+  // Replace the task's tags when tagIds is provided (omit to leave unchanged).
+  if (tagIds !== undefined) {
+    const validTagIds = await ownedTagIds(userId, tagIds)
+    await prisma.$transaction([
+      prisma.taskTag.deleteMany({ where: { taskId } }),
+      ...(validTagIds.length
+        ? [prisma.taskTag.createMany({ data: validTagIds.map((tagId) => ({ taskId, tagId })) })]
+        : []),
+    ])
+  }
+
   return prisma.task.findUnique({ where: { id: taskId } })
 }
 

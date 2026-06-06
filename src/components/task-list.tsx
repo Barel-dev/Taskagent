@@ -25,6 +25,7 @@ export type TaskNodeUI = {
   result?: string | null
   resultData?: { sources?: RichSourceUI[] } | null
   summary?: string | null
+  tags?: { id: string; name: string; color: string }[]
   children?: TaskNodeUI[]
 }
 
@@ -68,8 +69,13 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
   // Search + priority filter, applied to both views.
   const [query, setQuery] = useState('')
   const [priority, setPriority] = useState<PriorityFilter>('ALL')
-  const visible = filterTasks(tasks, { query, priority })
-  const filtering = query.trim() !== '' || priority !== 'ALL'
+  const [tagFilter, setTagFilter] = useState<string>('ALL')
+  // Unique tags across the user's tasks, for the filter dropdown.
+  const allTags = Array.from(
+    new Map(tasks.flatMap((t) => t.tags ?? []).map((tag) => [tag.id, tag])).values(),
+  ).sort((a, b) => a.name.localeCompare(b.name))
+  const visible = filterTasks(tasks, { query, priority, tagId: tagFilter })
+  const filtering = query.trim() !== '' || priority !== 'ALL' || tagFilter !== 'ALL'
 
   async function moveTask(taskId: string, status: TaskNodeUI['status']) {
     const prev = tasks
@@ -220,6 +226,21 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
             <option value="MEDIUM">Medium</option>
             <option value="LOW">Low</option>
           </select>
+          {allTags.length > 0 && (
+            <select
+              value={tagFilter}
+              onChange={(e) => setTagFilter(e.target.value)}
+              aria-label="Filter by tag"
+              className="h-9 rounded-md border border-white/10 bg-white/5 px-2.5 text-sm text-white/75 focus:border-violet-400/40 focus:outline-none"
+            >
+              <option value="ALL">All tags</option>
+              {allTags.map((tag) => (
+                <option key={tag.id} value={tag.id}>
+                  {tag.name}
+                </option>
+              ))}
+            </select>
+          )}
           <div className="inline-flex rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
             <button
               type="button"

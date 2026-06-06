@@ -24,6 +24,7 @@ import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { EmailAgentDialog } from '@/components/email-agent-dialog'
 import { ScheduleAgentDialog } from '@/components/schedule-agent-dialog'
+import { TagChips } from '@/components/tag-chip'
 import type { TaskNodeUI, RichSourceUI } from '@/components/task-list'
 
 type Source = RichSourceUI
@@ -249,6 +250,8 @@ export function TaskDetail({
               {task.title}
             </DialogTitle>
             {task.description && <p className="mt-1 text-sm text-white/55">{task.description}</p>}
+
+            <TagChips tags={task.tags} className="mt-2.5" />
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {hasChildren ? (

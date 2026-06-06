@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Clock, CalendarDays, CheckCircle2, GripVertical } from 'lucide-react'
 import type { TaskNodeUI } from '@/components/task-list'
+import { TagChips } from '@/components/tag-chip'
 
 type Status = TaskNodeUI['status']
 
@@ -161,6 +162,7 @@ function BoardCard({
               </span>
             )}
           </div>
+          <TagChips tags={task.tags} className="mt-2" />
         </button>
         <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-white/20" />
       </div>

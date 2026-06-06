@@ -9,6 +9,12 @@ export const createTaskSchema = z.object({
   status: taskStatusEnum.optional(),
   priority: priorityEnum.optional(),
   dueDate: z.coerce.date().optional().nullable(),
+  // Tag ids to attach (validated against the user's own tags in the data layer).
+  tagIds: z.array(z.string()).max(20).optional(),
+})
+
+export const createTagSchema = z.object({
+  name: z.string().min(1, 'Tag name is required').max(40),
 })
 
 export const updateTaskSchema = createTaskSchema

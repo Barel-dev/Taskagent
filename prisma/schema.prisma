@@ -46,6 +46,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   tasks         Task[]
+  tags          Tag[]
   agentRuns     AgentRun[]
   createdAt     DateTime  @default(now())
 }
@@ -128,9 +129,37 @@ model Task {
   parent           Task?   @relation("Subtasks", fields: [parentId], references: [id], onDelete: Cascade)
   children         Task[]  @relation("Subtasks")
 
+  tags TaskTag[]
+
   @@index([userId, status])
   @@index([userId, dueDate])
   @@index([parentId])
+}
+
+// User-defined label that can be attached to many tasks.
+model Tag {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  color     String    @default("violet")
+  createdAt DateTime  @default(now())
+  tasks     TaskTag[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+// Explicit join table between Task and Tag (explicit so the migration is
+// straightforward to hand-write).
+model TaskTag {
+  taskId String
+  tagId  String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId])
+  @@index([tagId])
 }
 
 // Audit log for every agent invocation — what went in, what came out,

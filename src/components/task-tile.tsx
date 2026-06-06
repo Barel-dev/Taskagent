@@ -2,6 +2,7 @@
 
 import { Clock, CalendarDays, ArrowUpRight, CheckCircle2 } from 'lucide-react'
 import type { TaskNodeUI } from '@/components/task-list'
+import { TagChips } from '@/components/tag-chip'
 
 const PRIORITY: Record<TaskNodeUI['priority'], { dot: string; label: string; bar: string }> = {
   LOW: { dot: 'bg-slate-400', label: 'text-slate-300', bar: 'bg-slate-400/70' },
@@ -32,7 +33,7 @@ export function TaskTile({ task, onOpen }: { task: TaskNodeUI; onOpen: () => voi
           <span className={`font-medium ${pr.label}`}>{task.priority}</span>
         </span>
         {total > 0 && (
-          <span className="text-[11px] tabular-nums text-white/40">
+          <span className="text-[11px] text-white/40 tabular-nums">
             {done}/{total}
           </span>
         )}
@@ -40,15 +41,19 @@ export function TaskTile({ task, onOpen }: { task: TaskNodeUI; onOpen: () => voi
 
       {/* title + description */}
       <h3
-        className={`mt-2.5 line-clamp-2 font-medium leading-snug ${
+        className={`mt-2.5 line-clamp-2 leading-snug font-medium ${
           isDone ? 'text-white/60 line-through' : 'text-white'
         }`}
       >
         {task.title}
       </h3>
       {task.description && (
-        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/45">{task.description}</p>
+        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/45">
+          {task.description}
+        </p>
       )}
+
+      <TagChips tags={task.tags} className="mt-2" />
 
       {/* footer */}
       <div className="mt-auto">

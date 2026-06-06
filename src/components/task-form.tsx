@@ -1,12 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { tagChipClass } from '@/lib/tag-colors'
+
+type Tag = { id: string; name: string; color: string }
 
 type Task = {
   id: string
@@ -15,6 +19,7 @@ type Task = {
   status: 'TODO' | 'IN_PROGRESS' | 'DONE'
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   dueDate: string | Date | null
+  tags?: Tag[]
 }
 
 export function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) {
@@ -27,6 +32,56 @@ export function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) 
   )
   const [saving, setSaving] = useState(false)
 
+  // Tags: the user's full tag list, plus which ids are selected for this task.
+  const [allTags, setAllTags] = useState<Tag[]>(task?.tags ?? [])
+  const [selectedIds, setSelectedIds] = useState<string[]>((task?.tags ?? []).map((t) => t.id))
+  const [newTag, setNewTag] = useState('')
+  const [addingTag, setAddingTag] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/tags')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.tags) {
+          // Merge fetched tags with any already on the task (keeps order stable).
+          setAllTags((prev) => {
+            const map = new Map<string, Tag>(prev.map((t) => [t.id, t]))
+            for (const t of data.tags as Tag[]) map.set(t.id, t)
+            return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name))
+          })
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  function toggleTag(id: string) {
+    setSelectedIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]))
+  }
+
+  async function addTag() {
+    const name = newTag.trim()
+    if (!name || addingTag) return
+    setAddingTag(true)
+    try {
+      const res = await fetch('/api/tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        toast.error(data?.error ?? 'Could not add tag')
+        return
+      }
+      const tag = data.tag as Tag
+      setAllTags((prev) => (prev.some((t) => t.id === tag.id) ? prev : [...prev, tag]))
+      setSelectedIds((ids) => (ids.includes(tag.id) ? ids : [...ids, tag.id]))
+      setNewTag('')
+    } finally {
+      setAddingTag(false)
+    }
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
@@ -36,6 +91,7 @@ export function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) 
         description: description || null,
         priority,
         dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+        tagIds: selectedIds,
       }
       const url = task ? `/api/tasks/${task.id}` : '/api/tasks'
       const method = task ? 'PATCH' : 'POST'
@@ -103,6 +159,58 @@ export function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) 
           />
         </div>
       </div>
+
+      <div className="space-y-2">
+        <Label>Tags</Label>
+        {allTags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {allTags.map((t) => {
+              const on = selectedIds.includes(t.id)
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => toggleTag(t.id)}
+                  aria-pressed={on}
+                  className={`rounded-full border px-2 py-0.5 text-xs font-medium transition-opacity ${
+                    on
+                      ? tagChipClass(t.color)
+                      : 'border-border text-muted-foreground opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  {t.name}
+                </button>
+              )
+            })}
+          </div>
+        )}
+        <div className="flex gap-2">
+          <Input
+            value={newTag}
+            onChange={(e) => setNewTag(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                addTag()
+              }
+            }}
+            placeholder="New tag…"
+            maxLength={40}
+            className="h-9"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addTag}
+            disabled={addingTag || !newTag.trim()}
+          >
+            <Plus className="mr-1 h-3.5 w-3.5" />
+            Add
+          </Button>
+        </div>
+      </div>
+
       <div className="flex justify-end gap-2 pt-2">
         <Button type="button" variant="outline" onClick={onDone} disabled={saving}>
           Cancel
