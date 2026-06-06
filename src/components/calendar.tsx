@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { TaskDetail } from '@/components/task-detail'
 import type { TaskNodeUI } from '@/components/task-list'
+import type { PriorityFilter } from '@/lib/task-filter'
 
 const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 
@@ -70,6 +71,8 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
   const [weekOffset, setWeekOffset] = useState(0)
   const [monthOffset, setMonthOffset] = useState(0)
   const [selected, setSelected] = useState<TaskNodeUI | null>(null)
+  const [priority, setPriority] = useState<PriorityFilter>('ALL')
+  const [hideDone, setHideDone] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem('taskagent:calview')
@@ -80,8 +83,11 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
   }, [view])
 
   const today = new Date()
-  const placed = tasks.filter((t) => effectiveDate(t))
-  const unscheduled = tasks.filter((t) => !t.scheduledStart && !t.dueDate)
+  const filtered = tasks.filter(
+    (t) => (priority === 'ALL' || t.priority === priority) && (!hideDone || t.status !== 'DONE'),
+  )
+  const placed = filtered.filter((t) => effectiveDate(t))
+  const unscheduled = filtered.filter((t) => !t.scheduledStart && !t.dueDate)
   const tasksOn = (day: Date) =>
     placed.filter((t) => sameDay(new Date(effectiveDate(t) as string), day))
 
@@ -121,7 +127,30 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
             Tasks by due date and scheduled time. Click any task to open its agents.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value as PriorityFilter)}
+            aria-label="Filter by priority"
+            className="h-8 rounded-md border border-white/10 bg-white/5 px-2 text-xs text-white/75 focus:border-violet-400/40 focus:outline-none"
+          >
+            <option value="ALL">All priorities</option>
+            <option value="URGENT">Urgent</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+          <button
+            type="button"
+            onClick={() => setHideDone((v) => !v)}
+            className={`rounded-md border px-2.5 py-1 text-xs transition-colors ${
+              hideDone
+                ? 'border-violet-400/40 bg-violet-500/15 text-white'
+                : 'border-white/15 text-white/70 hover:bg-white/5'
+            }`}
+          >
+            Hide done
+          </button>
           <div className="mr-1 inline-flex rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
             <button
               type="button"
