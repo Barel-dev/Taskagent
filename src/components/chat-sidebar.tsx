@@ -6,7 +6,7 @@ import { MessageCircle, X, Send, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 
-type Msg = { role: 'user' | 'assistant'; content: string }
+type Msg = { id: number; role: 'user' | 'assistant'; content: string }
 
 const SUGGESTIONS = ["What's due soon?", 'What should I focus on today?', 'Plan a weekend trip']
 
@@ -20,16 +20,34 @@ export function ChatSidebar() {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const idRef = useRef(0)
+  // The assistant message currently "typing out", and how many chars are shown.
+  const [reveal, setReveal] = useState<{ id: number; n: number } | null>(null)
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages, sending, open])
+  }, [messages, sending, open, reveal])
+
+  // Typewriter reveal of the latest assistant reply.
+  useEffect(() => {
+    if (!reveal) return
+    const msg = messages.find((m) => m.id === reveal.id)
+    if (!msg || reveal.n >= msg.content.length) {
+      setReveal(null)
+      return
+    }
+    const t = setTimeout(
+      () => setReveal((r) => (r ? { ...r, n: Math.min(r.n + 3, msg.content.length) } : null)),
+      16,
+    )
+    return () => clearTimeout(t)
+  }, [reveal, messages])
 
   async function sendMessage(text: string) {
     const trimmed = text.trim()
     if (!trimmed || sending) return
     const history = messages.slice(-8)
-    setMessages((m) => [...m, { role: 'user', content: trimmed }])
+    setMessages((m) => [...m, { id: ++idRef.current, role: 'user', content: trimmed }])
     setInput('')
     setSending(true)
     try {
@@ -42,11 +60,17 @@ export function ChatSidebar() {
       if (!res.ok) {
         setMessages((m) => [
           ...m,
-          { role: 'assistant', content: data?.error ?? 'Something went wrong. Try again.' },
+          {
+            id: ++idRef.current,
+            role: 'assistant',
+            content: data?.error ?? 'Something went wrong. Try again.',
+          },
         ])
         return
       }
-      setMessages((m) => [...m, { role: 'assistant', content: data.reply }])
+      const aid = ++idRef.current
+      setMessages((m) => [...m, { id: aid, role: 'assistant', content: data.reply }])
+      setReveal({ id: aid, n: 0 }) // type it out
       if (data.createdTask) {
         toast.success(`Created “${data.createdTask.title}”`)
         router.refresh()
@@ -54,7 +78,7 @@ export function ChatSidebar() {
     } catch {
       setMessages((m) => [
         ...m,
-        { role: 'assistant', content: 'Network error — please try again.' },
+        { id: ++idRef.current, role: 'assistant', content: 'Network error — please try again.' },
       ])
     } finally {
       setSending(false)
@@ -101,22 +125,27 @@ export function ChatSidebar() {
               </div>
             )}
 
-            {messages.map((m, i) => (
-              <div
-                key={i}
-                className={m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}
-              >
+            {messages.map((m) => {
+              const revealing = reveal?.id === m.id
+              const content = revealing ? m.content.slice(0, reveal!.n) : m.content
+              return (
                 <div
-                  className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
-                    m.role === 'user'
-                      ? 'bg-violet-500/85 text-white'
-                      : 'border border-white/10 bg-white/[0.05] text-white/85'
-                  }`}
+                  key={m.id}
+                  className={m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}
                 >
-                  {m.content}
+                  <div
+                    className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
+                      m.role === 'user'
+                        ? 'bg-violet-500/85 text-white'
+                        : 'border border-white/10 bg-white/[0.05] text-white/85'
+                    }`}
+                  >
+                    {content}
+                    {revealing && <span className="ml-px animate-pulse text-white/50">▍</span>}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
 
             {sending && (
               <div className="flex justify-start">
