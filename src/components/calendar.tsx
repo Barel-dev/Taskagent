@@ -119,6 +119,20 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
     router.refresh()
   }
 
+  async function reschedule(taskId: string, date: Date) {
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dueDate: date.toISOString() }),
+    })
+    if (!res.ok) {
+      toast.error('Could not reschedule')
+      return
+    }
+    toast.success('Rescheduled')
+    router.refresh()
+  }
+
   // Range label depends on the active view.
   const monthBase = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1)
   const monday = mondayOf(today, weekOffset)
@@ -234,6 +248,7 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
           tasksOn={tasksOn}
           onOpen={setSelected}
           onAddOnDay={addOnDay}
+          onReschedule={reschedule}
         />
       )}
 
@@ -371,15 +386,18 @@ function MonthGrid({
   tasksOn,
   onOpen,
   onAddOnDay,
+  onReschedule,
 }: {
   monthBase: Date
   today: Date
   tasksOn: (d: Date) => TaskNodeUI[]
   onOpen: (t: TaskNodeUI) => void
   onAddOnDay: (date: Date, title: string) => void
+  onReschedule: (taskId: string, date: Date) => void
 }) {
   const [addKey, setAddKey] = useState<string | null>(null)
   const [title, setTitle] = useState('')
+  const [dragOverKey, setDragOverKey] = useState<string | null>(null)
   const month = monthBase.getMonth()
   const leading = (monthBase.getDay() + 6) % 7 // Mon-start offset of the 1st
   const daysInMonth = new Date(monthBase.getFullYear(), month + 1, 0).getDate()
@@ -410,10 +428,25 @@ function MonthGrid({
             return (
               <div
                 key={i}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  setDragOverKey(key)
+                }}
+                onDragLeave={(e) => {
+                  if (e.currentTarget === e.target) setDragOverKey(null)
+                }}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  const id = e.dataTransfer.getData('text/plain')
+                  setDragOverKey(null)
+                  if (id) onReschedule(id, day)
+                }}
                 className={`group flex min-h-[104px] flex-col gap-1 rounded-xl border p-1.5 ${
-                  isToday
-                    ? 'border-violet-400/40 bg-violet-500/[0.07]'
-                    : 'border-white/5 bg-white/[0.015]'
+                  dragOverKey === key
+                    ? 'border-violet-400/60 bg-violet-500/[0.12]'
+                    : isToday
+                      ? 'border-violet-400/40 bg-violet-500/[0.07]'
+                      : 'border-white/5 bg-white/[0.015]'
                 } ${inMonth ? '' : 'opacity-40'}`}
               >
                 <div
@@ -430,9 +463,14 @@ function MonthGrid({
                     <button
                       key={t.id}
                       type="button"
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/plain', t.id)
+                        e.dataTransfer.effectAllowed = 'move'
+                      }}
                       onClick={() => onOpen(t)}
                       title={time ? `${time} · ${t.title}` : t.title}
-                      className={`flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-left text-[10px] font-medium transition-colors hover:bg-white/10 ${
+                      className={`flex cursor-grab items-center gap-1 rounded-md border px-1.5 py-0.5 text-left text-[10px] font-medium transition-colors hover:bg-white/10 active:cursor-grabbing ${
                         CARD[t.priority]
                       } ${done ? 'opacity-50' : ''}`}
                     >
