@@ -316,9 +316,9 @@ export function TaskList({
     }
   }
 
-  async function planWithAi(e: React.FormEvent) {
-    e.preventDefault()
-    const trimmed = goal.trim()
+  async function planWithAi(e?: React.FormEvent, preset?: string) {
+    e?.preventDefault()
+    const trimmed = (preset ?? goal).trim()
     if (!trimmed || planning) return
     setPlanning(true)
     try {
@@ -605,9 +605,24 @@ export function TaskList({
         <div className="tl-rise rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
           <Sparkles className="mx-auto h-6 w-6 text-violet-300/60" />
           <p className="mt-3 text-sm text-white/60">No tasks yet.</p>
-          <p className="mt-1 text-xs text-white/40">
-            Describe a goal above and let the agent build one for you.
-          </p>
+          <p className="mt-1 text-xs text-white/40">Describe a goal above, or try one of these:</p>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            {[
+              'Plan a weekend trip to Lisbon',
+              'Launch a personal portfolio site',
+              'Organize my move',
+            ].map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => planWithAi(undefined, s)}
+                disabled={planning}
+                className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-white/65 hover:bg-white/10 hover:text-white disabled:opacity-50"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
