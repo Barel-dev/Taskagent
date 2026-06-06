@@ -25,6 +25,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { EmailAgentDialog } from '@/components/email-agent-dialog'
 import { ScheduleAgentDialog } from '@/components/schedule-agent-dialog'
 import { TagChips } from '@/components/tag-chip'
+import { formatDue, dueToneClass } from '@/lib/format-due'
 import type { TaskNodeUI, RichSourceUI } from '@/components/task-list'
 
 type Source = RichSourceUI
@@ -85,6 +86,7 @@ export function TaskDetail({
   const [selectedId, setSelectedId] = useState<string>(hasChildren ? children[0].id : OVERVIEW)
   const selected = children.find((c) => c.id === selectedId) ?? null
   const pr = PRIORITY[task.priority]
+  const due = formatDue(task.dueDate, task.status)
 
   function close() {
     onClose()
@@ -240,11 +242,7 @@ export function TaskDetail({
             <span className="inline-flex items-center gap-1.5 text-[11px]">
               <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
               <span className={`font-medium ${pr.label}`}>{task.priority}</span>
-              {task.dueDate && (
-                <span className="ml-2 text-white/40">
-                  due {new Date(task.dueDate).toLocaleDateString()}
-                </span>
-              )}
+              {due && <span className={`ml-2 ${dueToneClass(due)}`}>due {due.label}</span>}
             </span>
             <DialogTitle className="mt-1.5 text-xl font-semibold tracking-tight text-white">
               {task.title}

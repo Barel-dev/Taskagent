@@ -22,8 +22,17 @@ You sign in with Google, then work with a grid of task tiles. Open any task to r
 | **Summary**        | Rolls a whole plan up into a status briefing.                                                                                                          |
 | **Email**          | Drafts an email about a task, shows it for you to review/edit, and **sends it from your own Gmail** — but only after you click Send. Never auto-sends. |
 | **Schedule**       | Reads your Google Calendar busy times and proposes slots for a task; on your approval it **creates the calendar event** and books the time.            |
+| **Chat**           | A sidebar assistant: ask about your tasks ("what's due?", "what should I focus on?") or tell it to plan something new and it creates the task for you. |
 
 Agents **share context**: answers you give one agent (dates, budget, who's traveling) are saved to the plan and reused by the others, so they stop re-asking what's already known.
+
+## Workspace & views
+
+- **Two views:** a tile **list** and a drag-and-drop **Kanban board** (To do / In progress / Done) — drag a card between columns to change its status. Your choice is remembered across visits.
+- **Search & filter:** narrow tasks by text, priority, and tag — across both views.
+- **Tags:** create colored labels, attach them to tasks from the task form, and filter by them.
+- **Smart due dates:** relative labels ("Today", "Tomorrow", "2d overdue", "in 3d") with overdue/soon color highlighting.
+- **Chat assistant:** a floating panel that answers questions about your tasks and can create new ones on request.
 
 ## How it works
 
@@ -31,6 +40,7 @@ Agents **share context**: answers you give one agent (dates, budget, who's trave
 - **"Do it"** uses Gemini's **Google Search grounding** to search the live web, then `src/lib/link-preview.ts` fetches each source's OpenGraph data so results render as rich cards.
 - **"Email"** drafts with Gemini, then sends through the **Gmail API** (`src/lib/google.ts`) using the user's stored Google OAuth token (auto-refreshed on expiry). Drafting and sending are separate endpoints — the draft route never sends.
 - **"Schedule"** reads free/busy and creates events through the **Google Calendar API** (`src/lib/google.ts`), reusing the same token helper. Proposing slots and creating the event are separate endpoints — proposing never writes to the calendar.
+- **"Chat"** classifies each message with Gemini (structured output): read-only questions are answered from your task list, while a "create a task" intent is dispatched to the Planner. No new OAuth and no persisted history.
 - **Structured output** (Gemini `responseSchema`) + **Zod** validation guarantees well-formed agent results.
 - **Demo mode:** with no `GEMINI_API_KEY` set, agents return free placeholder output so the whole flow is testable at zero cost; the real agents switch on automatically once a key is present.
 - **Safety:** per-user, DB-backed rate limiting on every agent route; graceful handling of provider quota (429).

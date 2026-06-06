@@ -3,6 +3,7 @@
 import { Clock, CalendarDays, ArrowUpRight, CheckCircle2 } from 'lucide-react'
 import type { TaskNodeUI } from '@/components/task-list'
 import { TagChips } from '@/components/tag-chip'
+import { formatDue, dueToneClass } from '@/lib/format-due'
 
 const PRIORITY: Record<TaskNodeUI['priority'], { dot: string; label: string; bar: string }> = {
   LOW: { dot: 'bg-slate-400', label: 'text-slate-300', bar: 'bg-slate-400/70' },
@@ -17,6 +18,7 @@ export function TaskTile({ task, onOpen }: { task: TaskNodeUI; onOpen: () => voi
   const pct = total ? Math.round((done / total) * 100) : task.status === 'DONE' ? 100 : 0
   const pr = PRIORITY[task.priority]
   const isDone = task.status === 'DONE'
+  const due = formatDue(task.dueDate, task.status)
 
   return (
     <button
@@ -74,10 +76,10 @@ export function TaskTile({ task, onOpen }: { task: TaskNodeUI; onOpen: () => voi
               <Clock className="h-3 w-3" />~{task.estimatedMinutes}m
             </span>
           )}
-          {task.dueDate && (
-            <span className="inline-flex items-center gap-1">
+          {due && (
+            <span className={`inline-flex items-center gap-1 ${dueToneClass(due)}`}>
               <CalendarDays className="h-3 w-3" />
-              {new Date(task.dueDate).toLocaleDateString()}
+              {due.label}
             </span>
           )}
           {total > 0 ? (

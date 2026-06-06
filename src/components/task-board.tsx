@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Clock, CalendarDays, CheckCircle2, GripVertical } from 'lucide-react'
 import type { TaskNodeUI } from '@/components/task-list'
 import { TagChips } from '@/components/tag-chip'
+import { formatDue, dueToneClass } from '@/lib/format-due'
 
 type Status = TaskNodeUI['status']
 
@@ -116,6 +117,7 @@ function BoardCard({
   const total = task.children?.length ?? 0
   const done = task.children?.filter((c) => c.status === 'DONE').length ?? 0
   const isDone = task.status === 'DONE'
+  const due = formatDue(task.dueDate, task.status)
 
   return (
     <div
@@ -144,10 +146,10 @@ function BoardCard({
             {task.title}
           </h4>
           <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px] text-white/40">
-            {task.dueDate && (
-              <span className="inline-flex items-center gap-1">
+            {due && (
+              <span className={`inline-flex items-center gap-1 ${dueToneClass(due)}`}>
                 <CalendarDays className="h-3 w-3" />
-                {new Date(task.dueDate).toLocaleDateString()}
+                {due.label}
               </span>
             )}
             {total > 0 && (
