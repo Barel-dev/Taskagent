@@ -22,7 +22,13 @@ import { TaskForm } from '@/components/task-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { filterTasks, sortTasks, type PriorityFilter, type SortKey } from '@/lib/task-filter'
+import {
+  filterTasks,
+  sortTasks,
+  type PriorityFilter,
+  type SortKey,
+  type DueFilter,
+} from '@/lib/task-filter'
 
 export type TaskNodeUI = {
   id: string
@@ -110,8 +116,15 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
     new Map(tasks.flatMap((t) => t.tags ?? []).map((tag) => [tag.id, tag])).values(),
   ).sort((a, b) => a.name.localeCompare(b.name))
   const [sort, setSort] = useState<SortKey>('default')
-  const visible = sortTasks(filterTasks(tasks, { query, priority, tagId: tagFilter }), sort)
-  const filtering = query.trim() !== '' || priority !== 'ALL' || tagFilter !== 'ALL'
+  const [dueFilter, setDueFilter] = useState<DueFilter>('ALL')
+  const visible = sortTasks(
+    filterTasks(tasks, { query, priority, tagId: tagFilter, due: dueFilter }),
+    sort,
+  )
+  const filtering =
+    query.trim() !== '' || priority !== 'ALL' || tagFilter !== 'ALL' || dueFilter !== 'ALL'
+  const overdueCount = filterTasks(tasks, { due: 'overdue' }).length
+  const todayCount = filterTasks(tasks, { due: 'today' }).length
 
   async function moveTask(taskId: string, status: TaskNodeUI['status']) {
     const prev = tasks
@@ -264,6 +277,17 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
             <option value="MEDIUM">Medium</option>
             <option value="LOW">Low</option>
           </select>
+          <select
+            value={dueFilter}
+            onChange={(e) => setDueFilter(e.target.value as DueFilter)}
+            aria-label="Filter by due date"
+            className="h-9 rounded-md border border-white/10 bg-white/5 px-2.5 text-sm text-white/75 focus:border-violet-400/40 focus:outline-none"
+          >
+            <option value="ALL">Any time</option>
+            <option value="overdue">Overdue</option>
+            <option value="today">Due today</option>
+            <option value="week">Due this week</option>
+          </select>
           {allTags.length > 0 && (
             <>
               <select
@@ -375,6 +399,37 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
           </Button>
         </div>
       </div>
+
+      {(overdueCount > 0 || todayCount > 0) && (
+        <div className="tl-rise flex flex-wrap gap-2">
+          {overdueCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setDueFilter((d) => (d === 'overdue' ? 'ALL' : 'overdue'))}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                dueFilter === 'overdue'
+                  ? 'border-rose-400/50 bg-rose-500/20 text-rose-100'
+                  : 'border-rose-400/25 bg-rose-500/10 text-rose-200 hover:bg-rose-500/20'
+              }`}
+            >
+              {overdueCount} overdue
+            </button>
+          )}
+          {todayCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setDueFilter((d) => (d === 'today' ? 'ALL' : 'today'))}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                dueFilter === 'today'
+                  ? 'border-amber-400/50 bg-amber-500/20 text-amber-100'
+                  : 'border-amber-400/25 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20'
+              }`}
+            >
+              {todayCount} due today
+            </button>
+          )}
+        </div>
+      )}
 
       {tasks.length === 0 && (
         <div className="tl-rise rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">

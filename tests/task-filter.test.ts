@@ -6,6 +6,7 @@ type T = {
   description: string | null
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   dueDate: string | null
+  status: 'TODO' | 'IN_PROGRESS' | 'DONE'
 }
 
 const tasks: T[] = [
@@ -14,9 +15,16 @@ const tasks: T[] = [
     description: 'flights and hotel',
     priority: 'HIGH',
     dueDate: null,
+    status: 'TODO',
   },
-  { title: 'Write report', description: null, priority: 'MEDIUM', dueDate: null },
-  { title: 'Buy groceries', description: 'Milk and EGGS', priority: 'LOW', dueDate: null },
+  { title: 'Write report', description: null, priority: 'MEDIUM', dueDate: null, status: 'TODO' },
+  {
+    title: 'Buy groceries',
+    description: 'Milk and EGGS',
+    priority: 'LOW',
+    dueDate: null,
+    status: 'TODO',
+  },
 ]
 
 describe('filterTasks', () => {
@@ -77,9 +85,9 @@ describe('sortTasks', () => {
 
   it('sorts by due date with undated last', () => {
     const dated: T[] = [
-      { title: 'b', description: null, priority: 'LOW', dueDate: '2026-06-10' },
-      { title: 'a', description: null, priority: 'LOW', dueDate: null },
-      { title: 'c', description: null, priority: 'LOW', dueDate: '2026-06-08' },
+      { title: 'b', description: null, priority: 'LOW', dueDate: '2026-06-10', status: 'TODO' },
+      { title: 'a', description: null, priority: 'LOW', dueDate: null, status: 'TODO' },
+      { title: 'c', description: null, priority: 'LOW', dueDate: '2026-06-08', status: 'TODO' },
     ]
     expect(sortTasks(dated, 'due').map((t) => t.title)).toEqual(['c', 'b', 'a'])
   })
@@ -92,5 +100,22 @@ describe('sortTasks', () => {
       'Write report',
       'Buy groceries',
     ])
+  })
+})
+
+describe('filterTasks due window', () => {
+  it('overdue includes only past-due, not-done, dated tasks', () => {
+    const items: T[] = [
+      { title: 'past', description: null, priority: 'LOW', dueDate: '2020-01-01', status: 'TODO' },
+      {
+        title: 'past-done',
+        description: null,
+        priority: 'LOW',
+        dueDate: '2020-01-01',
+        status: 'DONE',
+      },
+      { title: 'none', description: null, priority: 'LOW', dueDate: null, status: 'TODO' },
+    ]
+    expect(filterTasks(items, { due: 'overdue' }).map((t) => t.title)).toEqual(['past'])
   })
 })
