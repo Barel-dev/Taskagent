@@ -376,7 +376,11 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visible.map((t, i) => (
               <div key={t.id} className="tl-rise" style={{ animationDelay: `${160 + i * 45}ms` }}>
-                <TaskTile task={t} onOpen={() => setSelected(t)} />
+                <TaskTile
+                  task={t}
+                  onOpen={() => setSelected(t)}
+                  onStatusChange={(s) => moveTask(t.id, s)}
+                />
               </div>
             ))}
           </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { Clock, CalendarDays, ArrowUpRight, CheckCircle2 } from 'lucide-react'
+import { Clock, CalendarDays, ArrowUpRight, CheckCircle2, Circle } from 'lucide-react'
 import type { TaskNodeUI } from '@/components/task-list'
 import { TagChips } from '@/components/tag-chip'
 import { formatDue, dueToneClass } from '@/lib/format-due'
@@ -12,7 +12,16 @@ const PRIORITY: Record<TaskNodeUI['priority'], { dot: string; label: string; bar
   URGENT: { dot: 'bg-rose-500', label: 'text-rose-300', bar: 'bg-rose-500/70' },
 }
 
-export function TaskTile({ task, onOpen }: { task: TaskNodeUI; onOpen: () => void }) {
+export function TaskTile({
+  task,
+  onOpen,
+  onStatusChange,
+}: {
+  task: TaskNodeUI
+  onOpen: () => void
+  /** When provided, the tile shows a quick done/undone toggle. */
+  onStatusChange?: (status: TaskNodeUI['status']) => void
+}) {
   const total = task.children?.length ?? 0
   const done = task.children?.filter((c) => c.status === 'DONE').length ?? 0
   const pct = total ? Math.round((done / total) * 100) : task.status === 'DONE' ? 100 : 0
@@ -20,17 +29,44 @@ export function TaskTile({ task, onOpen }: { task: TaskNodeUI; onOpen: () => voi
   const isDone = task.status === 'DONE'
   const due = formatDue(task.dueDate, task.status)
 
+  // Root is a div-as-button so the quick toggle below can be a real button
+  // without nesting <button> inside <button>.
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onOpen()
+        }
+      }}
       className={`task-card group relative flex h-44 w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] p-4 text-left backdrop-blur-sm ${
         isDone ? 'opacity-60' : ''
       }`}
     >
-      {/* top row: priority + progress */}
+      {/* top row: done toggle + priority + progress */}
       <div className="flex items-center justify-between">
         <span className="inline-flex items-center gap-1.5 text-[11px]">
+          {onStatusChange && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onStatusChange(isDone ? 'TODO' : 'DONE')
+              }}
+              title={isDone ? 'Mark not done' : 'Mark done'}
+              aria-label={isDone ? 'Mark not done' : 'Mark done'}
+              className="-ml-0.5 text-white/40 hover:text-violet-300"
+            >
+              {isDone ? (
+                <CheckCircle2 className="h-4 w-4 text-violet-400" />
+              ) : (
+                <Circle className="h-4 w-4" />
+              )}
+            </button>
+          )}
           <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
           <span className={`font-medium ${pr.label}`}>{task.priority}</span>
         </span>
@@ -94,6 +130,6 @@ export function TaskTile({ task, onOpen }: { task: TaskNodeUI; onOpen: () => voi
           </span>
         </div>
       </div>
-    </button>
+    </div>
   )
 }
