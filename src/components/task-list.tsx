@@ -133,6 +133,7 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
   const overdueCount = filterTasks(tasks, { due: 'overdue' }).length
   const todayCount = filterTasks(tasks, { due: 'today' }).length
   const doneCount = tasks.filter((t) => t.status === 'DONE').length
+  const donePct = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0
 
   function exportCsv() {
     const header = ['Title', 'Status', 'Priority', 'Due', 'Scheduled', 'Tags', 'Subtasks']
@@ -298,6 +299,19 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
           Describe a goal and an agent builds it. Open any task to run, summarize, and answer its
           agents.
         </p>
+        {tasks.length > 0 && (
+          <div className="mt-3 flex items-center gap-3">
+            <div className="h-1.5 w-full max-w-[220px] overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400 transition-all"
+                style={{ width: `${donePct}%` }}
+              />
+            </div>
+            <span className="text-xs text-white/45 tabular-nums">
+              {doneCount}/{tasks.length} done · {donePct}%
+            </span>
+          </div>
+        )}
       </header>
 
       <form onSubmit={planWithAi} className="tl-rise" style={{ animationDelay: '60ms' }}>
