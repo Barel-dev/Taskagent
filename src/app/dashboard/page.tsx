@@ -28,7 +28,11 @@ export default async function DashboardPage() {
   if (!session?.user?.id) redirect('/signin')
   const userId = session.user.id
 
-  const [total, success, tokensAgg, byType, recent] = await Promise.all([
+  const since = new Date()
+  since.setHours(0, 0, 0, 0)
+  since.setDate(since.getDate() - 13)
+
+  const [total, success, tokensAgg, byType, recent, last14] = await Promise.all([
     prisma.agentRun.count({ where: { userId } }),
     prisma.agentRun.count({ where: { userId, status: 'SUCCESS' } }),
     prisma.agentRun.aggregate({ where: { userId }, _sum: { tokensUsed: true } }),
@@ -39,11 +43,28 @@ export default async function DashboardPage() {
       _sum: { tokensUsed: true },
     }),
     prisma.agentRun.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 12 }),
+    prisma.agentRun.findMany({
+      where: { userId, createdAt: { gte: since } },
+      select: { createdAt: true },
+    }),
   ])
 
   const tokens = tokensAgg._sum.tokensUsed ?? 0
   const successRate = total ? Math.round((success / total) * 100) : 0
   const byTypeSorted = [...byType].sort((a, b) => b._count._all - a._count._all)
+
+  // Agent-run counts for each of the last 14 days, for the activity chart.
+  const sameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  const days = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(since)
+    d.setDate(d.getDate() + i)
+    return d
+  })
+  const dayCounts = days.map((d) => last14.filter((r) => sameDay(r.createdAt, d)).length)
+  const maxDay = Math.max(1, ...dayCounts)
 
   const stats = [
     { label: 'Agent runs', value: total.toLocaleString(), Icon: Zap },
@@ -60,7 +81,7 @@ export default async function DashboardPage() {
 
       <div className="mx-auto max-w-5xl space-y-8 px-6 py-10">
         <header>
-          <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-violet-300/70">
+          <p className="text-[11px] font-medium tracking-[0.25em] text-violet-300/70 uppercase">
             Agent activity
           </p>
           <h2 className="mt-1.5 text-3xl font-semibold tracking-tight text-white">
@@ -94,57 +115,80 @@ export default async function DashboardPage() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* By type */}
+          <>
+            {/* Activity chart */}
             <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
-              <h3 className="text-sm font-semibold text-white/80">By agent</h3>
-              <div className="mt-4 space-y-3">
-                {byTypeSorted.map((t) => {
-                  const pct = total ? Math.round((t._count._all / total) * 100) : 0
-                  return (
-                    <div key={t.agentType}>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-white/75">{TYPE_LABEL[t.agentType]}</span>
-                        <span className="tabular-nums text-white/45">
-                          {t._count._all} run{t._count._all === 1 ? '' : 's'} ·{' '}
-                          {(t._sum.tokensUsed ?? 0).toLocaleString()} tok
-                        </span>
-                      </div>
-                      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
-                        <div
-                          className="h-full rounded-full bg-violet-400/70"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
+              <h3 className="text-sm font-semibold text-white/80">Activity · last 14 days</h3>
+              <div className="mt-4 flex items-end gap-1.5">
+                {dayCounts.map((c, i) => (
+                  <div key={i} className="flex flex-1 flex-col items-center gap-1">
+                    <div className="flex h-24 w-full items-end">
+                      <div
+                        className="w-full rounded-t bg-violet-400/70"
+                        style={{ height: `${Math.round((c / maxDay) * 100)}%` }}
+                        title={`${c} run${c === 1 ? '' : 's'}`}
+                      />
                     </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Recent runs */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
-              <h3 className="text-sm font-semibold text-white/80">Recent runs</h3>
-              <div className="mt-4 space-y-2">
-                {recent.map((r) => (
-                  <div key={r.id} className="flex items-center gap-3 text-xs">
-                    <span
-                      className={`rounded-full px-2 py-0.5 font-medium ${STATUS_STYLE[r.status]}`}
-                    >
-                      {r.status.toLowerCase()}
-                    </span>
-                    <span className="text-white/75">{TYPE_LABEL[r.agentType]}</span>
-                    <span className="ml-auto tabular-nums text-white/40">
-                      {(r.tokensUsed ?? 0).toLocaleString()} tok
-                    </span>
-                    <span className="w-20 text-right tabular-nums text-white/35">
-                      {new Date(r.createdAt).toLocaleDateString()}
+                    <span className="text-[9px] text-white/30 tabular-nums">
+                      {days[i].getDate()}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* By type */}
+              <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+                <h3 className="text-sm font-semibold text-white/80">By agent</h3>
+                <div className="mt-4 space-y-3">
+                  {byTypeSorted.map((t) => {
+                    const pct = total ? Math.round((t._count._all / total) * 100) : 0
+                    return (
+                      <div key={t.agentType}>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-white/75">{TYPE_LABEL[t.agentType]}</span>
+                          <span className="text-white/45 tabular-nums">
+                            {t._count._all} run{t._count._all === 1 ? '' : 's'} ·{' '}
+                            {(t._sum.tokensUsed ?? 0).toLocaleString()} tok
+                          </span>
+                        </div>
+                        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+                          <div
+                            className="h-full rounded-full bg-violet-400/70"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Recent runs */}
+              <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+                <h3 className="text-sm font-semibold text-white/80">Recent runs</h3>
+                <div className="mt-4 space-y-2">
+                  {recent.map((r) => (
+                    <div key={r.id} className="flex items-center gap-3 text-xs">
+                      <span
+                        className={`rounded-full px-2 py-0.5 font-medium ${STATUS_STYLE[r.status]}`}
+                      >
+                        {r.status.toLowerCase()}
+                      </span>
+                      <span className="text-white/75">{TYPE_LABEL[r.agentType]}</span>
+                      <span className="ml-auto text-white/40 tabular-nums">
+                        {(r.tokensUsed ?? 0).toLocaleString()} tok
+                      </span>
+                      <span className="w-20 text-right text-white/35 tabular-nums">
+                        {new Date(r.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
