@@ -11,6 +11,8 @@ import {
   Columns3,
   Search,
   Settings2,
+  Download,
+  CheckCheck,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { TaskTile } from '@/components/task-tile'
@@ -53,6 +55,11 @@ export type RichSourceUI = {
   image?: string
   description?: string
   siteName?: string
+}
+
+// Quote a CSV cell when it contains a comma, quote, or newline.
+function csvCell(v: string): string {
+  return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
 }
 
 export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
@@ -125,6 +132,45 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
     query.trim() !== '' || priority !== 'ALL' || tagFilter !== 'ALL' || dueFilter !== 'ALL'
   const overdueCount = filterTasks(tasks, { due: 'overdue' }).length
   const todayCount = filterTasks(tasks, { due: 'today' }).length
+  const doneCount = tasks.filter((t) => t.status === 'DONE').length
+
+  function exportCsv() {
+    const header = ['Title', 'Status', 'Priority', 'Due', 'Scheduled', 'Tags', 'Subtasks']
+    const rows = tasks.map((t) => [
+      t.title,
+      t.status,
+      t.priority,
+      t.dueDate ? new Date(t.dueDate).toISOString().slice(0, 10) : '',
+      t.scheduledStart ? new Date(t.scheduledStart).toISOString() : '',
+      (t.tags ?? []).map((x) => x.name).join('; '),
+      String(t.children?.length ?? 0),
+    ])
+    const csv = [header, ...rows].map((r) => r.map(csvCell).join(',')).join('\n')
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `taskagent-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  async function clearCompleted() {
+    const done = tasks.filter((t) => t.status === 'DONE')
+    if (done.length === 0) return
+    if (
+      !confirm(
+        `Delete ${done.length} completed task${done.length === 1 ? '' : 's'}? This can't be undone.`,
+      )
+    ) {
+      return
+    }
+    const results = await Promise.all(
+      done.map((t) => fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })),
+    )
+    if (results.some((r) => !r.ok)) toast.error('Some tasks could not be deleted')
+    else toast.success(`Cleared ${done.length} completed`)
+    router.refresh()
+  }
 
   async function moveTask(taskId: string, status: TaskNodeUI['status']) {
     const prev = tasks
@@ -398,6 +444,28 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
                   className={`mr-1 h-3.5 w-3.5 ${prioritizing ? 'animate-pulse' : ''}`}
                 />
                 {prioritizing ? 'Prioritizing…' : 'Prioritize'}
+              </Button>
+              {doneCount > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={clearCompleted}
+                  className="border-white/15 text-white/75 hover:bg-white/5"
+                  title="Delete all completed tasks"
+                >
+                  <CheckCheck className="mr-1 h-3.5 w-3.5" />
+                  Clear done
+                </Button>
+              )}
+              <Button
+                size="icon-sm"
+                variant="outline"
+                onClick={exportCsv}
+                title="Export tasks as CSV"
+                aria-label="Export tasks as CSV"
+                className="h-8 w-8 border-white/15 text-white/70 hover:bg-white/5"
+              >
+                <Download className="h-3.5 w-3.5" />
               </Button>
             </>
           )}
