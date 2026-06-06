@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, CalendarDays, CheckCircle2, GripVertical } from 'lucide-react'
+import { Clock, CalendarDays, CheckCircle2, GripVertical, Plus } from 'lucide-react'
 import type { TaskNodeUI } from '@/components/task-list'
 import { TagChips } from '@/components/tag-chip'
 import { formatDue, dueToneClass } from '@/lib/format-due'
@@ -28,10 +28,13 @@ export function TaskBoard({
   tasks,
   onOpen,
   onMove,
+  onAddTask,
 }: {
   tasks: TaskNodeUI[]
   onOpen: (t: TaskNodeUI) => void
   onMove: (taskId: string, status: Status) => void
+  /** Quick-add a task with the column's status. */
+  onAddTask?: (status: Status, title: string) => void
 }) {
   const [dragOver, setDragOver] = useState<Status | null>(null)
   const [draggingId, setDraggingId] = useState<string | null>(null)
@@ -90,6 +93,7 @@ export function TaskBoard({
                   Drop here
                 </div>
               )}
+              {onAddTask && <ColumnAdd onAdd={(title) => onAddTask(col.status, title)} />}
             </div>
           </div>
         )
@@ -180,5 +184,51 @@ function BoardCard({
         <option value="DONE">Done</option>
       </select>
     </div>
+  )
+}
+
+function ColumnAdd({ onAdd }: { onAdd: (title: string) => void }) {
+  const [adding, setAdding] = useState(false)
+  const [title, setTitle] = useState('')
+
+  function submit() {
+    const t = title.trim()
+    if (!t) return
+    onAdd(t)
+    setTitle('')
+    setAdding(false)
+  }
+
+  if (!adding) {
+    return (
+      <button
+        type="button"
+        onClick={() => setAdding(true)}
+        className="flex w-full items-center gap-1 rounded-lg px-2 py-1.5 text-left text-xs text-white/40 hover:bg-white/5 hover:text-white/70"
+      >
+        <Plus className="h-3.5 w-3.5" />
+        Add task
+      </button>
+    )
+  }
+
+  return (
+    <input
+      autoFocus
+      value={title}
+      onChange={(e) => setTitle(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          submit()
+        } else if (e.key === 'Escape') {
+          setTitle('')
+          setAdding(false)
+        }
+      }}
+      onBlur={submit}
+      placeholder="Task title…"
+      className="w-full rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-white placeholder:text-white/35 focus:border-violet-400/40 focus:outline-none"
+    />
   )
 }

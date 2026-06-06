@@ -145,6 +145,19 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
     router.refresh()
   }
 
+  async function addTask(status: TaskNodeUI['status'], title: string) {
+    const res = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, status }),
+    })
+    if (!res.ok) {
+      toast.error('Could not add task')
+      return
+    }
+    router.refresh()
+  }
+
   async function prioritize() {
     setPrioritizing(true)
     try {
@@ -451,7 +464,7 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
       {visible.length > 0 &&
         (view === 'board' ? (
           <div className="tl-rise" style={{ animationDelay: '150ms' }}>
-            <TaskBoard tasks={visible} onOpen={setSelected} onMove={moveTask} />
+            <TaskBoard tasks={visible} onOpen={setSelected} onMove={moveTask} onAddTask={addTask} />
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
