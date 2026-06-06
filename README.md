@@ -28,11 +28,13 @@ Agents **share context**: answers you give one agent (dates, budget, who's trave
 
 ## Workspace & views
 
-- **Two views:** a tile **list** and a drag-and-drop **Kanban board** (To do / In progress / Done) — drag a card between columns to change its status. Your choice is remembered across visits.
-- **Search & filter:** narrow tasks by text, priority, and tag — across both views.
-- **Tags:** create colored labels, attach them to tasks from the task form, and filter by them.
+- **Three views:** a tile **list**, a drag-and-drop **Kanban board** (To do / In progress / Done — drag to change status, quick-add per column, quick-done on tiles), and a **calendar** (week + month grid) that plots tasks by scheduled time or due date. Your view choice is remembered.
+- **Search, filter & sort:** narrow by text, priority, tag, and due window (overdue / today / this week), with one-click "N overdue · N due today" chips; sort by due date, priority, or title.
+- **Tags:** create colored labels, attach them from the task form, filter by them, and rename/delete them in a manage dialog.
 - **Smart due dates:** relative labels ("Today", "Tomorrow", "2d overdue", "in 3d") with overdue/soon color highlighting.
 - **Chat assistant:** a floating panel that answers questions about your tasks and can create new ones on request.
+- **Dashboard:** agent-run stats, a 14-day activity chart, a by-agent breakdown, and recent runs.
+- **Keyboard shortcuts:** `n` for a new task, `/` to focus search.
 
 ## How it works
 
