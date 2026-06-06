@@ -12,15 +12,23 @@ const PRIORITY: Record<TaskNodeUI['priority'], { dot: string; label: string; bar
   URGENT: { dot: 'bg-rose-500', label: 'text-rose-300', bar: 'bg-rose-500/70' },
 }
 
+const PRIORITY_ORDER: TaskNodeUI['priority'][] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
+function nextPriority(p: TaskNodeUI['priority']): TaskNodeUI['priority'] {
+  return PRIORITY_ORDER[(PRIORITY_ORDER.indexOf(p) + 1) % PRIORITY_ORDER.length]
+}
+
 export function TaskTile({
   task,
   onOpen,
   onStatusChange,
+  onPriorityChange,
 }: {
   task: TaskNodeUI
   onOpen: () => void
   /** When provided, the tile shows a quick done/undone toggle. */
   onStatusChange?: (status: TaskNodeUI['status']) => void
+  /** When provided, clicking the priority cycles it. */
+  onPriorityChange?: (priority: TaskNodeUI['priority']) => void
 }) {
   const total = task.children?.length ?? 0
   const done = task.children?.filter((c) => c.status === 'DONE').length ?? 0
@@ -67,8 +75,25 @@ export function TaskTile({
               )}
             </button>
           )}
-          <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
-          <span className={`font-medium ${pr.label}`}>{task.priority}</span>
+          {onPriorityChange ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onPriorityChange(nextPriority(task.priority))
+              }}
+              title="Click to change priority"
+              className="inline-flex items-center gap-1.5 rounded transition-opacity hover:opacity-80"
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
+              <span className={`font-medium ${pr.label}`}>{task.priority}</span>
+            </button>
+          ) : (
+            <>
+              <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
+              <span className={`font-medium ${pr.label}`}>{task.priority}</span>
+            </>
+          )}
         </span>
         {total > 0 && (
           <span className="text-[11px] text-white/40 tabular-nums">

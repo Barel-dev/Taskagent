@@ -191,6 +191,22 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
     router.refresh()
   }
 
+  async function changePriority(taskId: string, priority: TaskNodeUI['priority']) {
+    const prev = tasks
+    setTasks((ts) => ts.map((t) => (t.id === taskId ? { ...t, priority } : t)))
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priority }),
+    })
+    if (!res.ok) {
+      setTasks(prev)
+      toast.error('Failed to update priority')
+      return
+    }
+    router.refresh()
+  }
+
   async function addTask(status: TaskNodeUI['status'], title: string) {
     const res = await fetch('/api/tasks', {
       method: 'POST',
@@ -542,6 +558,7 @@ export function TaskList({ initialTasks }: { initialTasks: TaskNodeUI[] }) {
                   task={t}
                   onOpen={() => setSelected(t)}
                   onStatusChange={(s) => moveTask(t.id, s)}
+                  onPriorityChange={(p) => changePriority(t.id, p)}
                 />
               </div>
             ))}
