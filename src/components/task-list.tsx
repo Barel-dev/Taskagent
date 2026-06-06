@@ -82,6 +82,7 @@ export function TaskList({
   const [briefingLoading, setBriefingLoading] = useState(false)
   const [briefing, setBriefing] = useState<string | null>(null)
   const [briefingOpen, setBriefingOpen] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
 
   // Local copy of the tasks so the board can update optimistically on drag.
   // Re-syncs whenever the server re-renders with fresh data (after refresh()).
@@ -128,6 +129,9 @@ export function TaskList({
         const target = (document.getElementById('task-search') ??
           document.getElementById('goal-input')) as HTMLInputElement | null
         target?.focus()
+      } else if (e.key === '?') {
+        e.preventDefault()
+        setShowHelp(true)
       }
     }
     window.addEventListener('keydown', onKey)
@@ -655,6 +659,29 @@ export function TaskList({
             <DialogTitle>Edit task</DialogTitle>
           </DialogHeader>
           {editing && <TaskForm task={editing} onDone={() => setEditing(null)} />}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showHelp} onOpenChange={setShowHelp}>
+        <DialogContent className="max-w-sm border-white/10 bg-[#0b0e1a]/95 backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle className="text-white">Keyboard shortcuts</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 text-sm">
+            {(
+              [
+                ['⌘K / Ctrl+K', 'Command palette'],
+                ['N', 'New task'],
+                ['/', 'Search'],
+                ['?', 'This help'],
+              ] as const
+            ).map(([k, d]) => (
+              <div key={k} className="flex items-center justify-between">
+                <span className="text-white/70">{d}</span>
+                <kbd className="rounded bg-white/10 px-2 py-0.5 text-xs text-white/60">{k}</kbd>
+              </div>
+            ))}
+          </div>
         </DialogContent>
       </Dialog>
 
