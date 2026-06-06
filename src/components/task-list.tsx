@@ -12,6 +12,7 @@ import {
   Search,
   Settings2,
   Download,
+  FileJson,
   CheckCheck,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -149,6 +150,13 @@ export function TaskList({
     new Map(tasks.flatMap((t) => t.tags ?? []).map((tag) => [tag.id, tag])).values(),
   ).sort((a, b) => a.name.localeCompare(b.name))
   const [sort, setSort] = useState<SortKey>('default')
+  useEffect(() => {
+    const s = localStorage.getItem('taskagent:sort')
+    if (s === 'default' || s === 'due' || s === 'priority' || s === 'title') setSort(s)
+  }, [])
+  useEffect(() => {
+    localStorage.setItem('taskagent:sort', sort)
+  }, [sort])
   const [dueFilter, setDueFilter] = useState<DueFilter>('ALL')
   const visible = sortTasks(
     filterTasks(tasks, { query, priority, tagId: tagFilter, due: dueFilter }),
@@ -182,10 +190,18 @@ export function TaskList({
       String(t.children?.length ?? 0),
     ])
     const csv = [header, ...rows].map((r) => r.map(csvCell).join(',')).join('\n')
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
+    download(csv, 'text/csv', 'csv')
+  }
+
+  function exportJson() {
+    download(JSON.stringify(tasks, null, 2), 'application/json', 'json')
+  }
+
+  function download(content: string, type: string, ext: string) {
+    const url = URL.createObjectURL(new Blob([content], { type }))
     const a = document.createElement('a')
     a.href = url
-    a.download = `taskagent-${new Date().toISOString().slice(0, 10)}.csv`
+    a.download = `taskagent-${new Date().toISOString().slice(0, 10)}.${ext}`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -555,6 +571,16 @@ export function TaskList({
                 className="h-8 w-8 border-white/15 text-white/70 hover:bg-white/5"
               >
                 <Download className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                size="icon-sm"
+                variant="outline"
+                onClick={exportJson}
+                title="Export tasks as JSON"
+                aria-label="Export tasks as JSON"
+                className="h-8 w-8 border-white/15 text-white/70 hover:bg-white/5"
+              >
+                <FileJson className="h-3.5 w-3.5" />
               </Button>
             </>
           )}
