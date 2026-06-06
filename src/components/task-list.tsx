@@ -31,6 +31,7 @@ import {
   type SortKey,
   type DueFilter,
 } from '@/lib/task-filter'
+import { confetti } from '@/lib/confetti'
 
 export type TaskNodeUI = {
   id: string
@@ -193,7 +194,8 @@ export function TaskList({
 
   async function moveTask(taskId: string, status: TaskNodeUI['status']) {
     const prev = tasks
-    setTasks((ts) => ts.map((t) => (t.id === taskId ? { ...t, status } : t)))
+    const projected = tasks.map((t) => (t.id === taskId ? { ...t, status } : t))
+    setTasks(projected)
     const res = await fetch(`/api/tasks/${taskId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -206,6 +208,13 @@ export function TaskList({
       setTasks(prev) // roll back
       toast.error('Failed to move task')
       return
+    }
+    // Celebrate finishing the last open task.
+    const allDoneNow = projected.length > 0 && projected.every((t) => t.status === 'DONE')
+    const wasAllDone = prev.length > 0 && prev.every((t) => t.status === 'DONE')
+    if (status === 'DONE' && allDoneNow && !wasAllDone) {
+      confetti()
+      toast.success('All tasks done — nice work! 🎉')
     }
     router.refresh()
   }
