@@ -8,6 +8,7 @@ export const createTaskSchema = z.object({
   description: z.string().max(5000).optional().nullable(),
   status: taskStatusEnum.optional(),
   priority: priorityEnum.optional(),
+  pinned: z.boolean().optional(),
   dueDate: z.coerce.date().optional().nullable(),
   // Tag ids to attach (validated against the user's own tags in the data layer).
   tagIds: z.array(z.string()).max(20).optional(),

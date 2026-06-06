@@ -1,6 +1,6 @@
 'use client'
 
-import { Clock, CalendarDays, ArrowUpRight, CheckCircle2, Circle } from 'lucide-react'
+import { Clock, CalendarDays, ArrowUpRight, CheckCircle2, Circle, Pin } from 'lucide-react'
 import type { TaskNodeUI } from '@/components/task-list'
 import { TagChips } from '@/components/tag-chip'
 import { formatDue, dueToneClass } from '@/lib/format-due'
@@ -22,6 +22,7 @@ export function TaskTile({
   onOpen,
   onStatusChange,
   onPriorityChange,
+  onPin,
 }: {
   task: TaskNodeUI
   onOpen: () => void
@@ -29,6 +30,8 @@ export function TaskTile({
   onStatusChange?: (status: TaskNodeUI['status']) => void
   /** When provided, clicking the priority cycles it. */
   onPriorityChange?: (priority: TaskNodeUI['priority']) => void
+  /** When provided, the tile shows a pin toggle. */
+  onPin?: (pinned: boolean) => void
 }) {
   const total = task.children?.length ?? 0
   const done = task.children?.filter((c) => c.status === 'DONE').length ?? 0
@@ -95,11 +98,27 @@ export function TaskTile({
             </>
           )}
         </span>
-        {total > 0 && (
-          <span className="text-[11px] text-white/40 tabular-nums">
-            {done}/{total}
-          </span>
-        )}
+        <span className="flex items-center gap-2">
+          {total > 0 && (
+            <span className="text-[11px] text-white/40 tabular-nums">
+              {done}/{total}
+            </span>
+          )}
+          {onPin && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onPin(!task.pinned)
+              }}
+              title={task.pinned ? 'Unpin' : 'Pin to top'}
+              aria-label={task.pinned ? 'Unpin' : 'Pin to top'}
+              className={task.pinned ? 'text-violet-300' : 'text-white/25 hover:text-white/60'}
+            >
+              <Pin className={`h-3.5 w-3.5 ${task.pinned ? 'fill-violet-300' : ''}`} />
+            </button>
+          )}
+        </span>
       </div>
 
       {/* title + description */}

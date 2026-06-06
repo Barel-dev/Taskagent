@@ -39,6 +39,7 @@ export type TaskNodeUI = {
   description: string | null
   status: 'TODO' | 'IN_PROGRESS' | 'DONE'
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+  pinned?: boolean
   dueDate: string | Date | null
   scheduledStart?: string | Date | null
   scheduledEnd?: string | Date | null
@@ -245,6 +246,22 @@ export function TaskList({
     if (!res.ok) {
       setTasks(prev)
       toast.error('Failed to update priority')
+      return
+    }
+    router.refresh()
+  }
+
+  async function changePinned(taskId: string, pinned: boolean) {
+    const prev = tasks
+    setTasks((ts) => ts.map((t) => (t.id === taskId ? { ...t, pinned } : t)))
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pinned }),
+    })
+    if (!res.ok) {
+      setTasks(prev)
+      toast.error('Failed to pin')
       return
     }
     router.refresh()
@@ -615,6 +632,7 @@ export function TaskList({
                   onOpen={() => setSelected(t)}
                   onStatusChange={(s) => moveTask(t.id, s)}
                   onPriorityChange={(p) => changePriority(t.id, p)}
+                  onPin={(p) => changePinned(t.id, p)}
                 />
               </div>
             ))}

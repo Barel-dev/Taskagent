@@ -35,8 +35,9 @@ export async function listTasksForUser(userId: string): Promise<TaskNode[]> {
     node.children.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
   }
 
-  // Top-level ordering: open tasks first, then by due date, then newest first.
+  // Top-level ordering: pinned first, then open tasks, then by due date, newest.
   roots.sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
     if (STATUS_ORDER[a.status] !== STATUS_ORDER[b.status]) {
       return STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
     }
