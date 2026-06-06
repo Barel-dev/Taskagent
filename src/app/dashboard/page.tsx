@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { ShaderBackground } from '@/components/ui/shader-background'
 import { Zap, CheckCircle2, Coins, Bot, ListTodo, Clock, AlertTriangle } from 'lucide-react'
 import type { AgentType, AgentRunStatus } from '@prisma/client'
+import { tagChipClass } from '@/lib/tag-colors'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,7 +33,7 @@ export default async function DashboardPage() {
   since.setHours(0, 0, 0, 0)
   since.setDate(since.getDate() - 13)
 
-  const [total, success, tokensAgg, byType, recent, last14, tasksAll] = await Promise.all([
+  const [total, success, tokensAgg, byType, recent, last14, tasksAll, tagsRaw] = await Promise.all([
     prisma.agentRun.count({ where: { userId } }),
     prisma.agentRun.count({ where: { userId, status: 'SUCCESS' } }),
     prisma.agentRun.aggregate({ where: { userId }, _sum: { tokensUsed: true } }),
@@ -50,6 +51,10 @@ export default async function DashboardPage() {
     prisma.task.findMany({
       where: { userId, parentId: null },
       select: { status: true, priority: true, dueDate: true },
+    }),
+    prisma.tag.findMany({
+      where: { userId },
+      select: { id: true, name: true, color: true, _count: { select: { tasks: true } } },
     }),
   ])
 
@@ -90,6 +95,10 @@ export default async function DashboardPage() {
     MEDIUM: 'bg-sky-400/70',
     LOW: 'bg-slate-400/70',
   }
+  const topTags = tagsRaw
+    .filter((t) => t._count.tasks > 0)
+    .sort((a, b) => b._count.tasks - a._count.tasks)
+    .slice(0, 12)
 
   const stats = [
     { label: 'Agent runs', value: total.toLocaleString(), Icon: Zap },
@@ -177,6 +186,22 @@ export default async function DashboardPage() {
                     </div>
                   )
                 })}
+              </div>
+            </div>
+          )}
+          {topTags.length > 0 && (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+              <h4 className="text-sm font-semibold text-white/80">Most-used tags</h4>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {topTags.map((t) => (
+                  <span
+                    key={t.id}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${tagChipClass(t.color)}`}
+                  >
+                    {t.name}
+                    <span className="tabular-nums opacity-70">{t._count.tasks}</span>
+                  </span>
+                ))}
               </div>
             </div>
           )}
