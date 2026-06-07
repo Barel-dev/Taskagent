@@ -1,6 +1,15 @@
 'use client'
 
-import { Clock, CalendarDays, ArrowUpRight, CheckCircle2, Circle, Pin, Repeat } from 'lucide-react'
+import {
+  Clock,
+  CalendarDays,
+  ArrowUpRight,
+  CheckCircle2,
+  Circle,
+  Pin,
+  Repeat,
+  Check,
+} from 'lucide-react'
 import type { TaskNodeUI } from '@/components/task-list'
 import { TagChips } from '@/components/tag-chip'
 import { formatDue, dueToneClass } from '@/lib/format-due'
@@ -23,6 +32,8 @@ export function TaskTile({
   onStatusChange,
   onPriorityChange,
   onPin,
+  selected,
+  onToggleSelect,
 }: {
   task: TaskNodeUI
   onOpen: () => void
@@ -32,6 +43,9 @@ export function TaskTile({
   onPriorityChange?: (priority: TaskNodeUI['priority']) => void
   /** When provided, the tile shows a pin toggle. */
   onPin?: (pinned: boolean) => void
+  /** Bulk-selection state + toggle (shows a hover checkbox). */
+  selected?: boolean
+  onToggleSelect?: () => void
 }) {
   const total = task.children?.length ?? 0
   const done = task.children?.filter((c) => c.status === 'DONE').length ?? 0
@@ -53,9 +67,9 @@ export function TaskTile({
           onOpen()
         }
       }}
-      className={`task-card group relative flex h-44 w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] p-4 text-left backdrop-blur-sm ${
-        isDone ? 'opacity-60' : ''
-      }`}
+      className={`task-card group relative flex h-44 w-full cursor-pointer flex-col overflow-hidden rounded-2xl border bg-white/[0.035] p-4 text-left backdrop-blur-sm ${
+        selected ? 'border-violet-400/60 ring-2 ring-violet-400/40' : 'border-white/10'
+      } ${isDone ? 'opacity-60' : ''}`}
     >
       {/* top row: done toggle + priority + progress */}
       <div className="flex items-center justify-between">
@@ -99,6 +113,24 @@ export function TaskTile({
           )}
         </span>
         <span className="flex items-center gap-2">
+          {onToggleSelect && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onToggleSelect()
+              }}
+              title={selected ? 'Deselect' : 'Select'}
+              aria-label={selected ? 'Deselect' : 'Select'}
+              className={`flex h-4 w-4 items-center justify-center rounded border transition-opacity ${
+                selected
+                  ? 'border-violet-400 bg-violet-500 text-white opacity-100'
+                  : 'border-white/30 text-transparent opacity-0 group-hover:opacity-100'
+              }`}
+            >
+              <Check className="h-3 w-3" strokeWidth={3} />
+            </button>
+          )}
           {total > 0 && (
             <span className="text-[11px] text-white/40 tabular-nums">
               {done}/{total}

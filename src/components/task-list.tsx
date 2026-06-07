@@ -11,6 +11,8 @@ import {
   Download,
   FileJson,
   CheckCheck,
+  Trash2,
+  X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { TaskTile } from '@/components/task-tile'
@@ -293,6 +295,41 @@ export function TaskList({
       toast.error('Could not add task')
       return
     }
+    router.refresh()
+  }
+
+  // ── Bulk selection (list view) ──
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  function toggleSelect(id: string) {
+    setSelectedIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]))
+  }
+  async function bulkPatch(data: Record<string, unknown>) {
+    const ids = selectedIds
+    const res = await Promise.all(
+      ids.map((id) =>
+        fetch(`/api/tasks/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        }),
+      ),
+    )
+    if (res.some((r) => !r.ok)) toast.error('Some updates failed')
+    else toast.success(`Updated ${ids.length} task${ids.length === 1 ? '' : 's'}`)
+    setSelectedIds([])
+    router.refresh()
+  }
+  async function bulkDelete() {
+    const ids = selectedIds
+    if (
+      !confirm(`Delete ${ids.length} task${ids.length === 1 ? '' : 's'}? This can't be undone.`)
+    ) {
+      return
+    }
+    const res = await Promise.all(ids.map((id) => fetch(`/api/tasks/${id}`, { method: 'DELETE' })))
+    if (res.some((r) => !r.ok)) toast.error('Some deletes failed')
+    else toast.success(`Deleted ${ids.length} task${ids.length === 1 ? '' : 's'}`)
+    setSelectedIds([])
     router.refresh()
   }
 
@@ -589,6 +626,8 @@ export function TaskList({
                   onStatusChange={(s) => moveTask(t.id, s)}
                   onPriorityChange={(p) => changePriority(t.id, p)}
                   onPin={(p) => changePinned(t.id, p)}
+                  selected={selectedIds.includes(t.id)}
+                  onToggleSelect={() => toggleSelect(t.id)}
                 />
               </div>
             ))}
@@ -658,6 +697,58 @@ export function TaskList({
           </div>
         </DialogContent>
       </Dialog>
+
+      {selectedIds.length > 0 && (
+        <div className="fixed bottom-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-2xl border border-white/10 bg-[#0b0e1a]/95 px-3 py-2 shadow-2xl backdrop-blur-xl">
+          <span className="px-1 text-sm text-white/70">{selectedIds.length} selected</span>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => bulkPatch({ status: 'DONE', completedAt: new Date().toISOString() })}
+            className="border-white/15 text-white/75 hover:bg-white/5"
+          >
+            <CheckCheck className="mr-1 h-3.5 w-3.5" />
+            Mark done
+          </Button>
+          <select
+            defaultValue=""
+            onChange={(e) => {
+              if (e.target.value) {
+                bulkPatch({ priority: e.target.value })
+                e.target.value = ''
+              }
+            }}
+            aria-label="Set priority for selected"
+            className="h-8 rounded-md border border-white/10 bg-white/5 px-2 text-xs text-white/75 focus:outline-none"
+          >
+            <option value="" disabled>
+              Priority…
+            </option>
+            <option value="URGENT">Urgent</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={bulkDelete}
+            className="border-rose-400/25 text-rose-200 hover:bg-rose-500/10"
+          >
+            <Trash2 className="mr-1 h-3.5 w-3.5" />
+            Delete
+          </Button>
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            onClick={() => setSelectedIds([])}
+            title="Clear selection"
+            className="text-white/50 hover:text-white"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       <ManageTagsDialog tags={allTags} open={manageTagsOpen} onOpenChange={setManageTagsOpen} />
       <ChatSidebar />
