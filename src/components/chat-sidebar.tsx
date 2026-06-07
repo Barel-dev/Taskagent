@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { MessageCircle, X, Send, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Markdown } from '@/components/markdown'
 
 type Msg = { id: number; role: 'user' | 'assistant'; content: string }
 
@@ -140,8 +141,14 @@ export function ChatSidebar() {
                         : 'border border-white/10 bg-white/[0.05] text-white/85'
                     }`}
                   >
-                    {content}
-                    {revealing && <span className="ml-px animate-pulse text-white/50">▍</span>}
+                    {m.role === 'assistant' && !revealing ? (
+                      <Markdown content={content} />
+                    ) : (
+                      <>
+                        {content}
+                        {revealing && <span className="ml-px animate-pulse text-white/50">▍</span>}
+                      </>
+                    )}
                   </div>
                 </div>
               )

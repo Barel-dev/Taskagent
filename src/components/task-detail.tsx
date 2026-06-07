@@ -30,6 +30,7 @@ import { EmailAgentDialog } from '@/components/email-agent-dialog'
 import { ScheduleAgentDialog } from '@/components/schedule-agent-dialog'
 import { RefineDialog } from '@/components/refine-dialog'
 import { TagChips } from '@/components/tag-chip'
+import { Markdown } from '@/components/markdown'
 import { formatDue, dueToneClass } from '@/lib/format-due'
 import type { TaskNodeUI, RichSourceUI } from '@/components/task-list'
 
@@ -352,7 +353,9 @@ export function TaskDetail({
                 </span>
               )}
             </DialogTitle>
-            {task.description && <p className="mt-1 text-sm text-white/55">{task.description}</p>}
+            {task.description && (
+              <Markdown content={task.description} className="mt-1 text-sm text-white/55" />
+            )}
 
             <TagChips tags={task.tags} className="mt-2.5" />
 
@@ -703,7 +706,7 @@ function OverviewPane({
           Plan summary
         </div>
         {summary ? (
-          <p className="text-sm leading-relaxed whitespace-pre-wrap text-white/75">{summary}</p>
+          <Markdown content={summary} className="text-sm text-white/75" />
         ) : (
           <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-5 text-center">
             <p className="text-sm text-white/50">No summary yet.</p>
@@ -858,7 +861,7 @@ function ResultView({
           Copy
         </button>
       </div>
-      <p className="text-sm leading-relaxed whitespace-pre-wrap text-white/80">{result}</p>
+      <Markdown content={result} className="text-sm text-white/80" />
 
       {sources.length > 0 && (
         <div>
