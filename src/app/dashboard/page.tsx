@@ -105,6 +105,14 @@ export default async function DashboardPage() {
     (d) => completedRecent.filter((t) => t.completedAt && sameDay(t.completedAt, d)).length,
   )
   const maxDoneDay = Math.max(1, ...doneByDay)
+  // Completions grouped by weekday (Mon-first) over the same window.
+  const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  const byWeekday = Array(7).fill(0) as number[]
+  for (const t of completedRecent) {
+    if (t.completedAt) byWeekday[(t.completedAt.getDay() + 6) % 7]++
+  }
+  const maxWeekday = Math.max(1, ...byWeekday)
+  const totalCompletedRecent = completedRecent.length
   // Consecutive days ending today with at least one completed task.
   let streak = 0
   for (let i = doneByDay.length - 1; i >= 0; i--) {
@@ -315,6 +323,27 @@ export default async function DashboardPage() {
               </div>
             </div>
           )}
+          {totalCompletedRecent > 0 && (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+              <h4 className="text-sm font-semibold text-white/80">Completions by weekday</h4>
+              <p className="mt-0.5 text-xs text-white/40">Last 14 days</p>
+              <div className="mt-4 flex items-end justify-between gap-2">
+                {byWeekday.map((n, i) => (
+                  <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
+                    <div className="flex h-20 w-full items-end">
+                      <div
+                        className="w-full rounded-t bg-violet-400/70 transition-all"
+                        style={{ height: `${Math.max(4, (n / maxWeekday) * 100)}%` }}
+                        title={`${n} completed`}
+                      />
+                    </div>
+                    <span className="text-[10px] text-white/45">{weekdayLabels[i]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {upcoming.length > 0 && (
             <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
               <h4 className="text-sm font-semibold text-white/80">Due this week</h4>
