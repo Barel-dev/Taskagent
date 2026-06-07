@@ -46,7 +46,8 @@ export function filterTasks<
 }
 
 // 'default' keeps the server order (open first, then due date, then newest).
-export type SortKey = 'default' | 'due' | 'priority' | 'title'
+// 'manual' uses each task's saved `order` (drag-to-reorder).
+export type SortKey = 'default' | 'due' | 'priority' | 'title' | 'manual'
 
 const PRIORITY_RANK: Record<TaskNodeUI['priority'], number> = {
   URGENT: 0,
@@ -56,12 +57,12 @@ const PRIORITY_RANK: Record<TaskNodeUI['priority'], number> = {
 }
 
 /** Pure, non-mutating sort of tasks by the chosen key. */
-export function sortTasks<T extends Pick<TaskNodeUI, 'title' | 'priority' | 'dueDate'>>(
-  tasks: T[],
-  key: SortKey = 'default',
-): T[] {
+export function sortTasks<
+  T extends Pick<TaskNodeUI, 'title' | 'priority' | 'dueDate'> & { order?: number },
+>(tasks: T[], key: SortKey = 'default'): T[] {
   if (key === 'default') return tasks
   const copy = [...tasks]
+  if (key === 'manual') return copy.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   if (key === 'title') return copy.sort((a, b) => a.title.localeCompare(b.title))
   if (key === 'priority') {
     return copy.sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority])

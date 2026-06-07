@@ -117,6 +117,7 @@ export function TaskToolbar({
         <option value="due">Sort: Due date</option>
         <option value="priority">Sort: Priority</option>
         <option value="title">Sort: Title</option>
+        <option value="manual">Sort: Manual (drag)</option>
       </select>
       <button
         type="button"

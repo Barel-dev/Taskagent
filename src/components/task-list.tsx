@@ -49,6 +49,7 @@ export type TaskNodeUI = {
   scheduledStart?: string | Date | null
   scheduledEnd?: string | Date | null
   estimatedMinutes?: number | null
+  order?: number
   result?: string | null
   resultData?: { sources?: RichSourceUI[] } | null
   summary?: string | null
@@ -178,7 +179,9 @@ export function TaskList({
   const [sort, setSort] = useState<SortKey>('default')
   useEffect(() => {
     const s = localStorage.getItem('taskagent:sort')
-    if (s === 'default' || s === 'due' || s === 'priority' || s === 'title') setSort(s)
+    if (s === 'default' || s === 'due' || s === 'priority' || s === 'title' || s === 'manual') {
+      setSort(s)
+    }
   }, [])
   useEffect(() => {
     localStorage.setItem('taskagent:sort', sort)
@@ -333,6 +336,38 @@ export function TaskList({
     }
     toast.success(dueDate ? 'Due date set' : 'Due date cleared')
     router.refresh()
+  }
+
+  // Manual drag-to-reorder of top-level tasks (only when sort is 'manual' and no
+  // filters are narrowing the list, so the visible order is the full order).
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [overId, setOverId] = useState<string | null>(null)
+  function reorderTop(fromId: string, toId: string) {
+    if (fromId === toId) return
+    const arr = [...visible]
+    const from = arr.findIndex((t) => t.id === fromId)
+    const to = arr.findIndex((t) => t.id === toId)
+    if (from < 0 || to < 0) return
+    const [moved] = arr.splice(from, 1)
+    arr.splice(to, 0, moved)
+    const ids = arr.map((t) => t.id)
+    const orderMap = new Map(ids.map((id, i) => [id, i]))
+    setTasks((ts) => ts.map((t) => (orderMap.has(t.id) ? { ...t, order: orderMap.get(t.id) } : t)))
+    fetch('/api/tasks/reorder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          toast.error('Could not reorder')
+          router.refresh()
+        }
+      })
+      .catch(() => {
+        toast.error('Could not reorder')
+        router.refresh()
+      })
   }
 
   async function addTask(status: TaskNodeUI['status'], rawTitle: string) {
@@ -769,22 +804,66 @@ export function TaskList({
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {visible.map((t, i) => (
-              <div key={t.id} className="tl-rise" style={{ animationDelay: `${160 + i * 45}ms` }}>
-                <TaskTile
-                  task={t}
-                  onOpen={() => setSelected(t)}
-                  onStatusChange={(s) => moveTask(t.id, s)}
-                  onPriorityChange={(p) => changePriority(t.id, p)}
-                  onPin={(p) => changePinned(t.id, p)}
-                  onDueChange={(d) => changeDue(t.id, d)}
-                  onTagClick={setTagFilter}
-                  highlight={query}
-                  selected={selectedIds.includes(t.id)}
-                  onToggleSelect={() => toggleSelect(t.id)}
-                />
-              </div>
-            ))}
+            {visible.map((t, i) => {
+              const manualDnd = sort === 'manual' && !filtering
+              return (
+                <div
+                  key={t.id}
+                  className={`tl-rise rounded-2xl ${manualDnd ? 'cursor-grab active:cursor-grabbing' : ''} ${
+                    overId === t.id && dragId !== t.id ? 'ring-2 ring-violet-400/50' : ''
+                  } ${dragId === t.id ? 'opacity-40' : ''}`}
+                  style={{ animationDelay: `${160 + i * 45}ms` }}
+                  draggable={manualDnd}
+                  onDragStart={
+                    manualDnd
+                      ? (e) => {
+                          setDragId(t.id)
+                          e.dataTransfer.effectAllowed = 'move'
+                        }
+                      : undefined
+                  }
+                  onDragOver={
+                    manualDnd
+                      ? (e) => {
+                          e.preventDefault()
+                          if (dragId && dragId !== t.id) setOverId(t.id)
+                        }
+                      : undefined
+                  }
+                  onDrop={
+                    manualDnd
+                      ? (e) => {
+                          e.preventDefault()
+                          if (dragId) reorderTop(dragId, t.id)
+                          setDragId(null)
+                          setOverId(null)
+                        }
+                      : undefined
+                  }
+                  onDragEnd={
+                    manualDnd
+                      ? () => {
+                          setDragId(null)
+                          setOverId(null)
+                        }
+                      : undefined
+                  }
+                >
+                  <TaskTile
+                    task={t}
+                    onOpen={() => setSelected(t)}
+                    onStatusChange={(s) => moveTask(t.id, s)}
+                    onPriorityChange={(p) => changePriority(t.id, p)}
+                    onPin={(p) => changePinned(t.id, p)}
+                    onDueChange={(d) => changeDue(t.id, d)}
+                    onTagClick={setTagFilter}
+                    highlight={query}
+                    selected={selectedIds.includes(t.id)}
+                    onToggleSelect={() => toggleSelect(t.id)}
+                  />
+                </div>
+              )
+            })}
           </div>
         ))}
 
