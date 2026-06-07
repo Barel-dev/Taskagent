@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import './globals.css'
@@ -8,6 +8,13 @@ export const metadata: Metadata = {
   title: 'TaskAgent — AI task manager with autonomous agents',
   description:
     'TaskAgent uses 5 specialized AI agents to break down tasks, schedule your day, send emails, and brief you each morning.',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: { capable: true, title: 'TaskAgent', statusBarStyle: 'black-translucent' },
+  icons: { icon: '/icon.svg', apple: '/icon.svg' },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#0b0e1a',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
