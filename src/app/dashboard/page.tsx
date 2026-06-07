@@ -71,6 +71,7 @@ export default async function DashboardPage() {
           dueDate: true,
           scheduledStart: true,
           recurrence: true,
+          estimatedMinutes: true,
         },
       }),
       prisma.tag.findMany({
@@ -151,6 +152,19 @@ export default async function DashboardPage() {
     .slice(0, 6)
   const recurringCount = tasksAll.filter((t) => t.recurrence && t.recurrence !== 'NONE').length
 
+  // Estimated focused work still open (sum of estimates on not-done tasks).
+  const openMinutes = tasksAll
+    .filter((t) => t.status !== 'DONE')
+    .reduce((s, t) => s + (t.estimatedMinutes ?? 0), 0)
+  const openHrs = Math.floor(openMinutes / 60)
+  const openMins = openMinutes % 60
+  const openWorkLabel =
+    openMinutes > 0
+      ? openHrs
+        ? `${openHrs}h${openMins ? ` ${openMins}m` : ''}`
+        : `${openMins}m`
+      : null
+
   const stats = [
     { label: 'Agent runs', value: total.toLocaleString(), Icon: Zap },
     { label: 'Success rate', value: `${successRate}%`, Icon: CheckCircle2 },
@@ -216,10 +230,20 @@ export default async function DashboardPage() {
               <div className="mt-1 text-xs text-white/50">Overdue</div>
             </div>
           </div>
-          {streak > 0 && (
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-1.5 text-sm text-amber-200">
-              <Flame className="h-4 w-4" />
-              {streak}-day completion streak — keep it going!
+          {(streak > 0 || openWorkLabel) && (
+            <div className="flex flex-wrap items-center gap-2">
+              {streak > 0 && (
+                <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-1.5 text-sm text-amber-200">
+                  <Flame className="h-4 w-4" />
+                  {streak}-day completion streak — keep it going!
+                </div>
+              )}
+              {openWorkLabel && (
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/70">
+                  <Clock className="h-4 w-4 text-sky-300" />~{openWorkLabel} of work left across
+                  open tasks
+                </div>
+              )}
             </div>
           )}
           {totalTasks > 0 && (
