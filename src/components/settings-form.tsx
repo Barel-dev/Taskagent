@@ -100,6 +100,7 @@ export function SettingsForm() {
             <option value="due">Due date</option>
             <option value="priority">Priority</option>
             <option value="title">Title</option>
+            <option value="manual">Manual (drag)</option>
           </select>
         </Row>
 
