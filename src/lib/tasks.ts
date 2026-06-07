@@ -136,6 +136,7 @@ function nextOccurrence(base: Date, recurrence: string): Date {
   if (recurrence === 'DAILY') d.setDate(d.getDate() + 1)
   else if (recurrence === 'WEEKLY') d.setDate(d.getDate() + 7)
   else if (recurrence === 'MONTHLY') d.setMonth(d.getMonth() + 1)
+  else if (recurrence === 'YEARLY') d.setFullYear(d.getFullYear() + 1)
   return d
 }
 

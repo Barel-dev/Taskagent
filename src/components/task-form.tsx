@@ -12,7 +12,7 @@ import { tagChipClass } from '@/lib/tag-colors'
 
 type Tag = { id: string; name: string; color: string }
 
-type Recurrence = 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY'
+type Recurrence = 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
 
 type Task = {
   id: string
@@ -184,6 +184,7 @@ export function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) 
           <option value="DAILY">Daily</option>
           <option value="WEEKLY">Weekly</option>
           <option value="MONTHLY">Monthly</option>
+          <option value="YEARLY">Yearly</option>
         </select>
       </div>
 
