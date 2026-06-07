@@ -84,6 +84,32 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
     localStorage.setItem('taskagent:calview', view)
   }, [view])
 
+  // Keyboard nav: ←/→ step period, t = today, w/m = week/month. Off while a
+  // task dialog is open or while typing.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey || selected) return
+      const el = e.target as HTMLElement | null
+      const tag = el?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el?.isContentEditable) return
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        goPrev()
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        goNext()
+      } else if (e.key === 't' || e.key === 'T') {
+        goToday()
+      } else if (e.key === 'w') {
+        setView('week')
+      } else if (e.key === 'm') {
+        setView('month')
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [view, selected])
+
   const today = new Date()
   const filtered = tasks.filter(
     (t) => (priority === 'ALL' || t.priority === priority) && (!hideDone || t.status !== 'DONE'),
