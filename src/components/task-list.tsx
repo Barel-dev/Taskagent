@@ -7,10 +7,7 @@ import {
   Plus,
   Sun,
   ArrowDownUp,
-  LayoutGrid,
-  Columns3,
   Search,
-  Settings2,
   Download,
   FileJson,
   CheckCheck,
@@ -18,12 +15,12 @@ import {
 import { toast } from 'sonner'
 import { TaskTile } from '@/components/task-tile'
 import { TaskBoard } from '@/components/task-board'
+import { TaskToolbar } from '@/components/task-toolbar'
 import { ChatSidebar } from '@/components/chat-sidebar'
 import { ManageTagsDialog } from '@/components/manage-tags-dialog'
 import { TaskDetail } from '@/components/task-detail'
 import { TaskForm } from '@/components/task-form'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   filterTasks,
@@ -416,107 +413,22 @@ export function TaskList({
       </form>
 
       {tasks.length > 0 && (
-        <div
-          className="tl-rise flex flex-wrap items-center gap-2"
-          style={{ animationDelay: '100ms' }}
-        >
-          <div className="relative min-w-[180px] flex-1">
-            <Search className="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-white/35" />
-            <Input
-              id="task-search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search tasks…"
-              aria-label="Search tasks"
-              className="h-9 border-white/10 bg-white/5 pl-9 text-sm text-white placeholder:text-white/35"
-            />
-          </div>
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as PriorityFilter)}
-            aria-label="Filter by priority"
-            className="h-9 rounded-md border border-white/10 bg-white/5 px-2.5 text-sm text-white/75 focus:border-violet-400/40 focus:outline-none"
-          >
-            <option value="ALL">All priorities</option>
-            <option value="URGENT">Urgent</option>
-            <option value="HIGH">High</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="LOW">Low</option>
-          </select>
-          <select
-            value={dueFilter}
-            onChange={(e) => setDueFilter(e.target.value as DueFilter)}
-            aria-label="Filter by due date"
-            className="h-9 rounded-md border border-white/10 bg-white/5 px-2.5 text-sm text-white/75 focus:border-violet-400/40 focus:outline-none"
-          >
-            <option value="ALL">Any time</option>
-            <option value="overdue">Overdue</option>
-            <option value="today">Due today</option>
-            <option value="week">Due this week</option>
-          </select>
-          {allTags.length > 0 && (
-            <>
-              <select
-                value={tagFilter}
-                onChange={(e) => setTagFilter(e.target.value)}
-                aria-label="Filter by tag"
-                className="h-9 rounded-md border border-white/10 bg-white/5 px-2.5 text-sm text-white/75 focus:border-violet-400/40 focus:outline-none"
-              >
-                <option value="ALL">All tags</option>
-                {allTags.map((tag) => (
-                  <option key={tag.id} value={tag.id}>
-                    {tag.name}
-                  </option>
-                ))}
-              </select>
-              <Button
-                size="icon-sm"
-                variant="outline"
-                onClick={() => setManageTagsOpen(true)}
-                title="Manage tags"
-                aria-label="Manage tags"
-                className="h-9 w-9 border-white/15 text-white/70 hover:bg-white/5"
-              >
-                <Settings2 className="h-3.5 w-3.5" />
-              </Button>
-            </>
-          )}
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as SortKey)}
-            aria-label="Sort tasks"
-            className="h-9 rounded-md border border-white/10 bg-white/5 px-2.5 text-sm text-white/75 focus:border-violet-400/40 focus:outline-none"
-          >
-            <option value="default">Sort: Smart</option>
-            <option value="due">Sort: Due date</option>
-            <option value="priority">Sort: Priority</option>
-            <option value="title">Sort: Title</option>
-          </select>
-          <div className="inline-flex rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
-            <button
-              type="button"
-              onClick={() => setView('list')}
-              aria-pressed={view === 'list'}
-              className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs transition-colors ${
-                view === 'list' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/80'
-              }`}
-            >
-              <LayoutGrid className="h-3.5 w-3.5" />
-              List
-            </button>
-            <button
-              type="button"
-              onClick={() => setView('board')}
-              aria-pressed={view === 'board'}
-              className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs transition-colors ${
-                view === 'board' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/80'
-              }`}
-            >
-              <Columns3 className="h-3.5 w-3.5" />
-              Board
-            </button>
-          </div>
-        </div>
+        <TaskToolbar
+          query={query}
+          setQuery={setQuery}
+          priority={priority}
+          setPriority={setPriority}
+          dueFilter={dueFilter}
+          setDueFilter={setDueFilter}
+          tagFilter={tagFilter}
+          setTagFilter={setTagFilter}
+          allTags={allTags}
+          onManageTags={() => setManageTagsOpen(true)}
+          sort={sort}
+          setSort={setSort}
+          view={view}
+          setView={setView}
+        />
       )}
 
       <div
