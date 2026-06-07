@@ -18,6 +18,7 @@ import { toast } from 'sonner'
 import { TaskTile } from '@/components/task-tile'
 import { TaskBoard } from '@/components/task-board'
 import { TaskToolbar } from '@/components/task-toolbar'
+import { SavedViews } from '@/components/saved-views'
 import { ChatSidebar } from '@/components/chat-sidebar'
 import { ManageTagsDialog } from '@/components/manage-tags-dialog'
 import { TaskDetail } from '@/components/task-detail'
@@ -466,6 +467,20 @@ export function TaskList({
           setSort={setSort}
           view={view}
           setView={setView}
+        />
+      )}
+
+      {tasks.length > 0 && (
+        <SavedViews
+          current={{ query, priority, due: dueFilter, tagId: tagFilter, sort }}
+          filtering={filtering}
+          onApply={(v) => {
+            setQuery(v.query)
+            setPriority(v.priority)
+            setDueFilter(v.due)
+            setTagFilter(v.tagId)
+            setSort(v.sort)
+          }}
         />
       )}
 
