@@ -50,71 +50,110 @@ export function SettingsForm() {
   const selectClass =
     'h-9 rounded-md border border-white/10 bg-white/5 px-2.5 text-sm text-white/80 focus:border-violet-400/40 focus:outline-none'
 
+  // Wipe every on-device preference (views, saved views, chat, settings).
+  function resetLocal() {
+    if (
+      !confirm(
+        'Reset all preferences and local data on this device? Saved views, chat history, and settings will be cleared.',
+      )
+    ) {
+      return
+    }
+    for (const k of Object.keys(localStorage)) {
+      if (k.startsWith('taskagent:')) localStorage.removeItem(k)
+    }
+    setView('list')
+    setSort('default')
+    setPriority('MEDIUM')
+    setConfetti(true)
+    setNotify(false)
+    toast.success('Local data cleared')
+  }
+
   return (
-    <div className="divide-y divide-white/10 rounded-2xl border border-white/10 bg-white/[0.035] backdrop-blur-sm">
-      <Row label="Default view" hint="Which view opens on the tasks page.">
-        <select
-          value={view}
-          onChange={(e) => {
-            setView(e.target.value)
-            persist('taskagent:view', e.target.value)
-          }}
-          className={selectClass}
+    <div className="space-y-4">
+      <div className="divide-y divide-white/10 rounded-2xl border border-white/10 bg-white/[0.035] backdrop-blur-sm">
+        <Row label="Default view" hint="Which view opens on the tasks page.">
+          <select
+            value={view}
+            onChange={(e) => {
+              setView(e.target.value)
+              persist('taskagent:view', e.target.value)
+            }}
+            className={selectClass}
+          >
+            <option value="list">List</option>
+            <option value="board">Board</option>
+          </select>
+        </Row>
+
+        <Row label="Default sort" hint="How tasks are ordered by default.">
+          <select
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value)
+              persist('taskagent:sort', e.target.value)
+            }}
+            className={selectClass}
+          >
+            <option value="default">Smart</option>
+            <option value="due">Due date</option>
+            <option value="priority">Priority</option>
+            <option value="title">Title</option>
+          </select>
+        </Row>
+
+        <Row label="New-task priority" hint="The priority preselected for a new task.">
+          <select
+            value={priority}
+            onChange={(e) => {
+              setPriority(e.target.value)
+              persist('taskagent:defaultPriority', e.target.value)
+            }}
+            className={selectClass}
+          >
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+            <option value="URGENT">Urgent</option>
+          </select>
+        </Row>
+
+        <Row label="Celebrate completions" hint="Confetti when you finish your last task.">
+          <Toggle
+            on={confetti}
+            onClick={() => {
+              const next = !confetti
+              setConfetti(next)
+              persist('taskagent:confetti', next ? 'on' : 'off')
+            }}
+          />
+        </Row>
+
+        <Row
+          label="Due-soon reminders"
+          hint="Browser notifications for tasks due today or overdue, while a tab is open."
         >
-          <option value="list">List</option>
-          <option value="board">Board</option>
-        </select>
-      </Row>
+          <Toggle on={notify} onClick={toggleNotify} />
+        </Row>
+      </div>
 
-      <Row label="Default sort" hint="How tasks are ordered by default.">
-        <select
-          value={sort}
-          onChange={(e) => {
-            setSort(e.target.value)
-            persist('taskagent:sort', e.target.value)
-          }}
-          className={selectClass}
+      <div className="flex items-center justify-between gap-4 rounded-2xl border border-rose-400/20 bg-rose-500/[0.04] p-5">
+        <div>
+          <div className="text-sm font-medium text-white/85">Reset local data</div>
+          <div className="mt-0.5 text-xs text-white/45">
+            Clears preferences, saved views, and chat history on this device. Your tasks are not
+            affected.
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={resetLocal}
+          className="shrink-0 rounded-md border border-rose-400/30 px-3 py-1.5 text-sm text-rose-200 hover:bg-rose-500/10"
         >
-          <option value="default">Smart</option>
-          <option value="due">Due date</option>
-          <option value="priority">Priority</option>
-          <option value="title">Title</option>
-        </select>
-      </Row>
-
-      <Row label="New-task priority" hint="The priority preselected for a new task.">
-        <select
-          value={priority}
-          onChange={(e) => {
-            setPriority(e.target.value)
-            persist('taskagent:defaultPriority', e.target.value)
-          }}
-          className={selectClass}
-        >
-          <option value="LOW">Low</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="HIGH">High</option>
-          <option value="URGENT">Urgent</option>
-        </select>
-      </Row>
-
-      <Row label="Celebrate completions" hint="Confetti when you finish your last task.">
-        <Toggle
-          on={confetti}
-          onClick={() => {
-            const next = !confetti
-            setConfetti(next)
-            persist('taskagent:confetti', next ? 'on' : 'off')
-          }}
-        />
-      </Row>
-
-      <Row
-        label="Due-soon reminders"
-        hint="Browser notifications for tasks due today or overdue, while a tab is open."
-      >
-        <Toggle on={notify} onClick={toggleNotify} />
-      </Row>
+          Reset
+        </button>
+      </div>
     </div>
   )
 }
