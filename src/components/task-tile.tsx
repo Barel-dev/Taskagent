@@ -11,6 +11,7 @@ import {
   Repeat,
   Check,
   X,
+  CalendarClock,
 } from 'lucide-react'
 import type { TaskNodeUI } from '@/components/task-list'
 import { TagChips } from '@/components/tag-chip'
@@ -189,6 +190,16 @@ export function TaskTile({
           </div>
         )}
         <div className="flex items-center gap-2.5 text-[11px] text-white/45">
+          {task.scheduledStart && (
+            <span className="inline-flex items-center gap-1 text-violet-300/80" title="Scheduled">
+              <CalendarClock className="h-3 w-3" />
+              {new Date(task.scheduledStart).toLocaleString(undefined, {
+                weekday: 'short',
+                hour: 'numeric',
+                minute: '2-digit',
+              })}
+            </span>
+          )}
           {task.estimatedMinutes != null && (
             <span
               className="inline-flex items-center gap-1"
