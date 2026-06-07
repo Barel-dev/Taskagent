@@ -534,9 +534,24 @@ export function TaskList({
         className="tl-rise flex items-center justify-between"
         style={{ animationDelay: '120ms' }}
       >
-        <span className="text-xs text-white/40">
+        <span className="inline-flex items-center gap-2 text-xs text-white/40">
           {filtering ? `${visible.length} of ${tasks.length}` : tasks.length}{' '}
           {tasks.length === 1 && !filtering ? 'task' : 'tasks'}
+          {filtering && (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery('')
+                setPriority('ALL')
+                setDueFilter('ALL')
+                setTagFilter('ALL')
+              }}
+              className="inline-flex items-center gap-0.5 rounded text-violet-300/80 hover:text-violet-200"
+            >
+              <X className="h-3 w-3" />
+              Clear filters
+            </button>
+          )}
         </span>
         <div className="flex flex-wrap items-center gap-2">
           {tasks.length > 0 && (
