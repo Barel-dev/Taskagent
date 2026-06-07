@@ -48,6 +48,11 @@ const PRIORITY: Record<TaskNodeUI['priority'], { dot: string; label: string }> =
   URGENT: { dot: 'bg-rose-500', label: 'text-rose-300' },
 }
 
+const PRIORITY_ORDER: TaskNodeUI['priority'][] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
+function nextPriority(p: TaskNodeUI['priority']): TaskNodeUI['priority'] {
+  return PRIORITY_ORDER[(PRIORITY_ORDER.indexOf(p) + 1) % PRIORITY_ORDER.length]
+}
+
 async function postJson(url: string, body: unknown) {
   const res = await fetch(url, {
     method: 'POST',
@@ -85,6 +90,7 @@ export function TaskDetail({
   const [refineOpen, setRefineOpen] = useState(false)
   const [title, setTitle] = useState(task.title)
   const [editingTitle, setEditingTitle] = useState(false)
+  const [priority, setPriorityState] = useState(task.priority)
   // Drag-to-reorder state for the steps rail.
   const [dragId, setDragId] = useState<string | null>(null)
   const [overId, setOverId] = useState<string | null>(null)
@@ -99,7 +105,7 @@ export function TaskDetail({
   const doneCount = children.filter((c) => c._done).length
   const [selectedId, setSelectedId] = useState<string>(hasChildren ? children[0].id : OVERVIEW)
   const selected = children.find((c) => c.id === selectedId) ?? null
-  const pr = PRIORITY[task.priority]
+  const pr = PRIORITY[priority]
   const due = formatDue(task.dueDate, task.status)
   const scheduled = task.scheduledStart
     ? new Date(task.scheduledStart).toLocaleString(undefined, {
@@ -326,6 +332,20 @@ export function TaskDetail({
       })
   }
 
+  async function changeTaskPriority(p: TaskNodeUI['priority']) {
+    const prev = priority
+    setPriorityState(p)
+    const res = await fetch(`/api/tasks/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priority: p }),
+    })
+    if (!res.ok) {
+      setPriorityState(prev)
+      toast.error('Could not update priority')
+    }
+  }
+
   async function renameTask(next: string) {
     const trimmed = next.trim()
     setEditingTitle(false)
@@ -350,8 +370,15 @@ export function TaskDetail({
           {/* Header */}
           <div className="shrink-0 border-b border-white/10 p-5 pr-12">
             <span className="inline-flex items-center gap-1.5 text-[11px]">
-              <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
-              <span className={`font-medium ${pr.label}`}>{task.priority}</span>
+              <button
+                type="button"
+                onClick={() => changeTaskPriority(nextPriority(priority))}
+                title="Click to change priority"
+                className="inline-flex items-center gap-1.5 rounded transition-opacity hover:opacity-80"
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
+                <span className={`font-medium ${pr.label}`}>{priority}</span>
+              </button>
               {due && <span className={`ml-2 ${dueToneClass(due)}`}>due {due.label}</span>}
               {scheduled && <span className="ml-2 text-violet-300">· scheduled {scheduled}</span>}
             </span>
