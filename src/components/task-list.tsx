@@ -44,7 +44,7 @@ export type TaskNodeUI = {
   status: 'TODO' | 'IN_PROGRESS' | 'DONE'
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   pinned?: boolean
-  recurrence?: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY'
+  recurrence?: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
   dueDate: string | Date | null
   scheduledStart?: string | Date | null
   scheduledEnd?: string | Date | null
@@ -586,6 +586,18 @@ export function TaskList({
             >
               <X className="h-3 w-3" />
               Clear filters
+            </button>
+          )}
+          {view === 'list' && visible.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                const allSelected = visible.every((t) => selectedIds.includes(t.id))
+                setSelectedIds(allSelected ? [] : visible.map((t) => t.id))
+              }}
+              className="rounded text-white/40 hover:text-white/70"
+            >
+              {visible.every((t) => selectedIds.includes(t.id)) ? 'Select none' : 'Select all'}
             </button>
           )}
         </span>
