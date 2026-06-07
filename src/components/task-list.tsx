@@ -148,6 +148,9 @@ export function TaskList({
         const target = (document.getElementById('task-search') ??
           document.getElementById('goal-input')) as HTMLInputElement | null
         target?.focus()
+      } else if (e.key === 'b') {
+        e.preventDefault()
+        setView((v) => (v === 'list' ? 'board' : 'list'))
       } else if (e.key === '?') {
         e.preventDefault()
         setShowHelp(true)
@@ -824,6 +827,7 @@ export function TaskList({
                 ['⌘K / Ctrl+K', 'Command palette'],
                 ['N', 'New task'],
                 ['/', 'Search'],
+                ['B', 'Toggle list / board'],
                 ['G then T', 'Go to Tasks'],
                 ['G then C', 'Go to Calendar'],
                 ['G then D', 'Go to Dashboard'],
