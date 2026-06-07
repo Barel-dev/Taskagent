@@ -95,6 +95,8 @@ model Task {
   status      TaskStatus @default(TODO)
   priority    Priority   @default(MEDIUM)
   pinned      Boolean    @default(false)
+  // NONE | DAILY | WEEKLY | MONTHLY — completing a recurring task spawns the next.
+  recurrence  String     @default("NONE")
   dueDate     DateTime?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt

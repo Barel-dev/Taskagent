@@ -12,6 +12,8 @@ import { tagChipClass } from '@/lib/tag-colors'
 
 type Tag = { id: string; name: string; color: string }
 
+type Recurrence = 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY'
+
 type Task = {
   id: string
   title: string
@@ -19,6 +21,7 @@ type Task = {
   status: 'TODO' | 'IN_PROGRESS' | 'DONE'
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   dueDate: string | Date | null
+  recurrence?: Recurrence
   tags?: Tag[]
 }
 
@@ -30,6 +33,7 @@ export function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) 
   const [dueDate, setDueDate] = useState(
     task?.dueDate ? new Date(task.dueDate).toISOString().slice(0, 10) : '',
   )
+  const [recurrence, setRecurrence] = useState<Recurrence>(task?.recurrence ?? 'NONE')
   const [saving, setSaving] = useState(false)
 
   // Tags: the user's full tag list, plus which ids are selected for this task.
@@ -91,6 +95,7 @@ export function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) 
         description: description || null,
         priority,
         dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+        recurrence,
         tagIds: selectedIds,
       }
       const url = task ? `/api/tasks/${task.id}` : '/api/tasks'
@@ -158,6 +163,21 @@ export function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) 
             onChange={(e) => setDueDate(e.target.value)}
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="recurrence">Repeat</Label>
+        <select
+          id="recurrence"
+          value={recurrence}
+          onChange={(e) => setRecurrence(e.target.value as Recurrence)}
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
+        >
+          <option value="NONE">Does not repeat</option>
+          <option value="DAILY">Daily</option>
+          <option value="WEEKLY">Weekly</option>
+          <option value="MONTHLY">Monthly</option>
+        </select>
       </div>
 
       <div className="space-y-2">

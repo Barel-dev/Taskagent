@@ -9,6 +9,7 @@ export const createTaskSchema = z.object({
   status: taskStatusEnum.optional(),
   priority: priorityEnum.optional(),
   pinned: z.boolean().optional(),
+  recurrence: z.enum(['NONE', 'DAILY', 'WEEKLY', 'MONTHLY']).optional(),
   dueDate: z.coerce.date().optional().nullable(),
   // Tag ids to attach (validated against the user's own tags in the data layer).
   tagIds: z.array(z.string()).max(20).optional(),

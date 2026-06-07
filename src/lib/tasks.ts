@@ -94,7 +94,33 @@ export async function updateTaskForUser(userId: string, taskId: string, input: U
     ])
   }
 
+  // Completing a recurring task spawns the next occurrence.
+  if (data.status === 'DONE') {
+    const t = await prisma.task.findUnique({ where: { id: taskId } })
+    if (t && t.recurrence !== 'NONE') {
+      await prisma.task.create({
+        data: {
+          userId,
+          title: t.title,
+          description: t.description,
+          priority: t.priority,
+          recurrence: t.recurrence,
+          parentId: t.parentId,
+          dueDate: nextOccurrence(t.dueDate ?? new Date(), t.recurrence),
+        },
+      })
+    }
+  }
+
   return prisma.task.findUnique({ where: { id: taskId } })
+}
+
+function nextOccurrence(base: Date, recurrence: string): Date {
+  const d = new Date(base)
+  if (recurrence === 'DAILY') d.setDate(d.getDate() + 1)
+  else if (recurrence === 'WEEKLY') d.setDate(d.getDate() + 7)
+  else if (recurrence === 'MONTHLY') d.setMonth(d.getMonth() + 1)
+  return d
 }
 
 export async function deleteTaskForUser(userId: string, taskId: string) {

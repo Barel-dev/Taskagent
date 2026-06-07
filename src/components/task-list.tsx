@@ -38,6 +38,7 @@ export type TaskNodeUI = {
   status: 'TODO' | 'IN_PROGRESS' | 'DONE'
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   pinned?: boolean
+  recurrence?: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY'
   dueDate: string | Date | null
   scheduledStart?: string | Date | null
   scheduledEnd?: string | Date | null

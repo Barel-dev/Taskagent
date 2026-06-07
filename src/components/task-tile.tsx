@@ -1,6 +1,6 @@
 'use client'
 
-import { Clock, CalendarDays, ArrowUpRight, CheckCircle2, Circle, Pin } from 'lucide-react'
+import { Clock, CalendarDays, ArrowUpRight, CheckCircle2, Circle, Pin, Repeat } from 'lucide-react'
 import type { TaskNodeUI } from '@/components/task-list'
 import { TagChips } from '@/components/tag-chip'
 import { formatDue, dueToneClass } from '@/lib/format-due'
@@ -168,6 +168,12 @@ export function TaskTile({
               {total} subtasks
             </span>
           ) : null}
+          {task.recurrence && task.recurrence !== 'NONE' && (
+            <span className="inline-flex items-center gap-1" title="Repeats">
+              <Repeat className="h-3 w-3" />
+              {task.recurrence.toLowerCase()}
+            </span>
+          )}
           <span className="ml-auto inline-flex items-center gap-0.5 text-violet-300/70 transition-colors group-hover:text-violet-200">
             Open
             <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
