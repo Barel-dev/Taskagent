@@ -94,6 +94,8 @@ export function TaskDetail({
   const [refineOpen, setRefineOpen] = useState(false)
   const [title, setTitle] = useState(task.title)
   const [editingTitle, setEditingTitle] = useState(false)
+  const [description, setDescription] = useState(task.description ?? '')
+  const [editingDesc, setEditingDesc] = useState(false)
   const [priority, setPriorityState] = useState(task.priority)
   const [dueDate, setDueDate] = useState<TaskNodeUI['dueDate']>(task.dueDate)
   type TagLite = { id: string; name: string; color: string }
@@ -425,6 +427,20 @@ export function TaskDetail({
     }
   }
 
+  async function saveDescription() {
+    setEditingDesc(false)
+    if (description === (task.description ?? '')) return
+    const res = await fetch(`/api/tasks/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description: description || null }),
+    })
+    if (!res.ok) {
+      setDescription(task.description ?? '')
+      toast.error('Could not save description')
+    }
+  }
+
   async function renameTask(next: string) {
     const trimmed = next.trim()
     setEditingTitle(false)
@@ -489,8 +505,38 @@ export function TaskDetail({
                 </span>
               )}
             </DialogTitle>
-            {task.description && (
-              <Markdown content={task.description} className="mt-1 text-sm text-white/55" />
+            {editingDesc ? (
+              <textarea
+                autoFocus
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                onBlur={saveDescription}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setDescription(task.description ?? '')
+                    setEditingDesc(false)
+                  }
+                }}
+                rows={3}
+                placeholder="Add a description… (Markdown supported)"
+                className="mt-1 w-full rounded-md border border-white/15 bg-white/10 px-2 py-1.5 text-sm text-white placeholder:text-white/35 focus:border-violet-400/40 focus:outline-none"
+              />
+            ) : description ? (
+              <div
+                onDoubleClick={() => setEditingDesc(true)}
+                title="Double-click to edit"
+                className="cursor-text"
+              >
+                <Markdown content={description} className="mt-1 text-sm text-white/55" />
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingDesc(true)}
+                className="mt-1 text-sm text-white/35 hover:text-white/60"
+              >
+                + Add description
+              </button>
             )}
 
             <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
