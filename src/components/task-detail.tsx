@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Sparkles,
@@ -33,6 +33,7 @@ import { EmailAgentDialog } from '@/components/email-agent-dialog'
 import { ScheduleAgentDialog } from '@/components/schedule-agent-dialog'
 import { RefineDialog } from '@/components/refine-dialog'
 import { TagChips } from '@/components/tag-chip'
+import { tagChipClass } from '@/lib/tag-colors'
 import { Markdown } from '@/components/markdown'
 import { formatDue, dueToneClass } from '@/lib/format-due'
 import { parseQuickAdd } from '@/lib/quick-add'
@@ -94,6 +95,19 @@ export function TaskDetail({
   const [editingTitle, setEditingTitle] = useState(false)
   const [priority, setPriorityState] = useState(task.priority)
   const [dueDate, setDueDate] = useState<TaskNodeUI['dueDate']>(task.dueDate)
+  type TagLite = { id: string; name: string; color: string }
+  const [tags, setTags] = useState<TagLite[]>(task.tags ?? [])
+  const [allTags, setAllTags] = useState<TagLite[]>(task.tags ?? [])
+  const [tagPickerOpen, setTagPickerOpen] = useState(false)
+  useEffect(() => {
+    if (!tagPickerOpen) return
+    fetch('/api/tags')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.tags) setAllTags(d.tags)
+      })
+      .catch(() => {})
+  }, [tagPickerOpen])
   // Drag-to-reorder state for the steps rail.
   const [dragId, setDragId] = useState<string | null>(null)
   const [overId, setOverId] = useState<string | null>(null)
@@ -349,6 +363,22 @@ export function TaskDetail({
     }
   }
 
+  async function toggleTag(tag: TagLite) {
+    const has = tags.some((t) => t.id === tag.id)
+    const next = has ? tags.filter((t) => t.id !== tag.id) : [...tags, tag]
+    const prev = tags
+    setTags(next)
+    const res = await fetch(`/api/tasks/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tagIds: next.map((t) => t.id) }),
+    })
+    if (!res.ok) {
+      setTags(prev)
+      toast.error('Could not update tags')
+    }
+  }
+
   async function changeTaskDue(d: string | null) {
     const prev = dueDate
     setDueDate(d)
@@ -431,7 +461,43 @@ export function TaskDetail({
               <Markdown content={task.description} className="mt-1 text-sm text-white/55" />
             )}
 
-            <TagChips tags={task.tags} className="mt-2.5" />
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+              <TagChips tags={tags} />
+              <button
+                type="button"
+                onClick={() => setTagPickerOpen((o) => !o)}
+                className="rounded-full border border-dashed border-white/15 px-2 py-0.5 text-[10px] text-white/50 hover:text-white/80"
+              >
+                + Tags
+              </button>
+            </div>
+            {tagPickerOpen && (
+              <div className="mt-2 flex flex-wrap gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] p-2">
+                {allTags.length === 0 ? (
+                  <span className="text-[11px] text-white/40">
+                    No tags yet — create them on a task’s edit form.
+                  </span>
+                ) : (
+                  allTags.map((tag) => {
+                    const on = tags.some((t) => t.id === tag.id)
+                    return (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => toggleTag(tag)}
+                        className={`rounded-full border px-2 py-0.5 text-[10px] font-medium transition-opacity ${
+                          on
+                            ? tagChipClass(tag.color)
+                            : 'border-white/15 text-white/45 hover:text-white/80'
+                        }`}
+                      >
+                        {tag.name}
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+            )}
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {hasChildren ? (
