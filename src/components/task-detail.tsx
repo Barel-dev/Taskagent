@@ -20,6 +20,7 @@ import {
   Plus,
   Copy,
   Wand2,
+  GripVertical,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -81,6 +82,9 @@ export function TaskDetail({
   const [refineOpen, setRefineOpen] = useState(false)
   const [title, setTitle] = useState(task.title)
   const [editingTitle, setEditingTitle] = useState(false)
+  // Drag-to-reorder state for the steps rail.
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [overId, setOverId] = useState<string | null>(null)
 
   // Parent-as-leaf execute state (task with no subtasks)
   const [parentResult, setParentResult] = useState<string | null>(task.result ?? null)
@@ -263,6 +267,34 @@ export function TaskDetail({
       setChildren((prev) => [...prev, { ...child, _done: child.status === 'DONE' }])
       setSelectedId(child.id)
     }
+  }
+
+  // Move a step before another and persist the new order (optimistic).
+  function reorderChildren(fromId: string, toId: string) {
+    if (fromId === toId) return
+    const arr = [...children]
+    const from = arr.findIndex((c) => c.id === fromId)
+    const to = arr.findIndex((c) => c.id === toId)
+    if (from < 0 || to < 0) return
+    const [moved] = arr.splice(from, 1)
+    arr.splice(to, 0, moved)
+    const prev = children
+    setChildren(arr)
+    fetch('/api/tasks/reorder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: arr.map((c) => c.id) }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          setChildren(prev)
+          toast.error('Could not reorder steps')
+        }
+      })
+      .catch(() => {
+        setChildren(prev)
+        toast.error('Could not reorder steps')
+      })
   }
 
   async function renameTask(next: string) {
@@ -451,11 +483,33 @@ export function TaskDetail({
                       <button
                         key={child.id}
                         type="button"
+                        draggable
                         onClick={() => setSelectedId(child.id)}
-                        className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors ${
+                        onDragStart={(e) => {
+                          setDragId(child.id)
+                          e.dataTransfer.effectAllowed = 'move'
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault()
+                          if (dragId && dragId !== child.id) setOverId(child.id)
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault()
+                          if (dragId) reorderChildren(dragId, child.id)
+                          setDragId(null)
+                          setOverId(null)
+                        }}
+                        onDragEnd={() => {
+                          setDragId(null)
+                          setOverId(null)
+                        }}
+                        className={`group flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left transition-colors ${
                           active ? 'bg-violet-500/15' : 'hover:bg-white/5'
+                        } ${dragId === child.id ? 'opacity-40' : ''} ${
+                          overId === child.id ? 'ring-1 ring-violet-400/60' : ''
                         }`}
                       >
+                        <GripVertical className="h-3.5 w-3.5 shrink-0 cursor-grab text-white/15 group-hover:text-white/40" />
                         <span
                           className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold ${
                             child._done

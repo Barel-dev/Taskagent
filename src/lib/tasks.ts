@@ -30,9 +30,9 @@ export async function listTasksForUser(userId: string): Promise<TaskNode[]> {
     else roots.push(node) // top-level, or an orphan whose parent is gone
   }
 
-  // Subtasks read top-to-bottom in the order they were generated.
+  // Subtasks read top-to-bottom by their manual order, then creation time.
   for (const node of nodes.values()) {
-    node.children.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    node.children.sort((a, b) => a.order - b.order || a.createdAt.getTime() - b.createdAt.getTime())
   }
 
   // Top-level ordering: pinned first, then open tasks, then by due date, newest.
@@ -59,14 +59,30 @@ export async function createTaskForUser(userId: string, input: CreateTaskInput) 
     const owned = await prisma.task.count({ where: { id: parentId, userId } })
     if (owned) validParentId = parentId
   }
+  // New subtasks go to the end of their sibling list.
+  const order = validParentId ? await prisma.task.count({ where: { parentId: validParentId } }) : 0
   return prisma.task.create({
     data: {
       ...data,
       userId,
+      order,
       ...(validParentId ? { parentId: validParentId } : {}),
       ...(validTagIds.length ? { tags: { create: validTagIds.map((tagId) => ({ tagId })) } } : {}),
     },
   })
+}
+
+/**
+ * Persist a manual ordering of tasks (drag-to-reorder). Each id's `order` is set
+ * to its index in the array. Scoped to the caller's own tasks via userId, so
+ * foreign ids are silently ignored.
+ */
+export async function reorderTasksForUser(userId: string, ids: string[]) {
+  await prisma.$transaction(
+    ids.map((id, index) =>
+      prisma.task.updateMany({ where: { id, userId }, data: { order: index } }),
+    ),
+  )
 }
 
 export async function getTaskForUser(userId: string, taskId: string) {

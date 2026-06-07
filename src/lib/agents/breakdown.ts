@@ -80,7 +80,11 @@ export function demoSubtasks(title: string): z.infer<typeof subtaskSchema>[] {
       priority: 'HIGH',
       estimatedMinutes: 15,
     },
-    { title: 'Outline the steps and gather what you need', priority: 'MEDIUM', estimatedMinutes: 20 },
+    {
+      title: 'Outline the steps and gather what you need',
+      priority: 'MEDIUM',
+      estimatedMinutes: 20,
+    },
     { title: 'Do the core work', priority: 'HIGH', estimatedMinutes: 60 },
     { title: 'Review, test, and refine', priority: 'MEDIUM', estimatedMinutes: 20 },
     { title: 'Wrap up and mark complete', priority: 'LOW', estimatedMinutes: 10 },
@@ -160,7 +164,7 @@ export async function runBreakdownAgent(params: {
     // Create the child rows in order, in one transaction, so we can return
     // the persisted rows (with ids) to the client.
     const created = await prisma.$transaction(
-      capped.map((s) =>
+      capped.map((s, i) =>
         prisma.task.create({
           data: {
             userId,
@@ -168,6 +172,7 @@ export async function runBreakdownAgent(params: {
             title: s.title,
             priority: s.priority,
             estimatedMinutes: s.estimatedMinutes,
+            order: i,
           },
         }),
       ),

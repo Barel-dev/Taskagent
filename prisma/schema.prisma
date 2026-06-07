@@ -127,7 +127,9 @@ model Task {
   calendarEventId String?
 
   // Self-relation: a task can be broken down into ordered subtasks.
+  // `order` is the manual sort position among siblings (drag-to-reorder).
   estimatedMinutes Int?
+  order            Int     @default(0)
   parentId         String?
   parent           Task?   @relation("Subtasks", fields: [parentId], references: [id], onDelete: Cascade)
   children         Task[]  @relation("Subtasks")
