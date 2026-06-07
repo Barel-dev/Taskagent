@@ -25,6 +25,27 @@ export function ChatSidebar() {
   // The assistant message currently "typing out", and how many chars are shown.
   const [reveal, setReveal] = useState<{ id: number; n: number } | null>(null)
 
+  // Restore the conversation from a previous visit (kept on this device only).
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('taskagent:chat')
+      if (raw) {
+        const saved = JSON.parse(raw) as Msg[]
+        if (Array.isArray(saved) && saved.length) {
+          setMessages(saved)
+          idRef.current = saved.reduce((mx, m) => Math.max(mx, m.id), 0)
+        }
+      }
+    } catch {
+      /* ignore corrupt storage */
+    }
+  }, [])
+
+  // Persist the last 50 messages whenever they change.
+  useEffect(() => {
+    localStorage.setItem('taskagent:chat', JSON.stringify(messages.slice(-50)))
+  }, [messages])
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, sending, open, reveal])
@@ -102,7 +123,20 @@ export function ChatSidebar() {
           <header className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
             <Sparkles className="h-4 w-4 text-violet-300" />
             <span className="text-sm font-semibold text-white">Assistant</span>
-            <span className="ml-auto text-[11px] text-white/35">Ask or create tasks</span>
+            {messages.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setMessages([])
+                  localStorage.removeItem('taskagent:chat')
+                }}
+                className="ml-auto text-[11px] text-white/40 hover:text-white/70"
+              >
+                Clear
+              </button>
+            ) : (
+              <span className="ml-auto text-[11px] text-white/35">Ask or create tasks</span>
+            )}
           </header>
 
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
