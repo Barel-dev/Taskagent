@@ -4,7 +4,17 @@ import { redirect } from 'next/navigation'
 import { Header } from '@/components/header'
 import { prisma } from '@/lib/prisma'
 import { ShaderBackground } from '@/components/ui/shader-background'
-import { Zap, CheckCircle2, Coins, Bot, ListTodo, Clock, AlertTriangle } from 'lucide-react'
+import {
+  Zap,
+  CheckCircle2,
+  Coins,
+  Bot,
+  ListTodo,
+  Clock,
+  AlertTriangle,
+  CalendarClock,
+  Repeat,
+} from 'lucide-react'
 import type { AgentType, AgentRunStatus } from '@prisma/client'
 import { tagChipClass } from '@/lib/tag-colors'
 
@@ -52,7 +62,15 @@ export default async function DashboardPage() {
       }),
       prisma.task.findMany({
         where: { userId, parentId: null },
-        select: { id: true, title: true, status: true, priority: true, dueDate: true },
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          priority: true,
+          dueDate: true,
+          scheduledStart: true,
+          recurrence: true,
+        },
       }),
       prisma.tag.findMany({
         where: { userId },
@@ -118,6 +136,13 @@ export default async function DashboardPage() {
     )
     .sort((a, b) => (a.dueDate?.getTime() ?? 0) - (b.dueDate?.getTime() ?? 0))
     .slice(0, 6)
+
+  const now = new Date()
+  const scheduledUpcoming = tasksAll
+    .filter((t) => t.status !== 'DONE' && t.scheduledStart && t.scheduledStart >= now)
+    .sort((a, b) => (a.scheduledStart?.getTime() ?? 0) - (b.scheduledStart?.getTime() ?? 0))
+    .slice(0, 6)
+  const recurringCount = tasksAll.filter((t) => t.recurrence && t.recurrence !== 'NONE').length
 
   const stats = [
     { label: 'Agent runs', value: total.toLocaleString(), Icon: Zap },
@@ -270,6 +295,47 @@ export default async function DashboardPage() {
                   </Link>
                 ))}
               </div>
+            </div>
+          )}
+
+          {(scheduledUpcoming.length > 0 || recurringCount > 0) && (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+              <div className="flex items-center justify-between">
+                <h4 className="inline-flex items-center gap-1.5 text-sm font-semibold text-white/80">
+                  <CalendarClock className="h-4 w-4 text-violet-300" />
+                  Scheduled next
+                </h4>
+                {recurringCount > 0 && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-[11px] text-white/55">
+                    <Repeat className="h-3 w-3" />
+                    {recurringCount} recurring
+                  </span>
+                )}
+              </div>
+              {scheduledUpcoming.length > 0 ? (
+                <div className="mt-3 space-y-1">
+                  {scheduledUpcoming.map((t) => (
+                    <Link
+                      key={t.id}
+                      href={`/tasks?task=${t.id}`}
+                      className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-white/5"
+                    >
+                      <span className="truncate text-white/80">{t.title}</span>
+                      <span className="shrink-0 text-xs text-violet-300/80 tabular-nums">
+                        {t.scheduledStart?.toLocaleString(undefined, {
+                          weekday: 'short',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-3 text-xs text-white/45">
+                  Nothing time-blocked yet — use the Schedule agent on a task.
+                </p>
+              )}
             </div>
           )}
         </section>
