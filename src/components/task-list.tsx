@@ -10,6 +10,7 @@ import {
   Search,
   Download,
   FileJson,
+  FileText,
   Upload,
   CheckCheck,
   Trash2,
@@ -236,6 +237,23 @@ export function TaskList({
 
   function exportJson() {
     download(JSON.stringify(tasks, null, 2), 'application/json', 'json')
+  }
+
+  function exportMarkdown() {
+    const lines: string[] = ['# TaskAgent export', '']
+    for (const t of tasks) {
+      lines.push(`## ${t.title}`)
+      const meta = [t.priority.toLowerCase(), t.status.toLowerCase().replace('_', ' ')]
+      if (t.dueDate) meta.push(`due ${new Date(t.dueDate).toISOString().slice(0, 10)}`)
+      lines.push(`_${meta.join(' · ')}_`)
+      if (t.description) lines.push('', t.description)
+      if (t.children?.length) {
+        lines.push('')
+        for (const c of t.children) lines.push(`- [${c.status === 'DONE' ? 'x' : ' '}] ${c.title}`)
+      }
+      lines.push('')
+    }
+    download(lines.join('\n'), 'text/markdown', 'md')
   }
 
   function download(content: string, type: string, ext: string) {
@@ -695,6 +713,16 @@ export function TaskList({
                 className="h-8 w-8 border-white/15 text-white/70 hover:bg-white/5"
               >
                 <FileJson className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                size="icon-sm"
+                variant="outline"
+                onClick={exportMarkdown}
+                title="Export tasks as Markdown"
+                aria-label="Export tasks as Markdown"
+                className="h-8 w-8 border-white/15 text-white/70 hover:bg-white/5"
+              >
+                <FileText className="h-3.5 w-3.5" />
               </Button>
             </>
           )}
