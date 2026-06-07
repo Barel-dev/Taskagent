@@ -843,6 +843,18 @@ export function TaskList({
               ))}
             </select>
           )}
+          <input
+            type="date"
+            onChange={(e) => {
+              if (e.target.value) {
+                bulkPatch({ dueDate: new Date(e.target.value).toISOString() })
+                e.target.value = ''
+              }
+            }}
+            aria-label="Set due date for selected"
+            title="Set due date for selected"
+            className="h-8 rounded-md border border-white/10 bg-white/5 px-2 text-xs text-white/75 [color-scheme:dark] focus:outline-none"
+          />
           <Button
             size="sm"
             variant="outline"
