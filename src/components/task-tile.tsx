@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   Clock,
   CalendarDays,
@@ -9,6 +10,7 @@ import {
   Pin,
   Repeat,
   Check,
+  X,
 } from 'lucide-react'
 import type { TaskNodeUI } from '@/components/task-list'
 import { TagChips } from '@/components/tag-chip'
@@ -32,6 +34,7 @@ export function TaskTile({
   onStatusChange,
   onPriorityChange,
   onPin,
+  onDueChange,
   selected,
   onToggleSelect,
 }: {
@@ -43,6 +46,8 @@ export function TaskTile({
   onPriorityChange?: (priority: TaskNodeUI['priority']) => void
   /** When provided, the tile shows a pin toggle. */
   onPin?: (pinned: boolean) => void
+  /** When provided, the due date becomes editable inline. */
+  onDueChange?: (dueDate: string | null) => void
   /** Bulk-selection state + toggle (shows a hover checkbox). */
   selected?: boolean
   onToggleSelect?: () => void
@@ -188,11 +193,15 @@ export function TaskTile({
               <Clock className="h-3 w-3" />~{task.estimatedMinutes}m
             </span>
           )}
-          {due && (
-            <span className={`inline-flex items-center gap-1 ${dueToneClass(due)}`}>
-              <CalendarDays className="h-3 w-3" />
-              {due.label}
-            </span>
+          {onDueChange ? (
+            <DueEditor dueDate={task.dueDate} status={task.status} onChange={onDueChange} />
+          ) : (
+            due && (
+              <span className={`inline-flex items-center gap-1 ${dueToneClass(due)}`}>
+                <CalendarDays className="h-3 w-3" />
+                {due.label}
+              </span>
+            )
           )}
           {total > 0 ? (
             <span className="inline-flex items-center gap-1">
@@ -213,5 +222,72 @@ export function TaskTile({
         </div>
       </div>
     </div>
+  )
+}
+
+// Inline due-date control for the tile footer. Shows the due chip (or a faint
+// "Due" affordance on hover) and, on click, a native date picker. All clicks
+// stop propagation so they don't open the task.
+function DueEditor({
+  dueDate,
+  status,
+  onChange,
+}: {
+  dueDate: TaskNodeUI['dueDate']
+  status: TaskNodeUI['status']
+  onChange: (dueDate: string | null) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const due = formatDue(dueDate, status)
+  const value = dueDate ? new Date(dueDate).toISOString().slice(0, 10) : ''
+
+  if (editing) {
+    return (
+      <span className="inline-flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <input
+          type="date"
+          autoFocus
+          defaultValue={value}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => {
+            onChange(e.target.value ? new Date(e.target.value).toISOString() : null)
+            setEditing(false)
+          }}
+          onBlur={() => setEditing(false)}
+          className="rounded border border-white/15 bg-white/10 px-1 py-0.5 text-[11px] text-white [color-scheme:dark] focus:outline-none"
+        />
+        {due && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onChange(null)
+              setEditing(false)
+            }}
+            aria-label="Clear due date"
+            className="text-white/40 hover:text-rose-300"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </span>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation()
+        setEditing(true)
+      }}
+      title="Set due date"
+      className={`inline-flex items-center gap-1 rounded transition-opacity hover:bg-white/5 ${
+        due ? dueToneClass(due) : 'text-white/30 opacity-0 group-hover:opacity-100'
+      }`}
+    >
+      <CalendarDays className="h-3 w-3" />
+      {due ? due.label : 'Due'}
+    </button>
   )
 }

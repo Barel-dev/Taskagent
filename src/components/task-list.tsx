@@ -286,6 +286,23 @@ export function TaskList({
     router.refresh()
   }
 
+  async function changeDue(taskId: string, dueDate: string | null) {
+    const prev = tasks
+    setTasks((ts) => ts.map((t) => (t.id === taskId ? { ...t, dueDate } : t)))
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dueDate }),
+    })
+    if (!res.ok) {
+      setTasks(prev)
+      toast.error('Failed to update due date')
+      return
+    }
+    toast.success(dueDate ? 'Due date set' : 'Due date cleared')
+    router.refresh()
+  }
+
   async function addTask(status: TaskNodeUI['status'], title: string) {
     const res = await fetch('/api/tasks', {
       method: 'POST',
@@ -661,6 +678,7 @@ export function TaskList({
                   onStatusChange={(s) => moveTask(t.id, s)}
                   onPriorityChange={(p) => changePriority(t.id, p)}
                   onPin={(p) => changePinned(t.id, p)}
+                  onDueChange={(d) => changeDue(t.id, d)}
                   selected={selectedIds.includes(t.id)}
                   onToggleSelect={() => toggleSelect(t.id)}
                 />
