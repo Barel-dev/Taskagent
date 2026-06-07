@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Clock, CalendarDays, CheckCircle2, GripVertical, Plus, X } from 'lucide-react'
 import type { TaskNodeUI } from '@/components/task-list'
 import { TagChips } from '@/components/tag-chip'
+import { Highlighted } from '@/components/highlight'
 import { formatDue, dueToneClass } from '@/lib/format-due'
 
 type Status = TaskNodeUI['status']
@@ -37,6 +38,7 @@ export function TaskBoard({
   onAddTask,
   onPriorityChange,
   onDueChange,
+  highlight,
 }: {
   tasks: TaskNodeUI[]
   onOpen: (t: TaskNodeUI) => void
@@ -47,6 +49,8 @@ export function TaskBoard({
   onPriorityChange?: (taskId: string, priority: PriorityKey) => void
   /** When provided, a card's due date becomes editable inline. */
   onDueChange?: (taskId: string, dueDate: string | null) => void
+  /** Search term to highlight within card titles. */
+  highlight?: string
 }) {
   const [dragOver, setDragOver] = useState<Status | null>(null)
   const [draggingId, setDraggingId] = useState<string | null>(null)
@@ -95,6 +99,7 @@ export function TaskBoard({
                   onMove={onMove}
                   onPriorityChange={onPriorityChange}
                   onDueChange={onDueChange}
+                  highlight={highlight}
                   onDragStart={() => setDraggingId(t.id)}
                   onDragEnd={() => {
                     setDraggingId(null)
@@ -123,6 +128,7 @@ function BoardCard({
   onMove,
   onPriorityChange,
   onDueChange,
+  highlight,
   onDragStart,
   onDragEnd,
 }: {
@@ -132,6 +138,7 @@ function BoardCard({
   onMove: (taskId: string, status: Status) => void
   onPriorityChange?: (taskId: string, priority: PriorityKey) => void
   onDueChange?: (taskId: string, dueDate: string | null) => void
+  highlight?: string
   onDragStart: () => void
   onDragEnd: () => void
 }) {
@@ -192,7 +199,7 @@ function BoardCard({
               isDone ? 'text-white/55 line-through' : 'text-white'
             }`}
           >
-            {task.title}
+            <Highlighted text={task.title} query={highlight ?? ''} />
           </h4>
           <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px] text-white/40">
             {onDueChange ? (

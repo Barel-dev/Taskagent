@@ -322,6 +322,15 @@ export function TaskList({
       toast.error('Could not add task')
       return
     }
+    // Confirm what the parser picked up, so quick-add feels predictable.
+    const bits: string[] = []
+    if (priority) bits.push(priority.toLowerCase())
+    if (dueDate) {
+      bits.push(
+        `due ${new Date(dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`,
+      )
+    }
+    toast.success(`Added “${title}”`, bits.length ? { description: bits.join(' · ') } : undefined)
     router.refresh()
   }
 
@@ -716,6 +725,7 @@ export function TaskList({
               onAddTask={addTask}
               onPriorityChange={changePriority}
               onDueChange={changeDue}
+              highlight={query}
             />
           </div>
         ) : (

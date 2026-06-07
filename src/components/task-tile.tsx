@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import {
   Clock,
   CalendarDays,
@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import type { TaskNodeUI } from '@/components/task-list'
 import { TagChips } from '@/components/tag-chip'
+import { Highlighted } from '@/components/highlight'
 import { formatDue, dueToneClass } from '@/lib/format-due'
 
 const PRIORITY: Record<TaskNodeUI['priority'], { dot: string; label: string; bar: string }> = {
@@ -226,33 +227,6 @@ export function TaskTile({
       </div>
     </div>
   )
-}
-
-// Wrap occurrences of `query` (case-insensitive) in the text with a highlight.
-function Highlighted({ text, query }: { text: string; query: string }) {
-  const q = query.trim()
-  if (!q) return <>{text}</>
-  const lower = text.toLowerCase()
-  const ql = q.toLowerCase()
-  if (!lower.includes(ql)) return <>{text}</>
-  const parts: ReactNode[] = []
-  let i = 0
-  let k = 0
-  while (i < text.length) {
-    const found = lower.indexOf(ql, i)
-    if (found < 0) {
-      parts.push(text.slice(i))
-      break
-    }
-    if (found > i) parts.push(text.slice(i, found))
-    parts.push(
-      <mark key={k++} className="rounded bg-violet-400/30 text-white">
-        {text.slice(found, found + q.length)}
-      </mark>,
-    )
-    i = found + q.length
-  }
-  return <>{parts}</>
 }
 
 // Inline due-date control for the tile footer. Shows the due chip (or a faint
