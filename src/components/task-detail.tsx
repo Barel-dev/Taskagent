@@ -427,6 +427,23 @@ export function TaskDetail({
     }
   }
 
+  async function renameChild(childId: string, next: string) {
+    const trimmed = next.trim()
+    if (!trimmed) return
+    const prev = children.find((c) => c.id === childId)?.title
+    if (trimmed === prev) return
+    setChildren((cs) => cs.map((c) => (c.id === childId ? { ...c, title: trimmed } : c)))
+    const res = await fetch(`/api/tasks/${childId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: trimmed }),
+    })
+    if (!res.ok) {
+      toast.error('Could not rename step')
+      router.refresh()
+    }
+  }
+
   async function saveDescription() {
     setEditingDesc(false)
     if (description === (task.description ?? '')) return
@@ -794,7 +811,7 @@ export function TaskDetail({
               <div className="min-h-0 overflow-y-auto p-5">
                 {selectedId === OVERVIEW ? (
                   <OverviewPane
-                    description={task.description}
+                    description={description || null}
                     summary={summary}
                     done={doneCount}
                     total={children.length}
@@ -810,6 +827,7 @@ export function TaskDetail({
                     onRun={(reply) => runChild(selected.id, reply)}
                     onToggle={() => toggleChild(selected)}
                     onDelete={() => deleteChild(selected)}
+                    onRename={(t) => renameChild(selected.id, t)}
                   />
                 ) : null}
               </div>
@@ -1038,24 +1056,50 @@ function StepDetail({
   onRun,
   onToggle,
   onDelete,
+  onRename,
 }: {
   child: Child
   busy: boolean
   onRun: (reply?: string) => void
   onToggle: () => void
   onDelete: () => void
+  onRename: (title: string) => void
 }) {
   const pr = PRIORITY[child.priority]
   const done = child._done
+  const [editing, setEditing] = useState(false)
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3
-            className={`text-lg leading-snug font-semibold ${done ? 'text-white/55 line-through' : 'text-white'}`}
-          >
-            {child.title}
-          </h3>
+          {editing ? (
+            <input
+              autoFocus
+              defaultValue={child.title}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  onRename((e.target as HTMLInputElement).value)
+                  setEditing(false)
+                } else if (e.key === 'Escape') {
+                  setEditing(false)
+                }
+              }}
+              onBlur={(e) => {
+                onRename(e.target.value)
+                setEditing(false)
+              }}
+              className="w-full rounded-md border border-white/15 bg-white/10 px-2 py-0.5 text-lg font-semibold text-white focus:border-violet-400/40 focus:outline-none"
+            />
+          ) : (
+            <h3
+              onDoubleClick={() => setEditing(true)}
+              title="Double-click to rename"
+              className={`cursor-text text-lg leading-snug font-semibold ${done ? 'text-white/55 line-through' : 'text-white'}`}
+            >
+              {child.title}
+            </h3>
+          )}
           <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-white/50">
             <span className="inline-flex items-center gap-1">
               <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
