@@ -8,11 +8,11 @@ import { ShaderBackground } from '@/components/ui/shader-background'
 export default async function TasksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ task?: string; priority?: string }>
+  searchParams: Promise<{ task?: string; priority?: string; new?: string; import?: string }>
 }) {
   const session = await auth()
   if (!session?.user?.id) redirect('/signin')
-  const { task, priority } = await searchParams
+  const { task, priority, new: newParam, import: importParam } = await searchParams
   const initialPriority =
     priority === 'LOW' || priority === 'MEDIUM' || priority === 'HIGH' || priority === 'URGENT'
       ? priority
@@ -41,6 +41,8 @@ export default async function TasksPage({
         openTaskId={task}
         userName={session.user.name ?? undefined}
         initialPriority={initialPriority}
+        openNew={!!newParam}
+        openImport={!!importParam}
       />
     </div>
   )

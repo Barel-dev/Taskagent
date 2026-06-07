@@ -10,6 +10,8 @@ import {
   Settings,
   Hash,
   CornerDownLeft,
+  Plus,
+  Upload,
 } from 'lucide-react'
 
 type Task = { id: string; title: string; status: string }
@@ -20,6 +22,12 @@ const NAV = [
   { label: 'Go to Calendar', href: '/calendar', Icon: CalendarDays },
   { label: 'Go to Dashboard', href: '/dashboard', Icon: LayoutDashboard },
   { label: 'Go to Settings', href: '/settings', Icon: Settings },
+]
+
+// Actions deep-link to the tasks page with a flag TaskList reads to open a dialog.
+const ACTIONS = [
+  { label: 'New task', href: '/tasks?new=1', Icon: Plus },
+  { label: 'Import tasks', href: '/tasks?import=1', Icon: Upload },
 ]
 
 // "g then key" navigation, like Gmail/Linear.
@@ -87,9 +95,19 @@ export function CommandPalette() {
 
   const q = query.trim().toLowerCase()
   const navItems = NAV.filter((n) => !q || n.label.toLowerCase().includes(q))
+  const actionItems = ACTIONS.filter((a) => !q || a.label.toLowerCase().includes(q))
   const taskItems = (q ? tasks.filter((t) => t.title.toLowerCase().includes(q)) : tasks).slice(0, 8)
 
   const items: Item[] = [
+    ...actionItems.map((a) => ({
+      key: `action-${a.href}`,
+      label: a.label,
+      icon: <a.Icon className="h-4 w-4 text-violet-300" />,
+      run: () => {
+        router.push(a.href)
+        setOpen(false)
+      },
+    })),
     ...navItems.map((n) => ({
       key: `nav-${n.href}`,
       label: n.label,

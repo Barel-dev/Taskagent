@@ -74,11 +74,17 @@ export function TaskList({
   openTaskId,
   userName,
   initialPriority,
+  openNew,
+  openImport,
 }: {
   initialTasks: TaskNodeUI[]
   openTaskId?: string
   userName?: string
   initialPriority?: PriorityFilter
+  /** Open the new-task form on mount (command-palette deep link). */
+  openNew?: boolean
+  /** Open the import dialog on mount (command-palette deep link). */
+  openImport?: boolean
 }) {
   const router = useRouter()
   const [selected, setSelected] = useState<TaskNodeUI | null>(null)
@@ -155,6 +161,11 @@ export function TaskList({
   const [tagFilter, setTagFilter] = useState<string>('ALL')
   const [manageTagsOpen, setManageTagsOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
+  // Open a dialog when deep-linked from the command palette (/tasks?new / ?import).
+  useEffect(() => {
+    if (openNew) setCreating(true)
+    if (openImport) setImportOpen(true)
+  }, [openNew, openImport])
   // Unique tags across the user's tasks, for the filter dropdown.
   const allTags = Array.from(
     new Map(tasks.flatMap((t) => t.tags ?? []).map((tag) => [tag.id, tag])).values(),
