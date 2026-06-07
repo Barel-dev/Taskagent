@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   CalendarClock,
   Repeat,
+  Flame,
 } from 'lucide-react'
 import type { AgentType, AgentRunStatus } from '@prisma/client'
 import { tagChipClass } from '@/lib/tag-colors'
@@ -102,6 +103,12 @@ export default async function DashboardPage() {
     (d) => completedRecent.filter((t) => t.completedAt && sameDay(t.completedAt, d)).length,
   )
   const maxDoneDay = Math.max(1, ...doneByDay)
+  // Consecutive days ending today with at least one completed task.
+  let streak = 0
+  for (let i = doneByDay.length - 1; i >= 0; i--) {
+    if (doneByDay[i] > 0) streak++
+    else break
+  }
 
   // Task-centric stats.
   const todayStart = new Date()
@@ -209,6 +216,12 @@ export default async function DashboardPage() {
               <div className="mt-1 text-xs text-white/50">Overdue</div>
             </div>
           </div>
+          {streak > 0 && (
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-1.5 text-sm text-amber-200">
+              <Flame className="h-4 w-4" />
+              {streak}-day completion streak — keep it going!
+            </div>
+          )}
           {totalTasks > 0 && (
             <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
               <h4 className="text-sm font-semibold text-white/80">By priority</h4>
