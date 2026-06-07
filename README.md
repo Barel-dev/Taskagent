@@ -29,8 +29,9 @@ Agents **share context**: answers you give one agent (dates, budget, who's trave
 
 ## Workspace & views
 
+- **Today / Focus page:** a time-of-day greeting plus everything that needs attention — overdue, due today, and scheduled-today — with one-click complete and snooze-to-tomorrow.
 - **Three views:** a tile **list**, a drag-and-drop **Kanban board** (drag to change status, drag to reorder, quick-add per column), and a **calendar** (week + month grid) that plots tasks by scheduled time or due date, with drag-to-reschedule, an overdue ring on past-day chips, and keyboard navigation. Your view choice is remembered.
-- **Quick capture:** natural-language quick-add — typing `Email Dan tomorrow !high` sets the due date and priority automatically (works in the list bar, board/calendar add, and steps); plus **CSV / paste import** and a **⌘K command palette** (jump to a view, search tasks, new task, import).
+- **Quick capture:** natural-language quick-add — typing `Email Dan tomorrow !high` sets the due date and priority automatically (works in the list bar, board/calendar add, and steps); plus **reusable templates** (save a task + its steps, recreate in one click), **CSV / paste import**, and a **⌘K command palette** (jump to a view, search tasks, new task, new from template, import).
 - **Inline editing everywhere:** click a tile's priority to cycle it or its due chip to pick a date; the detail edits title, description (Markdown), priority, due, and tags in place; steps can be renamed, reordered (drag), run, completed, and deleted.
 - **Organize:** colored **tags** (create, recolor, click a chip to filter, bulk-add, manage); priorities; **pin** to top; **recurring tasks** (daily / weekly / monthly / yearly that respawn the next occurrence on completion); and **manual drag-to-reorder** of top-level tasks.
 - **Find & focus:** search with **match highlighting**, filters (priority / tag / due window) with one-click "N overdue · N due today" chips, **hide-done** toggle, **saved views**, sort by smart / due / priority / title / manual, and a clear-filters shortcut.
@@ -39,7 +40,9 @@ Agents **share context**: answers you give one agent (dates, budget, who's trave
 - **Dashboard:** task stats, a **completion streak**, an **open-work** time estimate, by-priority deep-links, **scheduled-next** list, recurring count, a 14-day activity chart, by-agent breakdown, and an **expandable recent-run drill-down** (input/output/error).
 - **Reminders & preferences:** opt-in **browser notifications** for due-soon tasks; a **settings** page (default view/sort/priority, completion confetti, reminders, reset local data); persisted chat history.
 - **Keyboard shortcuts:** `⌘K`/`Ctrl+K` palette · `n` new task · `/` search · `b` toggle list/board · `g` then `t`/`c`/`d`/`s` to navigate · `?` help; calendar `←`/`→`, `t`, `w`/`m`.
-- **Touches:** copy a task as Markdown, copy a shareable task link, confetti when you finish your last task.
+- **Focus timer:** a per-task Pomodoro (25-min) in the detail that counts your completed focus sessions.
+- **Installable PWA:** add TaskAgent to your home screen / desktop (web manifest, branded icon, standalone display).
+- **Touches:** copy a task as Markdown, export the whole workspace as Markdown, copy a shareable task link, confetti when you finish your last task.
 
 ## How it works
 
