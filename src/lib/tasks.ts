@@ -59,8 +59,8 @@ export async function createTaskForUser(userId: string, input: CreateTaskInput) 
     const owned = await prisma.task.count({ where: { id: parentId, userId } })
     if (owned) validParentId = parentId
   }
-  // New subtasks go to the end of their sibling list.
-  const order = validParentId ? await prisma.task.count({ where: { parentId: validParentId } }) : 0
+  // New tasks go to the end of their sibling list (top-level or under a parent).
+  const order = await prisma.task.count({ where: { userId, parentId: validParentId ?? null } })
   return prisma.task.create({
     data: {
       ...data,
