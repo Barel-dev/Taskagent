@@ -37,6 +37,7 @@ export function TaskTile({
   onPriorityChange,
   onPin,
   onDueChange,
+  onTagClick,
   highlight,
   selected,
   onToggleSelect,
@@ -45,6 +46,8 @@ export function TaskTile({
   onOpen: () => void
   /** Search term to highlight within the title. */
   highlight?: string
+  /** When provided, clicking a tag chip filters by it. */
+  onTagClick?: (id: string) => void
   /** When provided, the tile shows a quick done/undone toggle. */
   onStatusChange?: (status: TaskNodeUI['status']) => void
   /** When provided, clicking the priority cycles it. */
@@ -177,7 +180,7 @@ export function TaskTile({
         </p>
       )}
 
-      <TagChips tags={task.tags} className="mt-2" />
+      <TagChips tags={task.tags} className="mt-2" onTagClick={onTagClick} />
 
       {/* footer */}
       <div className="mt-auto">
