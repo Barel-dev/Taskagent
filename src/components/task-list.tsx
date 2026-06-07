@@ -679,7 +679,14 @@ export function TaskList({
       {visible.length > 0 &&
         (view === 'board' ? (
           <div className="tl-rise" style={{ animationDelay: '150ms' }}>
-            <TaskBoard tasks={visible} onOpen={setSelected} onMove={moveTask} onAddTask={addTask} />
+            <TaskBoard
+              tasks={visible}
+              onOpen={setSelected}
+              onMove={moveTask}
+              onAddTask={addTask}
+              onPriorityChange={changePriority}
+              onDueChange={changeDue}
+            />
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

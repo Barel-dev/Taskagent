@@ -1,12 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, CalendarDays, CheckCircle2, GripVertical, Plus } from 'lucide-react'
+import { Clock, CalendarDays, CheckCircle2, GripVertical, Plus, X } from 'lucide-react'
 import type { TaskNodeUI } from '@/components/task-list'
 import { TagChips } from '@/components/tag-chip'
 import { formatDue, dueToneClass } from '@/lib/format-due'
 
 type Status = TaskNodeUI['status']
+type PriorityKey = TaskNodeUI['priority']
+
+const PRIORITY_ORDER: PriorityKey[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
+function nextPriority(p: PriorityKey): PriorityKey {
+  return PRIORITY_ORDER[(PRIORITY_ORDER.indexOf(p) + 1) % PRIORITY_ORDER.length]
+}
 
 const COLUMNS: { status: Status; label: string }[] = [
   { status: 'TODO', label: 'To do' },
@@ -29,12 +35,18 @@ export function TaskBoard({
   onOpen,
   onMove,
   onAddTask,
+  onPriorityChange,
+  onDueChange,
 }: {
   tasks: TaskNodeUI[]
   onOpen: (t: TaskNodeUI) => void
   onMove: (taskId: string, status: Status) => void
   /** Quick-add a task with the column's status. */
   onAddTask?: (status: Status, title: string) => void
+  /** When provided, clicking a card's priority cycles it. */
+  onPriorityChange?: (taskId: string, priority: PriorityKey) => void
+  /** When provided, a card's due date becomes editable inline. */
+  onDueChange?: (taskId: string, dueDate: string | null) => void
 }) {
   const [dragOver, setDragOver] = useState<Status | null>(null)
   const [draggingId, setDraggingId] = useState<string | null>(null)
@@ -81,6 +93,8 @@ export function TaskBoard({
                   dragging={draggingId === t.id}
                   onOpen={() => onOpen(t)}
                   onMove={onMove}
+                  onPriorityChange={onPriorityChange}
+                  onDueChange={onDueChange}
                   onDragStart={() => setDraggingId(t.id)}
                   onDragEnd={() => {
                     setDraggingId(null)
@@ -107,6 +121,8 @@ function BoardCard({
   dragging,
   onOpen,
   onMove,
+  onPriorityChange,
+  onDueChange,
   onDragStart,
   onDragEnd,
 }: {
@@ -114,6 +130,8 @@ function BoardCard({
   dragging: boolean
   onOpen: () => void
   onMove: (taskId: string, status: Status) => void
+  onPriorityChange?: (taskId: string, priority: PriorityKey) => void
+  onDueChange?: (taskId: string, dueDate: string | null) => void
   onDragStart: () => void
   onDragEnd: () => void
 }) {
@@ -138,11 +156,37 @@ function BoardCard({
       }`}
     >
       <div className="flex items-start gap-2">
-        <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left">
-          <span className="inline-flex items-center gap-1.5 text-[11px]">
-            <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
-            <span className={`font-medium ${pr.label}`}>{task.priority}</span>
-          </span>
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={onOpen}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              onOpen()
+            }
+          }}
+          className="min-w-0 flex-1 cursor-pointer text-left"
+        >
+          {onPriorityChange ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onPriorityChange(task.id, nextPriority(task.priority))
+              }}
+              title="Click to change priority"
+              className="inline-flex items-center gap-1.5 rounded text-[11px] transition-opacity hover:opacity-80"
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
+              <span className={`font-medium ${pr.label}`}>{task.priority}</span>
+            </button>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-[11px]">
+              <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
+              <span className={`font-medium ${pr.label}`}>{task.priority}</span>
+            </span>
+          )}
           <h4
             className={`mt-1.5 line-clamp-2 text-sm leading-snug font-medium ${
               isDone ? 'text-white/55 line-through' : 'text-white'
@@ -151,11 +195,19 @@ function BoardCard({
             {task.title}
           </h4>
           <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px] text-white/40">
-            {due && (
-              <span className={`inline-flex items-center gap-1 ${dueToneClass(due)}`}>
-                <CalendarDays className="h-3 w-3" />
-                {due.label}
-              </span>
+            {onDueChange ? (
+              <DueEditor
+                dueDate={task.dueDate}
+                status={task.status}
+                onChange={(d) => onDueChange(task.id, d)}
+              />
+            ) : (
+              due && (
+                <span className={`inline-flex items-center gap-1 ${dueToneClass(due)}`}>
+                  <CalendarDays className="h-3 w-3" />
+                  {due.label}
+                </span>
+              )
             )}
             {total > 0 && (
               <span className="inline-flex items-center gap-1">
@@ -178,7 +230,7 @@ function BoardCard({
             </div>
           )}
           <TagChips tags={task.tags} className="mt-2" />
-        </button>
+        </div>
         <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-white/20" />
       </div>
 
@@ -239,5 +291,71 @@ function ColumnAdd({ onAdd }: { onAdd: (title: string) => void }) {
       placeholder="Task title…"
       className="w-full rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-white placeholder:text-white/35 focus:border-violet-400/40 focus:outline-none"
     />
+  )
+}
+
+// Inline due-date control for a board card. Clicks stop propagation so they
+// don't open the task. Shows the due chip (or a faint "Due" on hover).
+function DueEditor({
+  dueDate,
+  status,
+  onChange,
+}: {
+  dueDate: TaskNodeUI['dueDate']
+  status: Status
+  onChange: (dueDate: string | null) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const due = formatDue(dueDate, status)
+  const value = dueDate ? new Date(dueDate).toISOString().slice(0, 10) : ''
+
+  if (editing) {
+    return (
+      <span className="inline-flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <input
+          type="date"
+          autoFocus
+          defaultValue={value}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => {
+            onChange(e.target.value ? new Date(e.target.value).toISOString() : null)
+            setEditing(false)
+          }}
+          onBlur={() => setEditing(false)}
+          className="rounded border border-white/15 bg-white/10 px-1 py-0.5 text-[10px] text-white [color-scheme:dark] focus:outline-none"
+        />
+        {due && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onChange(null)
+              setEditing(false)
+            }}
+            aria-label="Clear due date"
+            className="text-white/40 hover:text-rose-300"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </span>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation()
+        setEditing(true)
+      }}
+      title="Set due date"
+      className={`inline-flex items-center gap-1 rounded transition-opacity hover:bg-white/5 ${
+        due ? dueToneClass(due) : 'text-white/30 opacity-0 group-hover:opacity-100'
+      }`}
+    >
+      <CalendarDays className="h-3 w-3" />
+      {due ? due.label : 'Due'}
+    </button>
   )
 }
