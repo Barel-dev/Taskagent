@@ -42,6 +42,13 @@ export function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) 
   const [newTag, setNewTag] = useState('')
   const [addingTag, setAddingTag] = useState(false)
 
+  // For a brand-new task, honor the default priority set in Settings.
+  useEffect(() => {
+    if (task) return
+    const p = localStorage.getItem('taskagent:defaultPriority')
+    if (p === 'LOW' || p === 'MEDIUM' || p === 'HIGH' || p === 'URGENT') setPriority(p)
+  }, [task])
+
   useEffect(() => {
     fetch('/api/tags')
       .then((r) => (r.ok ? r.json() : null))

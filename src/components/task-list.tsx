@@ -248,7 +248,7 @@ export function TaskList({
     const allDoneNow = projected.length > 0 && projected.every((t) => t.status === 'DONE')
     const wasAllDone = prev.length > 0 && prev.every((t) => t.status === 'DONE')
     if (status === 'DONE' && allDoneNow && !wasAllDone) {
-      confetti()
+      if (localStorage.getItem('taskagent:confetti') !== 'off') confetti()
       toast.success('All tasks done — nice work! 🎉')
     }
     router.refresh()
