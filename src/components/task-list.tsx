@@ -729,6 +729,7 @@ export function TaskList({
                   onPriorityChange={(p) => changePriority(t.id, p)}
                   onPin={(p) => changePinned(t.id, p)}
                   onDueChange={(d) => changeDue(t.id, d)}
+                  highlight={query}
                   selected={selectedIds.includes(t.id)}
                   onToggleSelect={() => toggleSelect(t.id)}
                 />

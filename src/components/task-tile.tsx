@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
   Clock,
   CalendarDays,
@@ -35,11 +35,14 @@ export function TaskTile({
   onPriorityChange,
   onPin,
   onDueChange,
+  highlight,
   selected,
   onToggleSelect,
 }: {
   task: TaskNodeUI
   onOpen: () => void
+  /** Search term to highlight within the title. */
+  highlight?: string
   /** When provided, the tile shows a quick done/undone toggle. */
   onStatusChange?: (status: TaskNodeUI['status']) => void
   /** When provided, clicking the priority cycles it. */
@@ -164,7 +167,7 @@ export function TaskTile({
           isDone ? 'text-white/60 line-through' : 'text-white'
         }`}
       >
-        {task.title}
+        <Highlighted text={task.title} query={highlight ?? ''} />
       </h3>
       {task.description && (
         <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/45">
@@ -223,6 +226,33 @@ export function TaskTile({
       </div>
     </div>
   )
+}
+
+// Wrap occurrences of `query` (case-insensitive) in the text with a highlight.
+function Highlighted({ text, query }: { text: string; query: string }) {
+  const q = query.trim()
+  if (!q) return <>{text}</>
+  const lower = text.toLowerCase()
+  const ql = q.toLowerCase()
+  if (!lower.includes(ql)) return <>{text}</>
+  const parts: ReactNode[] = []
+  let i = 0
+  let k = 0
+  while (i < text.length) {
+    const found = lower.indexOf(ql, i)
+    if (found < 0) {
+      parts.push(text.slice(i))
+      break
+    }
+    if (found > i) parts.push(text.slice(i, found))
+    parts.push(
+      <mark key={k++} className="rounded bg-violet-400/30 text-white">
+        {text.slice(found, found + q.length)}
+      </mark>,
+    )
+    i = found + q.length
+  }
+  return <>{parts}</>
 }
 
 // Inline due-date control for the tile footer. Shows the due chip (or a faint
