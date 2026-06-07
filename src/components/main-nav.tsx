@@ -2,9 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ListTodo, CalendarDays, LayoutDashboard, Settings } from 'lucide-react'
+import { ListTodo, CalendarDays, LayoutDashboard, Settings, Sun } from 'lucide-react'
 
 const LINKS = [
+  { href: '/today', label: 'Today', Icon: Sun },
   { href: '/tasks', label: 'Tasks', Icon: ListTodo },
   { href: '/calendar', label: 'Calendar', Icon: CalendarDays },
   { href: '/dashboard', label: 'Dashboard', Icon: LayoutDashboard },

@@ -8,6 +8,7 @@ import {
   CalendarDays,
   LayoutDashboard,
   Settings,
+  Sun,
   Hash,
   CornerDownLeft,
   Plus,
@@ -18,6 +19,7 @@ type Task = { id: string; title: string; status: string }
 type Item = { key: string; label: string; sub?: string; icon: React.ReactNode; run: () => void }
 
 const NAV = [
+  { label: 'Go to Today', href: '/today', Icon: Sun },
   { label: 'Go to Tasks', href: '/tasks', Icon: ListTodo },
   { label: 'Go to Calendar', href: '/calendar', Icon: CalendarDays },
   { label: 'Go to Dashboard', href: '/dashboard', Icon: LayoutDashboard },
@@ -32,6 +34,7 @@ const ACTIONS = [
 
 // "g then key" navigation, like Gmail/Linear.
 const GOTO: Record<string, string> = {
+  y: '/today',
   t: '/tasks',
   c: '/calendar',
   d: '/dashboard',
