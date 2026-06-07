@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { TaskDetail } from '@/components/task-detail'
 import type { TaskNodeUI } from '@/components/task-list'
 import type { PriorityFilter } from '@/lib/task-filter'
+import { parseQuickAdd } from '@/lib/quick-add'
 
 const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 
@@ -105,11 +106,13 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
     setMonthOffset(0)
   }
 
-  async function addOnDay(date: Date, title: string) {
+  async function addOnDay(date: Date, rawTitle: string) {
+    // Honor the quick-add priority syntax; the clicked day is the due date.
+    const { title, priority } = parseQuickAdd(rawTitle)
     const res = await fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, dueDate: date.toISOString() }),
+      body: JSON.stringify({ title, priority, dueDate: date.toISOString() }),
     })
     if (!res.ok) {
       toast.error('Could not add task')
@@ -322,11 +325,13 @@ function WeekGrid({
   onReschedule: (taskId: string, date: Date) => void
 }) {
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()
   return (
     <div className="tl-rise overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.025] p-3 backdrop-blur-sm">
       <div className="grid min-w-[760px] grid-cols-7 gap-2">
         {days.map((day, i) => {
           const isToday = sameDay(day, today)
+          const isPast = day.getTime() < todayStart
           const items = tasksOn(day)
           return (
             <div key={i} className="flex flex-col">
@@ -383,7 +388,9 @@ function WeekGrid({
                         onClick={() => onOpen(t)}
                         className={`cursor-grab rounded-lg border p-2 text-left transition-transform hover:-translate-y-0.5 active:cursor-grabbing ${
                           CARD[t.priority]
-                        } ${done ? 'opacity-50' : ''}`}
+                        } ${done ? 'opacity-50' : ''} ${
+                          isPast && !done ? 'ring-1 ring-rose-400/60' : ''
+                        }`}
                       >
                         {time && (
                           <div className="mb-0.5 text-[10px] font-semibold tabular-nums opacity-80">
@@ -431,6 +438,7 @@ function MonthGrid({
   const [title, setTitle] = useState('')
   const [dragOverKey, setDragOverKey] = useState<string | null>(null)
   const month = monthBase.getMonth()
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()
   const leading = (monthBase.getDay() + 6) % 7 // Mon-start offset of the 1st
   const daysInMonth = new Date(monthBase.getFullYear(), month + 1, 0).getDate()
   const weeks = Math.ceil((leading + daysInMonth) / 7)
@@ -455,6 +463,7 @@ function MonthGrid({
           {cells.map((day, i) => {
             const inMonth = day.getMonth() === month
             const isToday = sameDay(day, today)
+            const isPast = day.getTime() < todayStart
             const items = tasksOn(day)
             const key = day.toISOString().slice(0, 10)
             return (
@@ -504,7 +513,9 @@ function MonthGrid({
                       title={time ? `${time} · ${t.title}` : t.title}
                       className={`flex cursor-grab items-center gap-1 rounded-md border px-1.5 py-0.5 text-left text-[10px] font-medium transition-colors hover:bg-white/10 active:cursor-grabbing ${
                         CARD[t.priority]
-                      } ${done ? 'opacity-50' : ''}`}
+                      } ${done ? 'opacity-50' : ''} ${
+                        isPast && !done ? 'ring-1 ring-rose-400/60' : ''
+                      }`}
                     >
                       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${DOT[t.priority]}`} />
                       {time && <span className="shrink-0 tabular-nums opacity-80">{time}</span>}
