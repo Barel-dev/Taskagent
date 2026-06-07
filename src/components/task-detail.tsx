@@ -34,6 +34,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { EmailAgentDialog } from '@/components/email-agent-dialog'
 import { ScheduleAgentDialog } from '@/components/schedule-agent-dialog'
 import { RefineDialog } from '@/components/refine-dialog'
+import { FocusTimer } from '@/components/focus-timer'
 import { TagChips } from '@/components/tag-chip'
 import { tagChipClass } from '@/lib/tag-colors'
 import { saveTemplate } from '@/lib/templates'
@@ -672,6 +673,7 @@ export function TaskDetail({
                 Schedule
               </Button>
               <span className="ml-auto flex items-center gap-1">
+                <FocusTimer taskId={task.id} />
                 <Button
                   size="icon-sm"
                   variant="ghost"
