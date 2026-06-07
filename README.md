@@ -29,13 +29,17 @@ Agents **share context**: answers you give one agent (dates, budget, who's trave
 
 ## Workspace & views
 
-- **Three views:** a tile **list**, a drag-and-drop **Kanban board** (To do / In progress / Done — drag to change status, quick-add per column, quick-done on tiles), and a **calendar** (week + month grid) that plots tasks by scheduled time or due date. Your view choice is remembered.
-- **Search, filter & sort:** narrow by text, priority, tag, and due window (overdue / today / this week), with one-click "N overdue · N due today" chips; sort by due date, priority, or title.
-- **Tags:** create colored labels, attach them from the task form, filter by them, and rename/delete them in a manage dialog.
+- **Three views:** a tile **list**, a drag-and-drop **Kanban board** (drag to change status, drag to reorder, quick-add per column), and a **calendar** (week + month grid) that plots tasks by scheduled time or due date, with drag-to-reschedule, an overdue ring on past-day chips, and keyboard navigation. Your view choice is remembered.
+- **Quick capture:** natural-language quick-add — typing `Email Dan tomorrow !high` sets the due date and priority automatically (works in the list bar, board/calendar add, and steps); plus **CSV / paste import** and a **⌘K command palette** (jump to a view, search tasks, new task, import).
+- **Inline editing everywhere:** click a tile's priority to cycle it or its due chip to pick a date; the detail edits title, description (Markdown), priority, due, and tags in place; steps can be renamed, reordered (drag), run, completed, and deleted.
+- **Organize:** colored **tags** (create, recolor, click a chip to filter, bulk-add, manage); priorities; **pin** to top; **recurring tasks** (daily / weekly / monthly / yearly that respawn the next occurrence on completion); and **manual drag-to-reorder** of top-level tasks.
+- **Find & focus:** search with **match highlighting**, filters (priority / tag / due window) with one-click "N overdue · N due today" chips, **hide-done** toggle, **saved views**, sort by smart / due / priority / title / manual, and a clear-filters shortcut.
+- **Bulk actions:** multi-select tasks to set status, priority, or due date, add a tag, or delete — with select all / none.
 - **Smart due dates:** relative labels ("Today", "Tomorrow", "2d overdue", "in 3d") with overdue/soon color highlighting.
-- **Chat assistant:** a floating panel that answers questions about your tasks and can create new ones on request.
-- **Dashboard:** agent-run stats, a 14-day activity chart, a by-agent breakdown, and recent runs.
-- **Keyboard shortcuts:** `n` for a new task, `/` to focus search.
+- **Dashboard:** task stats, a **completion streak**, an **open-work** time estimate, by-priority deep-links, **scheduled-next** list, recurring count, a 14-day activity chart, by-agent breakdown, and an **expandable recent-run drill-down** (input/output/error).
+- **Reminders & preferences:** opt-in **browser notifications** for due-soon tasks; a **settings** page (default view/sort/priority, completion confetti, reminders, reset local data); persisted chat history.
+- **Keyboard shortcuts:** `⌘K`/`Ctrl+K` palette · `n` new task · `/` search · `b` toggle list/board · `g` then `t`/`c`/`d`/`s` to navigate · `?` help; calendar `←`/`→`, `t`, `w`/`m`.
+- **Touches:** copy a task as Markdown, copy a shareable task link, confetti when you finish your last task.
 
 ## How it works
 
@@ -71,7 +75,9 @@ Environment variables (`.env.local`):
 ## Testing
 
 ```bash
-npm test    # Vitest — Zod validators, data layer, and every agent (Gemini mocked, $0)
+npm test    # Vitest — Zod validators, data layer, and every agent (Gemini mocked, $0),
+            # plus pure-function unit tests for filtering, sorting, due labels,
+            # and the natural-language quick-add parser
 ```
 
 ## Deploying (Vercel)
