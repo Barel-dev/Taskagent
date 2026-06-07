@@ -131,7 +131,10 @@ export function TaskList({
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el?.isContentEditable) return
       if (e.key === 'n') {
         e.preventDefault()
-        setCreating(true)
+        // Prefer the inline quick-add bar; fall back to the full form dialog.
+        const quick = document.getElementById('quick-add-input') as HTMLInputElement | null
+        if (quick) quick.focus()
+        else setCreating(true)
       } else if (e.key === '/') {
         e.preventDefault()
         const target = (document.getElementById('task-search') ??
@@ -651,7 +654,12 @@ export function TaskList({
         <div className="tl-rise rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
           <Sparkles className="mx-auto h-6 w-6 text-violet-300/60" />
           <p className="mt-3 text-sm text-white/60">No tasks yet.</p>
-          <p className="mt-1 text-xs text-white/40">Describe a goal above, or try one of these:</p>
+          <p className="mt-1 text-xs text-white/40">
+            Add one below, describe a goal above, or try one of these:
+          </p>
+          <div className="mx-auto mt-4 max-w-md">
+            <QuickAddBar onAdd={(title) => addTask('TODO', title)} />
+          </div>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             {[
               'Plan a weekend trip to Lisbon',
@@ -881,6 +889,7 @@ function QuickAddBar({ onAdd }: { onAdd: (title: string) => void }) {
     <div className="tl-rise flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
       <Plus className="h-4 w-4 shrink-0 text-white/35" />
       <input
+        id="quick-add-input"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {
