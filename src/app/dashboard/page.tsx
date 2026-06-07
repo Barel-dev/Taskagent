@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import type { AgentType, AgentRunStatus } from '@prisma/client'
 import { tagChipClass } from '@/lib/tag-colors'
+import { AgentRunRow } from '@/components/agent-run-row'
 
 export const dynamic = 'force-dynamic'
 
@@ -457,22 +458,14 @@ export default async function DashboardPage() {
               {/* Recent runs */}
               <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
                 <h3 className="text-sm font-semibold text-white/80">Recent runs</h3>
-                <div className="mt-4 space-y-2">
+                <div className="mt-4 space-y-1">
                   {recent.map((r) => (
-                    <div key={r.id} className="flex items-center gap-3 text-xs">
-                      <span
-                        className={`rounded-full px-2 py-0.5 font-medium ${STATUS_STYLE[r.status]}`}
-                      >
-                        {r.status.toLowerCase()}
-                      </span>
-                      <span className="text-white/75">{TYPE_LABEL[r.agentType]}</span>
-                      <span className="ml-auto text-white/40 tabular-nums">
-                        {(r.tokensUsed ?? 0).toLocaleString()} tok
-                      </span>
-                      <span className="w-20 text-right text-white/35 tabular-nums">
-                        {new Date(r.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
+                    <AgentRunRow
+                      key={r.id}
+                      run={r}
+                      label={TYPE_LABEL[r.agentType]}
+                      statusClass={STATUS_STYLE[r.status]}
+                    />
                   ))}
                 </div>
               </div>
