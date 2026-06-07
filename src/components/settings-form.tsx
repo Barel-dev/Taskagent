@@ -11,17 +11,40 @@ export function SettingsForm() {
   const [sort, setSort] = useState('default')
   const [priority, setPriority] = useState('MEDIUM')
   const [confetti, setConfetti] = useState(true)
+  const [notify, setNotify] = useState(false)
 
   useEffect(() => {
     setView(localStorage.getItem('taskagent:view') ?? 'list')
     setSort(localStorage.getItem('taskagent:sort') ?? 'default')
     setPriority(localStorage.getItem('taskagent:defaultPriority') ?? 'MEDIUM')
     setConfetti(localStorage.getItem('taskagent:confetti') !== 'off')
+    setNotify(localStorage.getItem('taskagent:notify') === 'on')
   }, [])
 
   function persist(key: string, value: string) {
     localStorage.setItem(key, value)
     toast.success('Saved')
+  }
+
+  // Turning reminders on requires the browser's Notification permission.
+  async function toggleNotify() {
+    if (notify) {
+      setNotify(false)
+      persist('taskagent:notify', 'off')
+      return
+    }
+    if (!('Notification' in window)) {
+      toast.error('This browser does not support notifications')
+      return
+    }
+    let perm = Notification.permission
+    if (perm === 'default') perm = await Notification.requestPermission()
+    if (perm !== 'granted') {
+      toast.error('Notifications are blocked in your browser settings')
+      return
+    }
+    setNotify(true)
+    persist('taskagent:notify', 'on')
   }
 
   const selectClass =
@@ -76,27 +99,43 @@ export function SettingsForm() {
       </Row>
 
       <Row label="Celebrate completions" hint="Confetti when you finish your last task.">
-        <button
-          type="button"
+        <Toggle
+          on={confetti}
           onClick={() => {
             const next = !confetti
             setConfetti(next)
             persist('taskagent:confetti', next ? 'on' : 'off')
           }}
-          role="switch"
-          aria-checked={confetti}
-          className={`relative h-6 w-11 rounded-full transition-colors ${
-            confetti ? 'bg-violet-500' : 'bg-white/15'
-          }`}
-        >
-          <span
-            className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-              confetti ? 'translate-x-5' : 'translate-x-0.5'
-            }`}
-          />
-        </button>
+        />
+      </Row>
+
+      <Row
+        label="Due-soon reminders"
+        hint="Browser notifications for tasks due today or overdue, while a tab is open."
+      >
+        <Toggle on={notify} onClick={toggleNotify} />
       </Row>
     </div>
+  )
+}
+
+function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      role="switch"
+      aria-checked={on}
+      className={`relative h-6 w-11 rounded-full transition-colors ${
+        on ? 'bg-violet-500' : 'bg-white/15'
+      }`}
+    >
+      <span
+        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+          on ? 'translate-x-5' : 'translate-x-0.5'
+        }`}
+      />
+    </button>
   )
 }
 
