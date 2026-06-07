@@ -8,15 +8,22 @@ import { ShaderBackground } from '@/components/ui/shader-background'
 export default async function TasksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ task?: string; priority?: string; new?: string; import?: string }>
+  searchParams: Promise<{
+    task?: string
+    priority?: string
+    due?: string
+    new?: string
+    import?: string
+  }>
 }) {
   const session = await auth()
   if (!session?.user?.id) redirect('/signin')
-  const { task, priority, new: newParam, import: importParam } = await searchParams
+  const { task, priority, due, new: newParam, import: importParam } = await searchParams
   const initialPriority =
     priority === 'LOW' || priority === 'MEDIUM' || priority === 'HIGH' || priority === 'URGENT'
       ? priority
       : undefined
+  const initialDue = due === 'overdue' || due === 'today' || due === 'week' ? due : undefined
 
   const tasks = await listTasksForUser(session.user.id)
   // Recursively serialize Date fields for client components (tree of any depth).
@@ -41,6 +48,7 @@ export default async function TasksPage({
         openTaskId={task}
         userName={session.user.name ?? undefined}
         initialPriority={initialPriority}
+        initialDue={initialDue}
         openNew={!!newParam}
         openImport={!!importParam}
       />

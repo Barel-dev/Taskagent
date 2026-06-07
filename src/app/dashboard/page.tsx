@@ -218,7 +218,10 @@ export default async function DashboardPage() {
               </div>
               <div className="mt-1 text-xs text-white/50">In progress</div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+            <Link
+              href="/tasks?due=overdue"
+              className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm transition-colors hover:border-white/20 hover:bg-white/[0.06]"
+            >
               <AlertTriangle className="h-5 w-5 text-rose-300" />
               <div
                 className={`mt-3 text-3xl font-semibold tracking-tight ${
@@ -228,7 +231,7 @@ export default async function DashboardPage() {
                 {overdueTasks}
               </div>
               <div className="mt-1 text-xs text-white/50">Overdue</div>
-            </div>
+            </Link>
           </div>
           {(streak > 0 || openWorkLabel) && (
             <div className="flex flex-wrap items-center gap-2">

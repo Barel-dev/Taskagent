@@ -74,6 +74,7 @@ export function TaskList({
   openTaskId,
   userName,
   initialPriority,
+  initialDue,
   openNew,
   openImport,
 }: {
@@ -81,6 +82,7 @@ export function TaskList({
   openTaskId?: string
   userName?: string
   initialPriority?: PriorityFilter
+  initialDue?: DueFilter
   /** Open the new-task form on mount (command-palette deep link). */
   openNew?: boolean
   /** Open the import dialog on mount (command-palette deep link). */
@@ -178,7 +180,7 @@ export function TaskList({
   useEffect(() => {
     localStorage.setItem('taskagent:sort', sort)
   }, [sort])
-  const [dueFilter, setDueFilter] = useState<DueFilter>('ALL')
+  const [dueFilter, setDueFilter] = useState<DueFilter>(initialDue ?? 'ALL')
   const [hideDone, setHideDone] = useState(false)
   useEffect(() => {
     setHideDone(localStorage.getItem('taskagent:hideDone') === 'on')
