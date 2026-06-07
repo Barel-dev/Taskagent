@@ -860,6 +860,28 @@ export function TaskList({
           <select
             defaultValue=""
             onChange={(e) => {
+              const s = e.target.value
+              if (s) {
+                bulkPatch({
+                  status: s,
+                  completedAt: s === 'DONE' ? new Date().toISOString() : null,
+                })
+                e.target.value = ''
+              }
+            }}
+            aria-label="Set status for selected"
+            className="h-8 rounded-md border border-white/10 bg-white/5 px-2 text-xs text-white/75 focus:outline-none"
+          >
+            <option value="" disabled>
+              Status…
+            </option>
+            <option value="TODO">To do</option>
+            <option value="IN_PROGRESS">In progress</option>
+            <option value="DONE">Done</option>
+          </select>
+          <select
+            defaultValue=""
+            onChange={(e) => {
               if (e.target.value) {
                 bulkPatch({ priority: e.target.value })
                 e.target.value = ''
