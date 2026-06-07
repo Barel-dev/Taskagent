@@ -672,6 +672,10 @@ export function TaskList({
         </div>
       )}
 
+      {view === 'list' && tasks.length > 0 && (
+        <QuickAddBar onAdd={(title) => addTask('TODO', title)} />
+      )}
+
       {tasks.length > 0 && visible.length === 0 && (
         <div className="tl-rise rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
           <Search className="mx-auto h-6 w-6 text-white/40" />
@@ -859,6 +863,41 @@ export function TaskList({
         onImported={() => router.refresh()}
       />
       <ChatSidebar />
+    </div>
+  )
+}
+
+// A persistent quick-add row for the list view. Title text supports the
+// natural-language syntax (parsed by the caller's addTask via parseQuickAdd).
+function QuickAddBar({ onAdd }: { onAdd: (title: string) => void }) {
+  const [value, setValue] = useState('')
+  function submit() {
+    const t = value.trim()
+    if (!t) return
+    onAdd(t)
+    setValue('')
+  }
+  return (
+    <div className="tl-rise flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
+      <Plus className="h-4 w-4 shrink-0 text-white/35" />
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            submit()
+          }
+        }}
+        placeholder="Quick add — e.g. “Email Dan tomorrow !high”"
+        aria-label="Quick add a task"
+        className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/35 focus:outline-none"
+      />
+      {value.trim() && (
+        <Button size="sm" onClick={submit} className="btn-accent h-7">
+          Add
+        </Button>
+      )}
     </div>
   )
 }
