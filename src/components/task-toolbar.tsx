@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Settings2, LayoutGrid, Columns3 } from 'lucide-react'
+import { Search, Settings2, LayoutGrid, Columns3, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { PriorityFilter, SortKey, DueFilter } from '@/lib/task-filter'
@@ -22,6 +22,8 @@ export function TaskToolbar({
   onManageTags,
   sort,
   setSort,
+  hideDone,
+  setHideDone,
   view,
   setView,
 }: {
@@ -37,6 +39,8 @@ export function TaskToolbar({
   onManageTags: () => void
   sort: SortKey
   setSort: (v: SortKey) => void
+  hideDone: boolean
+  setHideDone: (v: boolean) => void
   view: 'list' | 'board'
   setView: (v: 'list' | 'board') => void
 }) {
@@ -114,6 +118,20 @@ export function TaskToolbar({
         <option value="priority">Sort: Priority</option>
         <option value="title">Sort: Title</option>
       </select>
+      <button
+        type="button"
+        onClick={() => setHideDone(!hideDone)}
+        aria-pressed={hideDone}
+        title={hideDone ? 'Show completed tasks' : 'Hide completed tasks'}
+        className={`inline-flex h-9 items-center gap-1 rounded-md border px-2.5 text-xs transition-colors ${
+          hideDone
+            ? 'border-violet-400/40 bg-violet-500/15 text-white'
+            : 'border-white/10 text-white/70 hover:bg-white/5'
+        }`}
+      >
+        {hideDone ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+        Hide done
+      </button>
       <div className="inline-flex rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
         <button
           type="button"

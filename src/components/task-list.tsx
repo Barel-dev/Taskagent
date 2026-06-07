@@ -179,8 +179,17 @@ export function TaskList({
     localStorage.setItem('taskagent:sort', sort)
   }, [sort])
   const [dueFilter, setDueFilter] = useState<DueFilter>('ALL')
+  const [hideDone, setHideDone] = useState(false)
+  useEffect(() => {
+    setHideDone(localStorage.getItem('taskagent:hideDone') === 'on')
+  }, [])
+  useEffect(() => {
+    localStorage.setItem('taskagent:hideDone', hideDone ? 'on' : 'off')
+  }, [hideDone])
   const visible = sortTasks(
-    filterTasks(tasks, { query, priority, tagId: tagFilter, due: dueFilter }),
+    filterTasks(tasks, { query, priority, tagId: tagFilter, due: dueFilter }).filter(
+      (t) => !hideDone || t.status !== 'DONE',
+    ),
     sort,
   )
   const filtering =
@@ -531,6 +540,8 @@ export function TaskList({
           onManageTags={() => setManageTagsOpen(true)}
           sort={sort}
           setSort={setSort}
+          hideDone={hideDone}
+          setHideDone={setHideDone}
           view={view}
           setView={setView}
         />
