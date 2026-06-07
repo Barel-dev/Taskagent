@@ -35,6 +35,7 @@ import {
   type DueFilter,
 } from '@/lib/task-filter'
 import { confetti } from '@/lib/confetti'
+import { parseQuickAdd } from '@/lib/quick-add'
 
 export type TaskNodeUI = {
   id: string
@@ -306,11 +307,13 @@ export function TaskList({
     router.refresh()
   }
 
-  async function addTask(status: TaskNodeUI['status'], title: string) {
+  async function addTask(status: TaskNodeUI['status'], rawTitle: string) {
+    // Natural-language quick-add: "Email Dan tomorrow !high" sets due + priority.
+    const { title, priority, dueDate } = parseQuickAdd(rawTitle)
     const res = await fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, status }),
+      body: JSON.stringify({ title, status, priority, dueDate }),
     })
     if (!res.ok) {
       toast.error('Could not add task')

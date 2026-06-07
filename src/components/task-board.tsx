@@ -288,7 +288,7 @@ function ColumnAdd({ onAdd }: { onAdd: (title: string) => void }) {
         }
       }}
       onBlur={submit}
-      placeholder="Task title…"
+      placeholder="Task — try “tomorrow !high”"
       className="w-full rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-white placeholder:text-white/35 focus:border-violet-400/40 focus:outline-none"
     />
   )
