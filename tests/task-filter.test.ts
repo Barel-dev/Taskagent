@@ -103,7 +103,46 @@ describe('sortTasks', () => {
   })
 })
 
+describe('sortTasks manual', () => {
+  it('orders by the saved order field', () => {
+    const items: (T & { order: number })[] = [
+      { title: 'a', description: null, priority: 'LOW', dueDate: null, status: 'TODO', order: 2 },
+      { title: 'b', description: null, priority: 'LOW', dueDate: null, status: 'TODO', order: 0 },
+      { title: 'c', description: null, priority: 'LOW', dueDate: null, status: 'TODO', order: 1 },
+    ]
+    expect(sortTasks(items, 'manual').map((t) => t.title)).toEqual(['b', 'c', 'a'])
+  })
+})
+
+describe('filterTasks by tag', () => {
+  type TT = T & { tags?: { id: string; name: string; color: string }[] }
+  const work = { id: 'w', name: 'work', color: 'sky' }
+  const items: TT[] = [
+    {
+      title: 'tagged',
+      description: null,
+      priority: 'LOW',
+      dueDate: null,
+      status: 'TODO',
+      tags: [work],
+    },
+    { title: 'untagged', description: null, priority: 'LOW', dueDate: null, status: 'TODO' },
+  ]
+  it('requires the selected tag', () => {
+    expect(filterTasks(items, { tagId: 'w' }).map((t) => t.title)).toEqual(['tagged'])
+  })
+  it("'ALL' keeps everything", () => {
+    expect(filterTasks(items, { tagId: 'ALL' })).toHaveLength(2)
+  })
+})
+
 describe('filterTasks due window', () => {
+  const dayOffset = (n: number) => {
+    const d = new Date()
+    d.setDate(d.getDate() + n)
+    return d.toISOString()
+  }
+
   it('overdue includes only past-due, not-done, dated tasks', () => {
     const items: T[] = [
       { title: 'past', description: null, priority: 'LOW', dueDate: '2020-01-01', status: 'TODO' },
@@ -117,5 +156,22 @@ describe('filterTasks due window', () => {
       { title: 'none', description: null, priority: 'LOW', dueDate: null, status: 'TODO' },
     ]
     expect(filterTasks(items, { due: 'overdue' }).map((t) => t.title)).toEqual(['past'])
+  })
+
+  it('today matches only tasks due today', () => {
+    const items: T[] = [
+      { title: 'today', description: null, priority: 'LOW', dueDate: dayOffset(0), status: 'TODO' },
+      { title: 'later', description: null, priority: 'LOW', dueDate: dayOffset(3), status: 'TODO' },
+    ]
+    expect(filterTasks(items, { due: 'today' }).map((t) => t.title)).toEqual(['today'])
+  })
+
+  it('week matches today through 7 days out, excluding past', () => {
+    const items: T[] = [
+      { title: 'in3', description: null, priority: 'LOW', dueDate: dayOffset(3), status: 'TODO' },
+      { title: 'in10', description: null, priority: 'LOW', dueDate: dayOffset(10), status: 'TODO' },
+      { title: 'past', description: null, priority: 'LOW', dueDate: dayOffset(-1), status: 'TODO' },
+    ]
+    expect(filterTasks(items, { due: 'week' }).map((t) => t.title)).toEqual(['in3'])
   })
 })
