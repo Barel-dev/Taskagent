@@ -333,6 +333,26 @@ export function TaskList({
     setSelectedIds([])
     router.refresh()
   }
+  // Add a tag to every selected task, keeping each one's existing tags.
+  async function bulkAddTag(tagId: string) {
+    const ids = selectedIds
+    const res = await Promise.all(
+      ids.map((id) => {
+        const t = tasks.find((x) => x.id === id)
+        const existing = (t?.tags ?? []).map((tg) => tg.id)
+        const tagIds = existing.includes(tagId) ? existing : [...existing, tagId]
+        return fetch(`/api/tasks/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tagIds }),
+        })
+      }),
+    )
+    if (res.some((r) => !r.ok)) toast.error('Some updates failed')
+    else toast.success(`Tagged ${ids.length} task${ids.length === 1 ? '' : 's'}`)
+    setSelectedIds([])
+    router.refresh()
+  }
 
   async function prioritize() {
     setPrioritizing(true)
@@ -744,6 +764,28 @@ export function TaskList({
             <option value="MEDIUM">Medium</option>
             <option value="LOW">Low</option>
           </select>
+          {allTags.length > 0 && (
+            <select
+              defaultValue=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  bulkAddTag(e.target.value)
+                  e.target.value = ''
+                }
+              }}
+              aria-label="Add tag to selected"
+              className="h-8 rounded-md border border-white/10 bg-white/5 px-2 text-xs text-white/75 focus:outline-none"
+            >
+              <option value="" disabled>
+                Add tag…
+              </option>
+              {allTags.map((tag) => (
+                <option key={tag.id} value={tag.id}>
+                  {tag.name}
+                </option>
+              ))}
+            </select>
+          )}
           <Button
             size="sm"
             variant="outline"
