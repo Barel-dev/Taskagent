@@ -22,6 +22,8 @@ import {
   Wand2,
   GripVertical,
   ClipboardList,
+  CalendarDays,
+  X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -91,6 +93,7 @@ export function TaskDetail({
   const [title, setTitle] = useState(task.title)
   const [editingTitle, setEditingTitle] = useState(false)
   const [priority, setPriorityState] = useState(task.priority)
+  const [dueDate, setDueDate] = useState<TaskNodeUI['dueDate']>(task.dueDate)
   // Drag-to-reorder state for the steps rail.
   const [dragId, setDragId] = useState<string | null>(null)
   const [overId, setOverId] = useState<string | null>(null)
@@ -106,7 +109,7 @@ export function TaskDetail({
   const [selectedId, setSelectedId] = useState<string>(hasChildren ? children[0].id : OVERVIEW)
   const selected = children.find((c) => c.id === selectedId) ?? null
   const pr = PRIORITY[priority]
-  const due = formatDue(task.dueDate, task.status)
+  const due = formatDue(dueDate, task.status)
   const scheduled = task.scheduledStart
     ? new Date(task.scheduledStart).toLocaleString(undefined, {
         month: 'short',
@@ -346,6 +349,20 @@ export function TaskDetail({
     }
   }
 
+  async function changeTaskDue(d: string | null) {
+    const prev = dueDate
+    setDueDate(d)
+    const res = await fetch(`/api/tasks/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dueDate: d }),
+    })
+    if (!res.ok) {
+      setDueDate(prev)
+      toast.error('Could not update due date')
+    }
+  }
+
   async function renameTask(next: string) {
     const trimmed = next.trim()
     setEditingTitle(false)
@@ -379,7 +396,9 @@ export function TaskDetail({
                 <span className={`h-1.5 w-1.5 rounded-full ${pr.dot}`} />
                 <span className={`font-medium ${pr.label}`}>{priority}</span>
               </button>
-              {due && <span className={`ml-2 ${dueToneClass(due)}`}>due {due.label}</span>}
+              <span className="ml-2">
+                <HeaderDue dueDate={dueDate} status={task.status} onChange={changeTaskDue} />
+              </span>
               {scheduled && <span className="ml-2 text-violet-300">· scheduled {scheduled}</span>}
             </span>
             <DialogTitle className="mt-1.5 text-xl font-semibold tracking-tight text-white">
@@ -667,6 +686,66 @@ export function TaskDetail({
       <ScheduleAgentDialog task={task} open={scheduleOpen} onOpenChange={setScheduleOpen} />
       <RefineDialog task={task} open={refineOpen} onOpenChange={setRefineOpen} />
     </>
+  )
+}
+
+/* ───────── Inline due-date editor for the header ───────── */
+function HeaderDue({
+  dueDate,
+  status,
+  onChange,
+}: {
+  dueDate: TaskNodeUI['dueDate']
+  status: TaskNodeUI['status']
+  onChange: (dueDate: string | null) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const due = formatDue(dueDate, status)
+  const value = dueDate ? new Date(dueDate).toISOString().slice(0, 10) : ''
+
+  if (editing) {
+    return (
+      <span className="inline-flex items-center gap-1">
+        <input
+          type="date"
+          autoFocus
+          defaultValue={value}
+          onChange={(e) => {
+            onChange(e.target.value ? new Date(e.target.value).toISOString() : null)
+            setEditing(false)
+          }}
+          onBlur={() => setEditing(false)}
+          className="rounded border border-white/15 bg-white/10 px-1 py-0.5 text-[11px] text-white [color-scheme:dark] focus:outline-none"
+        />
+        {due && (
+          <button
+            type="button"
+            onClick={() => {
+              onChange(null)
+              setEditing(false)
+            }}
+            aria-label="Clear due date"
+            className="text-white/40 hover:text-rose-300"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </span>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setEditing(true)}
+      title="Set due date"
+      className={`inline-flex items-center gap-1 rounded hover:bg-white/5 ${
+        due ? dueToneClass(due) : 'text-white/40'
+      }`}
+    >
+      <CalendarDays className="h-3 w-3" />
+      {due ? `due ${due.label}` : 'Set due'}
+    </button>
   )
 }
 
