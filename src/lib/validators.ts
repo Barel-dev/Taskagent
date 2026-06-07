@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { TAG_COLORS } from '@/lib/tag-colors'
 
 export const taskStatusEnum = z.enum(['TODO', 'IN_PROGRESS', 'DONE'])
 export const priorityEnum = z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT'])
@@ -20,6 +21,19 @@ export const createTaskSchema = z.object({
 export const createTagSchema = z.object({
   name: z.string().min(1, 'Tag name is required').max(40),
 })
+
+// Update a tag's name and/or color. At least one field must be present.
+export const updateTagSchema = z
+  .object({
+    name: z.string().min(1).max(40).optional(),
+    color: z
+      .string()
+      .refine((c) => (TAG_COLORS as readonly string[]).includes(c), 'Invalid color')
+      .optional(),
+  })
+  .refine((o) => o.name !== undefined || o.color !== undefined, {
+    message: 'Provide a name or color',
+  })
 
 export const refineRequestSchema = z.object({
   taskId: z.string().min(1, 'taskId is required'),

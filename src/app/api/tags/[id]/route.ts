@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { createTagSchema } from '@/lib/validators'
-import { renameTagForUser, deleteTagForUser } from '@/lib/tags'
+import { updateTagSchema } from '@/lib/validators'
+import { renameTagForUser, setTagColorForUser, deleteTagForUser } from '@/lib/tags'
 
 type Ctx = { params: Promise<{ id: string }> }
 
@@ -11,7 +11,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const { id } = await params
 
   const body = await req.json().catch(() => null)
-  const parsed = createTagSchema.safeParse(body)
+  const parsed = updateTagSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json(
       { error: 'Invalid input', issues: parsed.error.flatten() },
@@ -20,8 +20,15 @@ export async function PATCH(req: Request, { params }: Ctx) {
   }
 
   try {
-    const tag = await renameTagForUser(session.user.id, id, parsed.data.name)
-    if (!tag) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    let tag = null
+    if (parsed.data.name !== undefined) {
+      tag = await renameTagForUser(session.user.id, id, parsed.data.name)
+      if (!tag) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+    if (parsed.data.color !== undefined) {
+      tag = await setTagColorForUser(session.user.id, id, parsed.data.color)
+      if (!tag) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
     return NextResponse.json({ tag })
   } catch (err) {
     // Unique violation on (userId, name) — a tag with that name already exists.

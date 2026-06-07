@@ -61,6 +61,20 @@ export async function renameTagForUser(
   })
 }
 
+/** Set a tag's color. Returns the updated tag, or null if not found. */
+export async function setTagColorForUser(
+  userId: string,
+  id: string,
+  color: string,
+): Promise<TagLite | null> {
+  const result = await prisma.tag.updateMany({ where: { id, userId }, data: { color } })
+  if (result.count === 0) return null
+  return prisma.tag.findUnique({
+    where: { id },
+    select: { id: true, name: true, color: true },
+  })
+}
+
 /** Delete a tag the user owns (cascades its task links). */
 export async function deleteTagForUser(userId: string, id: string): Promise<boolean> {
   const result = await prisma.tag.deleteMany({ where: { id, userId } })
