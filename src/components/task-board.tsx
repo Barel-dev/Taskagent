@@ -14,11 +14,11 @@ const COLUMNS: { status: Status; label: string }[] = [
   { status: 'DONE', label: 'Done' },
 ]
 
-const PRIORITY: Record<TaskNodeUI['priority'], { dot: string; label: string }> = {
-  LOW: { dot: 'bg-slate-400', label: 'text-slate-300' },
-  MEDIUM: { dot: 'bg-sky-400', label: 'text-sky-300' },
-  HIGH: { dot: 'bg-amber-400', label: 'text-amber-300' },
-  URGENT: { dot: 'bg-rose-500', label: 'text-rose-300' },
+const PRIORITY: Record<TaskNodeUI['priority'], { dot: string; label: string; bar: string }> = {
+  LOW: { dot: 'bg-slate-400', label: 'text-slate-300', bar: 'bg-slate-400/70' },
+  MEDIUM: { dot: 'bg-sky-400', label: 'text-sky-300', bar: 'bg-sky-400/70' },
+  HIGH: { dot: 'bg-amber-400', label: 'text-amber-300', bar: 'bg-amber-400/70' },
+  URGENT: { dot: 'bg-rose-500', label: 'text-rose-300', bar: 'bg-rose-500/70' },
 }
 
 // Kanban board over the user's top-level tasks. Cards drag between the three
@@ -120,6 +120,7 @@ function BoardCard({
   const pr = PRIORITY[task.priority]
   const total = task.children?.length ?? 0
   const done = task.children?.filter((c) => c.status === 'DONE').length ?? 0
+  const pct = total ? Math.round((done / total) * 100) : 0
   const isDone = task.status === 'DONE'
   const due = formatDue(task.dueDate, task.status)
 
@@ -168,6 +169,14 @@ function BoardCard({
               </span>
             )}
           </div>
+          {total > 0 && (
+            <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
+              <div
+                className={`h-full rounded-full ${pr.bar} transition-all`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          )}
           <TagChips tags={task.tags} className="mt-2" />
         </button>
         <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-white/20" />
