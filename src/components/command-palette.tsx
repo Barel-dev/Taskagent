@@ -13,6 +13,7 @@ import {
   CornerDownLeft,
   Plus,
   Upload,
+  Files,
 } from 'lucide-react'
 
 type Task = { id: string; title: string; status: string }
@@ -29,6 +30,7 @@ const NAV = [
 // Actions deep-link to the tasks page with a flag TaskList reads to open a dialog.
 const ACTIONS = [
   { label: 'New task', href: '/tasks?new=1', Icon: Plus },
+  { label: 'New from template', href: '/tasks?templates=1', Icon: Files },
   { label: 'Import tasks', href: '/tasks?import=1', Icon: Upload },
 ]
 

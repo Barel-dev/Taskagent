@@ -81,6 +81,7 @@ export function TaskList({
   initialDue,
   openNew,
   openImport,
+  openTemplates,
 }: {
   initialTasks: TaskNodeUI[]
   openTaskId?: string
@@ -91,6 +92,8 @@ export function TaskList({
   openNew?: boolean
   /** Open the import dialog on mount (command-palette deep link). */
   openImport?: boolean
+  /** Open the templates dialog on mount (command-palette deep link). */
+  openTemplates?: boolean
 }) {
   const router = useRouter()
   const [selected, setSelected] = useState<TaskNodeUI | null>(null)
@@ -175,7 +178,8 @@ export function TaskList({
   useEffect(() => {
     if (openNew) setCreating(true)
     if (openImport) setImportOpen(true)
-  }, [openNew, openImport])
+    if (openTemplates) setTemplatesOpen(true)
+  }, [openNew, openImport, openTemplates])
   // Unique tags across the user's tasks, for the filter dropdown.
   const allTags = Array.from(
     new Map(tasks.flatMap((t) => t.tags ?? []).map((tag) => [tag.id, tag])).values(),

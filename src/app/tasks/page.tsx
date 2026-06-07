@@ -14,11 +14,19 @@ export default async function TasksPage({
     due?: string
     new?: string
     import?: string
+    templates?: string
   }>
 }) {
   const session = await auth()
   if (!session?.user?.id) redirect('/signin')
-  const { task, priority, due, new: newParam, import: importParam } = await searchParams
+  const {
+    task,
+    priority,
+    due,
+    new: newParam,
+    import: importParam,
+    templates: templatesParam,
+  } = await searchParams
   const initialPriority =
     priority === 'LOW' || priority === 'MEDIUM' || priority === 'HIGH' || priority === 'URGENT'
       ? priority
@@ -51,6 +59,7 @@ export default async function TasksPage({
         initialDue={initialDue}
         openNew={!!newParam}
         openImport={!!importParam}
+        openTemplates={!!templatesParam}
       />
     </div>
   )
