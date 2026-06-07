@@ -13,6 +13,7 @@ import {
   Upload,
   CheckCheck,
   Trash2,
+  Files,
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -23,6 +24,7 @@ import { SavedViews } from '@/components/saved-views'
 import { ChatSidebar } from '@/components/chat-sidebar'
 import { ManageTagsDialog } from '@/components/manage-tags-dialog'
 import { CsvImportDialog } from '@/components/csv-import-dialog'
+import { TemplatesDialog } from '@/components/templates-dialog'
 import { TaskDetail } from '@/components/task-detail'
 import { TaskForm } from '@/components/task-form'
 import { Button } from '@/components/ui/button'
@@ -167,6 +169,7 @@ export function TaskList({
   const [tagFilter, setTagFilter] = useState<string>('ALL')
   const [manageTagsOpen, setManageTagsOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
+  const [templatesOpen, setTemplatesOpen] = useState(false)
   // Open a dialog when deep-linked from the command palette (/tasks?new / ?import).
   useEffect(() => {
     if (openNew) setCreating(true)
@@ -706,6 +709,16 @@ export function TaskList({
             <Upload className="h-3.5 w-3.5" />
           </Button>
           <Button
+            size="icon-sm"
+            variant="outline"
+            onClick={() => setTemplatesOpen(true)}
+            title="Task templates"
+            aria-label="Task templates"
+            className="h-8 w-8 border-white/15 text-white/70 hover:bg-white/5"
+          >
+            <Files className="h-3.5 w-3.5" />
+          </Button>
+          <Button
             variant="ghost"
             size="sm"
             onClick={() => setCreating(true)}
@@ -1051,6 +1064,7 @@ export function TaskList({
         onOpenChange={setImportOpen}
         onImported={() => router.refresh()}
       />
+      <TemplatesDialog open={templatesOpen} onOpenChange={setTemplatesOpen} />
       <ChatSidebar />
     </div>
   )

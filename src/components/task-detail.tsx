@@ -24,6 +24,7 @@ import {
   ClipboardList,
   CalendarDays,
   Link2,
+  Files,
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -35,6 +36,7 @@ import { ScheduleAgentDialog } from '@/components/schedule-agent-dialog'
 import { RefineDialog } from '@/components/refine-dialog'
 import { TagChips } from '@/components/tag-chip'
 import { tagChipClass } from '@/lib/tag-colors'
+import { saveTemplate } from '@/lib/templates'
 import { Markdown } from '@/components/markdown'
 import { formatDue, dueToneClass } from '@/lib/format-due'
 import { parseQuickAdd } from '@/lib/quick-add'
@@ -308,6 +310,20 @@ export function TaskDetail({
     if (!res.ok) return toast.error('Could not duplicate')
     toast.success('Task duplicated')
     close()
+  }
+
+  function saveAsTemplate() {
+    saveTemplate({
+      id: `${Date.now()}`,
+      name: title,
+      title,
+      description: description || null,
+      priority,
+      steps: children.map((c) => c.title),
+    })
+    toast.success('Saved as template', {
+      description: 'Reuse it from Templates on the tasks page.',
+    })
   }
 
   async function copyLink() {
@@ -673,6 +689,15 @@ export function TaskDetail({
                   className="text-white/40 hover:text-white"
                 >
                   <ClipboardList className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  onClick={saveAsTemplate}
+                  title="Save as template"
+                  className="text-white/40 hover:text-white"
+                >
+                  <Files className="h-3.5 w-3.5" />
                 </Button>
                 <Button
                   size="icon-sm"
