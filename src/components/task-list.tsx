@@ -10,6 +10,7 @@ import {
   Search,
   Download,
   FileJson,
+  Upload,
   CheckCheck,
   Trash2,
   X,
@@ -21,6 +22,7 @@ import { TaskToolbar } from '@/components/task-toolbar'
 import { SavedViews } from '@/components/saved-views'
 import { ChatSidebar } from '@/components/chat-sidebar'
 import { ManageTagsDialog } from '@/components/manage-tags-dialog'
+import { CsvImportDialog } from '@/components/csv-import-dialog'
 import { TaskDetail } from '@/components/task-detail'
 import { TaskForm } from '@/components/task-form'
 import { Button } from '@/components/ui/button'
@@ -148,6 +150,7 @@ export function TaskList({
   const [priority, setPriority] = useState<PriorityFilter>(initialPriority ?? 'ALL')
   const [tagFilter, setTagFilter] = useState<string>('ALL')
   const [manageTagsOpen, setManageTagsOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   // Unique tags across the user's tasks, for the filter dropdown.
   const allTags = Array.from(
     new Map(tasks.flatMap((t) => t.tags ?? []).map((tag) => [tag.id, tag])).values(),
@@ -589,6 +592,16 @@ export function TaskList({
             </>
           )}
           <Button
+            size="icon-sm"
+            variant="outline"
+            onClick={() => setImportOpen(true)}
+            title="Import tasks from CSV"
+            aria-label="Import tasks from CSV"
+            className="h-8 w-8 border-white/15 text-white/70 hover:bg-white/5"
+          >
+            <Upload className="h-3.5 w-3.5" />
+          </Button>
+          <Button
             variant="ghost"
             size="sm"
             onClick={() => setCreating(true)}
@@ -830,6 +843,11 @@ export function TaskList({
       )}
 
       <ManageTagsDialog tags={allTags} open={manageTagsOpen} onOpenChange={setManageTagsOpen} />
+      <CsvImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onImported={() => router.refresh()}
+      />
       <ChatSidebar />
     </div>
   )
