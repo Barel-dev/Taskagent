@@ -23,6 +23,7 @@ import {
   GripVertical,
   ClipboardList,
   CalendarDays,
+  Link2,
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -259,6 +260,28 @@ export function TaskDetail({
     }
   }
 
+  async function setAllSteps(done: boolean) {
+    const targets = children.filter((c) => c._done !== done)
+    if (targets.length === 0) return
+    setChildren((prev) => prev.map((c) => ({ ...c, _done: done })))
+    const res = await Promise.all(
+      targets.map((c) =>
+        fetch(`/api/tasks/${c.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: done ? 'DONE' : 'TODO',
+            completedAt: done ? new Date().toISOString() : null,
+          }),
+        }),
+      ),
+    )
+    if (res.some((r) => !r.ok)) {
+      toast.error('Some steps could not update')
+      router.refresh()
+    }
+  }
+
   async function deleteChild(child: Child) {
     if (!confirm('Delete this step?')) return
     const res = await fetch(`/api/tasks/${child.id}`, { method: 'DELETE' })
@@ -283,6 +306,15 @@ export function TaskDetail({
     if (!res.ok) return toast.error('Could not duplicate')
     toast.success('Task duplicated')
     close()
+  }
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/tasks?task=${task.id}`)
+      toast.success('Link copied')
+    } catch {
+      toast.error('Could not copy link')
+    }
   }
 
   // Render this task + its steps as a Markdown checklist for pasting elsewhere.
@@ -564,6 +596,15 @@ export function TaskDetail({
                 <Button
                   size="icon-sm"
                   variant="ghost"
+                  onClick={copyLink}
+                  title="Copy link to task"
+                  className="text-white/40 hover:text-white"
+                >
+                  <Link2 className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
                   onClick={copyMarkdown}
                   title="Copy as Markdown"
                   className="text-white/40 hover:text-white"
@@ -610,8 +651,17 @@ export function TaskDetail({
                   <span className="text-[11px] font-medium tracking-wider text-white/35 uppercase">
                     Steps
                   </span>
-                  <span className="text-[11px] text-white/40 tabular-nums">
-                    {doneCount}/{children.length}
+                  <span className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAllSteps(doneCount !== children.length)}
+                      className="text-[11px] text-white/40 hover:text-white/70"
+                    >
+                      {doneCount === children.length ? 'Clear all' : 'Mark all'}
+                    </button>
+                    <span className="text-[11px] text-white/40 tabular-nums">
+                      {doneCount}/{children.length}
+                    </span>
                   </span>
                 </div>
                 <button
