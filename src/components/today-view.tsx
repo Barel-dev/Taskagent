@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Circle, AlertTriangle, CalendarClock, CalendarDays, Sun } from 'lucide-react'
+import { Circle, AlertTriangle, CalendarClock, CalendarDays, Sun, AlarmClock } from 'lucide-react'
 import { toast } from 'sonner'
 import type { TaskNodeUI } from '@/components/task-list'
 import { formatDue, dueToneClass } from '@/lib/format-due'
@@ -61,6 +61,28 @@ export function TodayView({
     router.refresh()
   }
 
+  // Push a task's due date to tomorrow (drops it off today's list).
+  async function snooze(id: string) {
+    const d = new Date()
+    d.setDate(d.getDate() + 1)
+    const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+      d.getDate(),
+    ).padStart(2, '0')}`
+    const iso = new Date(ymd).toISOString()
+    setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, dueDate: iso } : t)))
+    const res = await fetch(`/api/tasks/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dueDate: iso }),
+    })
+    if (!res.ok) {
+      toast.error('Could not snooze')
+      router.refresh()
+    } else {
+      toast.success('Snoozed to tomorrow')
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-6 py-10">
       <header className="tl-rise">
@@ -97,12 +119,14 @@ export function TodayView({
             icon={<AlertTriangle className="h-4 w-4 text-rose-300" />}
             items={overdue}
             onComplete={complete}
+            onSnooze={snooze}
           />
           <Section
             title="Due today"
             icon={<CalendarDays className="h-4 w-4 text-amber-300" />}
             items={dueToday}
             onComplete={complete}
+            onSnooze={snooze}
           />
           <Section
             title="Scheduled today"
@@ -122,12 +146,14 @@ function Section({
   icon,
   items,
   onComplete,
+  onSnooze,
   showTime,
 }: {
   title: string
   icon: React.ReactNode
   items: TaskNodeUI[]
   onComplete: (id: string) => void
+  onSnooze?: (id: string) => void
   showTime?: boolean
 }) {
   if (items.length === 0) return null
@@ -171,6 +197,17 @@ function Section({
               )}
               {!time && due && (
                 <span className={`shrink-0 text-xs ${dueToneClass(due)}`}>{due.label}</span>
+              )}
+              {onSnooze && (
+                <button
+                  type="button"
+                  onClick={() => onSnooze(t.id)}
+                  title="Snooze to tomorrow"
+                  aria-label="Snooze to tomorrow"
+                  className="shrink-0 text-white/30 hover:text-violet-300"
+                >
+                  <AlarmClock className="h-4 w-4" />
+                </button>
               )}
             </div>
           )
