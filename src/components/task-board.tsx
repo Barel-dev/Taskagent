@@ -38,6 +38,7 @@ export function TaskBoard({
   onAddTask,
   onPriorityChange,
   onDueChange,
+  onTagClick,
   highlight,
 }: {
   tasks: TaskNodeUI[]
@@ -49,6 +50,8 @@ export function TaskBoard({
   onPriorityChange?: (taskId: string, priority: PriorityKey) => void
   /** When provided, a card's due date becomes editable inline. */
   onDueChange?: (taskId: string, dueDate: string | null) => void
+  /** When provided, clicking a tag chip filters by it. */
+  onTagClick?: (id: string) => void
   /** Search term to highlight within card titles. */
   highlight?: string
 }) {
@@ -99,6 +102,7 @@ export function TaskBoard({
                   onMove={onMove}
                   onPriorityChange={onPriorityChange}
                   onDueChange={onDueChange}
+                  onTagClick={onTagClick}
                   highlight={highlight}
                   onDragStart={() => setDraggingId(t.id)}
                   onDragEnd={() => {
@@ -128,6 +132,7 @@ function BoardCard({
   onMove,
   onPriorityChange,
   onDueChange,
+  onTagClick,
   highlight,
   onDragStart,
   onDragEnd,
@@ -138,6 +143,7 @@ function BoardCard({
   onMove: (taskId: string, status: Status) => void
   onPriorityChange?: (taskId: string, priority: PriorityKey) => void
   onDueChange?: (taskId: string, dueDate: string | null) => void
+  onTagClick?: (id: string) => void
   highlight?: string
   onDragStart: () => void
   onDragEnd: () => void
@@ -236,7 +242,7 @@ function BoardCard({
               />
             </div>
           )}
-          <TagChips tags={task.tags} className="mt-2" />
+          <TagChips tags={task.tags} className="mt-2" onTagClick={onTagClick} />
         </div>
         <GripVertical className="mt-0.5 h-4 w-4 shrink-0 text-white/20" />
       </div>

@@ -799,6 +799,7 @@ export function TaskList({
               onAddTask={addTask}
               onPriorityChange={changePriority}
               onDueChange={changeDue}
+              onTagClick={setTagFilter}
               highlight={query}
             />
           </div>
