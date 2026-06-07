@@ -21,6 +21,7 @@ import {
   Copy,
   Wand2,
   GripVertical,
+  ClipboardList,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -32,6 +33,7 @@ import { RefineDialog } from '@/components/refine-dialog'
 import { TagChips } from '@/components/tag-chip'
 import { Markdown } from '@/components/markdown'
 import { formatDue, dueToneClass } from '@/lib/format-due'
+import { parseQuickAdd } from '@/lib/quick-add'
 import type { TaskNodeUI, RichSourceUI } from '@/components/task-list'
 
 type Source = RichSourceUI
@@ -260,8 +262,34 @@ export function TaskDetail({
     close()
   }
 
-  async function addStep(title: string) {
-    const { ok, data } = await postJson('/api/tasks', { title, parentId: task.id })
+  // Render this task + its steps as a Markdown checklist for pasting elsewhere.
+  async function copyMarkdown() {
+    const lines: string[] = [`# ${title}`]
+    const meta = [task.priority.toLowerCase()]
+    if (task.dueDate) meta.push(`due ${new Date(task.dueDate).toLocaleDateString()}`)
+    lines.push(`_${meta.join(' · ')}_`)
+    if (task.description) lines.push('', task.description)
+    if (children.length) {
+      lines.push('')
+      for (const c of children) lines.push(`- [${c._done ? 'x' : ' '}] ${c.title}`)
+    }
+    try {
+      await navigator.clipboard.writeText(lines.join('\n'))
+      toast.success('Copied as Markdown')
+    } catch {
+      toast.error('Could not copy')
+    }
+  }
+
+  async function addStep(rawTitle: string) {
+    // Steps support the same quick-add syntax ("Research flights !high").
+    const { title, priority, dueDate } = parseQuickAdd(rawTitle)
+    const { ok, data } = await postJson('/api/tasks', {
+      title,
+      parentId: task.id,
+      priority,
+      dueDate,
+    })
     if (!ok) return toast.error('Could not add step')
     const child = data?.task as Child | undefined
     if (child) {
@@ -421,6 +449,15 @@ export function TaskDetail({
                 Schedule
               </Button>
               <span className="ml-auto flex items-center gap-1">
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  onClick={copyMarkdown}
+                  title="Copy as Markdown"
+                  className="text-white/40 hover:text-white"
+                >
+                  <ClipboardList className="h-3.5 w-3.5" />
+                </Button>
                 <Button
                   size="icon-sm"
                   variant="ghost"
