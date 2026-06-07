@@ -2,7 +2,15 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, ListTodo, CalendarDays, LayoutDashboard, Hash, CornerDownLeft } from 'lucide-react'
+import {
+  Search,
+  ListTodo,
+  CalendarDays,
+  LayoutDashboard,
+  Settings,
+  Hash,
+  CornerDownLeft,
+} from 'lucide-react'
 
 type Task = { id: string; title: string; status: string }
 type Item = { key: string; label: string; sub?: string; icon: React.ReactNode; run: () => void }
@@ -11,7 +19,16 @@ const NAV = [
   { label: 'Go to Tasks', href: '/tasks', Icon: ListTodo },
   { label: 'Go to Calendar', href: '/calendar', Icon: CalendarDays },
   { label: 'Go to Dashboard', href: '/dashboard', Icon: LayoutDashboard },
+  { label: 'Go to Settings', href: '/settings', Icon: Settings },
 ]
+
+// "g then key" navigation, like Gmail/Linear.
+const GOTO: Record<string, string> = {
+  t: '/tasks',
+  c: '/calendar',
+  d: '/dashboard',
+  s: '/settings',
+}
 
 // A ⌘K / Ctrl+K command palette: jump between views and search tasks. Renders
 // both the trigger pill (for the header) and the overlay. Additive — it just
@@ -25,15 +42,34 @@ export function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    let lastG = 0
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
         setOpen((o) => !o)
+        return
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      const el = e.target as HTMLElement | null
+      const tag = el?.tagName
+      // Ignore while typing (this also covers the palette's own input).
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el?.isContentEditable) return
+      if (e.key === 'g') {
+        lastG = Date.now()
+        return
+      }
+      // A destination key within ~1.2s of "g" navigates.
+      if (Date.now() - lastG > 1200) return
+      const dest = GOTO[e.key]
+      if (dest) {
+        e.preventDefault()
+        lastG = 0
+        router.push(dest)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [router])
 
   useEffect(() => {
     if (!open) return

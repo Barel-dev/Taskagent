@@ -721,6 +721,10 @@ export function TaskList({
                 ['⌘K / Ctrl+K', 'Command palette'],
                 ['N', 'New task'],
                 ['/', 'Search'],
+                ['G then T', 'Go to Tasks'],
+                ['G then C', 'Go to Calendar'],
+                ['G then D', 'Go to Dashboard'],
+                ['G then S', 'Go to Settings'],
                 ['?', 'This help'],
               ] as const
             ).map(([k, d]) => (
