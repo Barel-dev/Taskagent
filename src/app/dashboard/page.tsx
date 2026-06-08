@@ -19,6 +19,7 @@ import {
 import type { AgentType, AgentRunStatus } from '@prisma/client'
 import { tagChipClass } from '@/lib/tag-colors'
 import { AgentRunRow } from '@/components/agent-run-row'
+import { FocusStat } from '@/components/focus-stat'
 
 export const dynamic = 'force-dynamic'
 
@@ -242,22 +243,21 @@ export default async function DashboardPage() {
               <div className="mt-1 text-xs text-white/50">Overdue</div>
             </Link>
           </div>
-          {(streak > 0 || openWorkLabel) && (
-            <div className="flex flex-wrap items-center gap-2">
-              {streak > 0 && (
-                <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-1.5 text-sm text-amber-200">
-                  <Flame className="h-4 w-4" />
-                  {streak}-day completion streak — keep it going!
-                </div>
-              )}
-              {openWorkLabel && (
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/70">
-                  <Clock className="h-4 w-4 text-sky-300" />~{openWorkLabel} of work left across
-                  open tasks
-                </div>
-              )}
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-2 empty:hidden">
+            {streak > 0 && (
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-1.5 text-sm text-amber-200">
+                <Flame className="h-4 w-4" />
+                {streak}-day completion streak — keep it going!
+              </div>
+            )}
+            {openWorkLabel && (
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/70">
+                <Clock className="h-4 w-4 text-sky-300" />~{openWorkLabel} of work left across open
+                tasks
+              </div>
+            )}
+            <FocusStat />
+          </div>
           {totalTasks > 0 && (
             <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
               <h4 className="text-sm font-semibold text-white/80">By priority</h4>
