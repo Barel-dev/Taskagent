@@ -46,6 +46,20 @@ export function TodayView({
   const [draft, setDraft] = useState('')
   useEffect(() => setTasks(initial), [initial])
 
+  // "n" focuses the quick-add (ignored while typing).
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.key !== 'n') return
+      const el = e.target as HTMLElement | null
+      const tag = el?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el?.isContentEditable) return
+      e.preventDefault()
+      document.getElementById('today-quick-add')?.focus()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   // Capture a task here; with no date token it defaults to due today.
   async function addTask() {
     const raw = draft.trim()
@@ -147,6 +161,7 @@ export function TodayView({
       <div className="tl-rise flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
         <Plus className="h-4 w-4 shrink-0 text-white/35" />
         <input
+          id="today-quick-add"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
