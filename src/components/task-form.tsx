@@ -22,6 +22,7 @@ type Task = {
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   dueDate: string | Date | null
   recurrence?: Recurrence
+  estimatedMinutes?: number | null
   tags?: Tag[]
 }
 
@@ -34,6 +35,9 @@ export function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) 
     task?.dueDate ? new Date(task.dueDate).toISOString().slice(0, 10) : '',
   )
   const [recurrence, setRecurrence] = useState<Recurrence>(task?.recurrence ?? 'NONE')
+  const [estimate, setEstimate] = useState(
+    task?.estimatedMinutes != null ? String(task.estimatedMinutes) : '',
+  )
   const [saving, setSaving] = useState(false)
 
   // Tags: the user's full tag list, plus which ids are selected for this task.
@@ -103,6 +107,7 @@ export function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) 
         priority,
         dueDate: dueDate ? new Date(dueDate).toISOString() : null,
         recurrence,
+        estimatedMinutes: estimate.trim() ? Number(estimate) : null,
         tagIds: selectedIds,
       }
       const url = task ? `/api/tasks/${task.id}` : '/api/tasks'
@@ -170,6 +175,19 @@ export function TaskForm({ task, onDone }: { task?: Task; onDone: () => void }) 
             onChange={(e) => setDueDate(e.target.value)}
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="estimate">Estimated time (minutes)</Label>
+        <Input
+          id="estimate"
+          type="number"
+          min={1}
+          max={100000}
+          value={estimate}
+          onChange={(e) => setEstimate(e.target.value)}
+          placeholder="e.g. 30"
+        />
       </div>
 
       <div className="space-y-2">
