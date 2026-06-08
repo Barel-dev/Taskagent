@@ -25,6 +25,7 @@ import {
   CalendarDays,
   Link2,
   Files,
+  Repeat,
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -512,6 +513,12 @@ export function TaskDetail({
                 <HeaderDue dueDate={dueDate} status={task.status} onChange={changeTaskDue} />
               </span>
               {scheduled && <span className="ml-2 text-violet-300">· scheduled {scheduled}</span>}
+              {task.recurrence && task.recurrence !== 'NONE' && (
+                <span className="ml-2 inline-flex items-center gap-1 text-white/45">
+                  <Repeat className="h-3 w-3" />
+                  repeats {task.recurrence.toLowerCase()}
+                </span>
+              )}
             </span>
             <DialogTitle className="mt-1.5 text-xl font-semibold tracking-tight text-white">
               {editingTitle ? (
