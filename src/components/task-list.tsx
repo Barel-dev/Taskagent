@@ -49,6 +49,7 @@ export type TaskNodeUI = {
   pinned?: boolean
   recurrence?: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
   dueDate: string | Date | null
+  completedAt?: string | Date | null
   scheduledStart?: string | Date | null
   scheduledEnd?: string | Date | null
   estimatedMinutes?: number | null

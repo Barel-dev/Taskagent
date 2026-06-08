@@ -77,6 +77,10 @@ export function TodayView({
     .filter((t) => t.scheduledStart && sameDay(new Date(t.scheduledStart), now))
     .sort((a, b) => new Date(a.scheduledStart!).getTime() - new Date(b.scheduledStart!).getTime())
 
+  const completedToday = tasks.filter(
+    (t) => t.status === 'DONE' && t.completedAt && sameDay(new Date(t.completedAt), now),
+  ).length
+
   const hour = now.getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
   const totalFocus = overdue.length + dueToday.length + scheduledToday.length
@@ -128,6 +132,9 @@ export function TodayView({
           {totalFocus === 0
             ? 'Nothing needs your attention today.'
             : `${totalFocus} thing${totalFocus === 1 ? '' : 's'} to focus on today.`}
+          {completedToday > 0 && (
+            <span className="text-emerald-300/80"> · {completedToday} done today</span>
+          )}
         </p>
       </header>
 
