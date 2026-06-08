@@ -3,10 +3,19 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Circle, AlertTriangle, CalendarClock, CalendarDays, Sun, AlarmClock } from 'lucide-react'
+import {
+  Circle,
+  AlertTriangle,
+  CalendarClock,
+  CalendarDays,
+  Sun,
+  AlarmClock,
+  Plus,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import type { TaskNodeUI } from '@/components/task-list'
 import { formatDue, dueToneClass } from '@/lib/format-due'
+import { parseQuickAdd } from '@/lib/quick-add'
 
 const PRIORITY_DOT: Record<TaskNodeUI['priority'], string> = {
   LOW: 'bg-slate-400',
@@ -33,7 +42,29 @@ export function TodayView({
 }) {
   const router = useRouter()
   const [tasks, setTasks] = useState(initial)
+  const [draft, setDraft] = useState('')
   useEffect(() => setTasks(initial), [initial])
+
+  // Capture a task here; with no date token it defaults to due today.
+  async function addTask() {
+    const raw = draft.trim()
+    if (!raw) return
+    const { title, priority, dueDate } = parseQuickAdd(raw)
+    const d = new Date()
+    const todayIso = new Date(
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+        d.getDate(),
+      ).padStart(2, '0')}`,
+    ).toISOString()
+    setDraft('')
+    const res = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, priority, dueDate: dueDate ?? todayIso }),
+    })
+    if (!res.ok) toast.error('Could not add task')
+    else router.refresh()
+  }
 
   const now = new Date()
   const todayStart = startOfDay(now)
@@ -99,6 +130,23 @@ export function TodayView({
             : `${totalFocus} thing${totalFocus === 1 ? '' : 's'} to focus on today.`}
         </p>
       </header>
+
+      <div className="tl-rise flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
+        <Plus className="h-4 w-4 shrink-0 text-white/35" />
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              addTask()
+            }
+          }}
+          placeholder="Add something for today — e.g. “Call the bank !high”"
+          aria-label="Add a task for today"
+          className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/35 focus:outline-none"
+        />
+      </div>
 
       {totalFocus === 0 ? (
         <div className="tl-rise rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
