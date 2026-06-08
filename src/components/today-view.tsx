@@ -92,10 +92,10 @@ export function TodayView({
     router.refresh()
   }
 
-  // Push a task's due date to tomorrow (drops it off today's list).
-  async function snooze(id: string) {
+  // Push a task's due date forward by N days (drops it off today's list).
+  async function snooze(id: string, days: number) {
     const d = new Date()
-    d.setDate(d.getDate() + 1)
+    d.setDate(d.getDate() + days)
     const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
       d.getDate(),
     ).padStart(2, '0')}`
@@ -110,7 +110,7 @@ export function TodayView({
       toast.error('Could not snooze')
       router.refresh()
     } else {
-      toast.success('Snoozed to tomorrow')
+      toast.success(days === 1 ? 'Snoozed to tomorrow' : `Snoozed ${days} days`)
     }
   }
 
@@ -201,7 +201,7 @@ function Section({
   icon: React.ReactNode
   items: TaskNodeUI[]
   onComplete: (id: string) => void
-  onSnooze?: (id: string) => void
+  onSnooze?: (id: string, days: number) => void
   showTime?: boolean
 }) {
   if (items.length === 0) return null
@@ -246,21 +246,60 @@ function Section({
               {!time && due && (
                 <span className={`shrink-0 text-xs ${dueToneClass(due)}`}>{due.label}</span>
               )}
-              {onSnooze && (
-                <button
-                  type="button"
-                  onClick={() => onSnooze(t.id)}
-                  title="Snooze to tomorrow"
-                  aria-label="Snooze to tomorrow"
-                  className="shrink-0 text-white/30 hover:text-violet-300"
-                >
-                  <AlarmClock className="h-4 w-4" />
-                </button>
-              )}
+              {onSnooze && <SnoozeButton id={t.id} onSnooze={onSnooze} />}
             </div>
           )
         })}
       </div>
     </section>
+  )
+}
+
+function SnoozeButton({
+  id,
+  onSnooze,
+}: {
+  id: string
+  onSnooze: (id: string, days: number) => void
+}) {
+  const [open, setOpen] = useState(false)
+  return (
+    <span className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        title="Snooze"
+        aria-label="Snooze"
+        className="text-white/30 hover:text-violet-300"
+      >
+        <AlarmClock className="h-4 w-4" />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 z-20 mt-1 w-32 overflow-hidden rounded-lg border border-white/10 bg-[#0b0e1a]/95 p-1 shadow-2xl backdrop-blur-xl">
+            {(
+              [
+                ['Tomorrow', 1],
+                ['In 3 days', 3],
+                ['Next week', 7],
+              ] as const
+            ).map(([label, days]) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => {
+                  onSnooze(id, days)
+                  setOpen(false)
+                }}
+                className="block w-full rounded px-2 py-1.5 text-left text-xs text-white/75 hover:bg-white/10"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </span>
   )
 }
