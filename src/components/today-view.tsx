@@ -16,6 +16,7 @@ import { toast } from 'sonner'
 import type { TaskNodeUI } from '@/components/task-list'
 import { formatDue, dueToneClass } from '@/lib/format-due'
 import { parseQuickAdd } from '@/lib/quick-add'
+import { confetti } from '@/lib/confetti'
 
 const PRIORITY_DOT: Record<TaskNodeUI['priority'], string> = {
   LOW: 'bg-slate-400',
@@ -87,6 +88,11 @@ export function TodayView({
 
   async function complete(id: string) {
     setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, status: 'DONE' } : t)))
+    // Completing the last thing on today's list earns a celebration.
+    if (totalFocus === 1 && localStorage.getItem('taskagent:confetti') !== 'off') {
+      confetti()
+      toast.success("Today's all clear — nice work! 🎉")
+    }
     const res = await fetch(`/api/tasks/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
