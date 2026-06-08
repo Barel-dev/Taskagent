@@ -9,7 +9,13 @@ import { useEffect } from 'react'
 const NOTIFIED_KEY = 'taskagent:notified'
 const CHECK_MS = 15 * 60 * 1000
 
-type ApiTask = { id: string; title: string; status: string; dueDate: string | null }
+type ApiTask = {
+  id: string
+  title: string
+  status: string
+  dueDate: string | null
+  scheduledStart: string | null
+}
 
 function todayKey() {
   return new Date().toISOString().slice(0, 10)
@@ -44,24 +50,47 @@ export function DueReminders() {
       const endOfToday = new Date().setHours(23, 59, 59, 999)
       let changed = false
 
+      const nowMs = Date.now()
       for (const t of tasks) {
-        if (t.status === 'DONE' || !t.dueDate) continue
-        const due = new Date(t.dueDate).getTime()
-        if (due > endOfToday) continue // not due yet
-        const key = `${t.id}:${today}`
-        if (notified.has(key)) continue
+        if (t.status === 'DONE') continue
 
-        const overdue = due < startOfToday
-        const n = new Notification(overdue ? 'Overdue task' : 'Task due today', {
-          body: t.title,
-          tag: key,
-        })
-        n.onclick = () => {
-          window.focus()
-          window.location.href = `/tasks?task=${t.id}`
+        // Due today / overdue (once per task per day).
+        if (t.dueDate) {
+          const due = new Date(t.dueDate).getTime()
+          const key = `${t.id}:${today}`
+          if (due <= endOfToday && !notified.has(key)) {
+            const overdue = due < startOfToday
+            const n = new Notification(overdue ? 'Overdue task' : 'Task due today', {
+              body: t.title,
+              tag: key,
+            })
+            n.onclick = () => {
+              window.focus()
+              window.location.href = `/tasks?task=${t.id}`
+            }
+            notified.add(key)
+            changed = true
+          }
         }
-        notified.add(key)
-        changed = true
+
+        // Scheduled block starting within the next 30 minutes (once per day).
+        if (t.scheduledStart) {
+          const start = new Date(t.scheduledStart).getTime()
+          const mins = (start - nowMs) / 60000
+          const key = `${t.id}:sched:${today}`
+          if (mins >= 0 && mins <= 30 && !notified.has(key)) {
+            const n = new Notification('Starting soon', {
+              body: t.title,
+              tag: key,
+            })
+            n.onclick = () => {
+              window.focus()
+              window.location.href = `/tasks?task=${t.id}`
+            }
+            notified.add(key)
+            changed = true
+          }
+        }
       }
 
       if (changed) localStorage.setItem(NOTIFIED_KEY, JSON.stringify([...notified]))
