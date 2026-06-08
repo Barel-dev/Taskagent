@@ -74,6 +74,7 @@ export default async function DashboardPage() {
           scheduledStart: true,
           recurrence: true,
           estimatedMinutes: true,
+          updatedAt: true,
         },
       }),
       prisma.tag.findMany({
@@ -161,6 +162,14 @@ export default async function DashboardPage() {
     .sort((a, b) => (a.scheduledStart?.getTime() ?? 0) - (b.scheduledStart?.getTime() ?? 0))
     .slice(0, 6)
   const recurringCount = tasksAll.filter((t) => t.recurrence && t.recurrence !== 'NONE').length
+
+  // Open tasks not touched in 14+ days — easy to forget.
+  const staleBefore = new Date(todayStart)
+  staleBefore.setDate(staleBefore.getDate() - 14)
+  const stale = tasksAll
+    .filter((t) => t.status !== 'DONE' && t.updatedAt < staleBefore)
+    .sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime())
+    .slice(0, 5)
 
   // Estimated focused work still open (sum of estimates on not-done tasks).
   const openMinutes = tasksAll
@@ -339,6 +348,27 @@ export default async function DashboardPage() {
                     </div>
                     <span className="text-[10px] text-white/45">{weekdayLabels[i]}</span>
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {stale.length > 0 && (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+              <h4 className="text-sm font-semibold text-white/80">Needs a nudge</h4>
+              <p className="mt-0.5 text-xs text-white/40">Open and untouched for 14+ days</p>
+              <div className="mt-3 space-y-1">
+                {stale.map((t) => (
+                  <Link
+                    key={t.id}
+                    href={`/tasks?task=${t.id}`}
+                    className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-white/5"
+                  >
+                    <span className="truncate text-white/80">{t.title}</span>
+                    <span className="shrink-0 text-xs text-white/35 tabular-nums">
+                      {Math.floor((todayStart.getTime() - t.updatedAt.getTime()) / 86_400_000)}d ago
+                    </span>
+                  </Link>
                 ))}
               </div>
             </div>
