@@ -1004,7 +1004,20 @@ function StepAdd({ onAdd }: { onAdd: (title: string) => void }) {
         }
       }}
       onBlur={submit}
-      placeholder="Step title…"
+      onPaste={(e) => {
+        const text = e.clipboardData.getData('text')
+        if (!text.includes('\n')) return
+        // Paste a checklist: one step per non-empty line.
+        e.preventDefault()
+        const lines = text
+          .split(/\r?\n/)
+          .map((l) => l.replace(/^\s*[-*]\s*/, '').trim())
+          .filter(Boolean)
+        for (const l of lines) onAdd(l)
+        setTitle('')
+        setAdding(false)
+      }}
+      placeholder="Step title… (paste a list to add many)"
       className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-sm text-white placeholder:text-white/35 focus:border-violet-400/40 focus:outline-none"
     />
   )
