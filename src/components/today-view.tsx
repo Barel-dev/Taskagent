@@ -243,6 +243,8 @@ function Section({
       <div className="divide-y divide-white/5 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035]">
         {items.map((t) => {
           const due = formatDue(t.dueDate, t.status)
+          const total = t.children?.length ?? 0
+          const done = t.children?.filter((c) => c.status === 'DONE').length ?? 0
           const time =
             showTime && t.scheduledStart
               ? new Date(t.scheduledStart).toLocaleTimeString(undefined, {
@@ -268,6 +270,11 @@ function Section({
               >
                 {t.title}
               </Link>
+              {total > 0 && (
+                <span className="shrink-0 text-[10px] text-white/35 tabular-nums">
+                  {done}/{total}
+                </span>
+              )}
               {time && (
                 <span className="shrink-0 text-xs text-violet-300/80 tabular-nums">{time}</span>
               )}
