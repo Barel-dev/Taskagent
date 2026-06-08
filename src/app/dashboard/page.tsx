@@ -83,7 +83,7 @@ export default async function DashboardPage() {
       }),
       prisma.task.findMany({
         where: { userId, completedAt: { gte: since } },
-        select: { completedAt: true },
+        select: { completedAt: true, createdAt: true },
       }),
     ])
 
@@ -115,6 +115,14 @@ export default async function DashboardPage() {
   }
   const maxWeekday = Math.max(1, ...byWeekday)
   const totalCompletedRecent = completedRecent.length
+  // Average calendar days from creation to completion (recent completions).
+  const spans = completedRecent
+    .filter((t) => t.completedAt)
+    .map((t) => (t.completedAt!.getTime() - t.createdAt.getTime()) / 86_400_000)
+  const avgDaysToComplete =
+    spans.length > 0
+      ? Math.round((spans.reduce((s, d) => s + d, 0) / spans.length) * 10) / 10
+      : null
   // Consecutive days ending today with at least one completed task.
   let streak = 0
   for (let i = doneByDay.length - 1; i >= 0; i--) {
@@ -263,6 +271,12 @@ export default async function DashboardPage() {
               <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/70">
                 <Clock className="h-4 w-4 text-sky-300" />~{openWorkLabel} of work left across open
                 tasks
+              </div>
+            )}
+            {avgDaysToComplete !== null && (
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/70">
+                <CheckCircle2 className="h-4 w-4 text-emerald-300" />~{avgDaysToComplete}d avg to
+                complete
               </div>
             )}
             <FocusStat />
