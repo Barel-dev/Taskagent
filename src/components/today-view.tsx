@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { TaskNodeUI } from '@/components/task-list'
+import { BriefingCard } from '@/components/briefing-card'
 import { formatDue, dueToneClass } from '@/lib/format-due'
 import { parseQuickAdd } from '@/lib/quick-add'
 import { confetti } from '@/lib/confetti'
@@ -37,9 +38,11 @@ function sameDay(a: Date, b: Date): boolean {
 export function TodayView({
   tasks: initial,
   userName,
+  briefing = null,
 }: {
   tasks: TaskNodeUI[]
   userName?: string
+  briefing?: string | null
 }) {
   const router = useRouter()
   const [tasks, setTasks] = useState(initial)
@@ -157,6 +160,8 @@ export function TodayView({
           )}
         </p>
       </header>
+
+      <BriefingCard initial={briefing} />
 
       <div className="tl-rise flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
         <Plus className="h-4 w-4 shrink-0 text-white/35" />
