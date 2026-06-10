@@ -9,10 +9,15 @@ import { Markdown } from '@/components/markdown'
 
 type Msg = { id: number; role: 'user' | 'assistant'; content: string }
 
-const SUGGESTIONS = ["What's due soon?", 'What should I focus on today?', 'Plan a weekend trip']
+const SUGGESTIONS = [
+  "What's due soon?",
+  'What should I focus on today?',
+  'Push overdue tasks to tomorrow',
+]
 
 // A floating chat assistant on the tasks page. It answers questions about the
-// user's tasks and can create new ones (the route dispatches to the Planner).
+// user's tasks, creates new ones (the route dispatches to the Planner), and
+// acts on existing ones — complete, reprioritize, reschedule — when asked.
 // Self-contained and additive — it doesn't touch the task list/sign-in flows.
 export function ChatSidebar() {
   const router = useRouter()
@@ -97,6 +102,15 @@ export function ChatSidebar() {
         toast.success(`Created “${data.createdTask.title}”`)
         router.refresh()
       }
+      const actions: { title: string }[] = data.actions ?? []
+      if (actions.length) {
+        toast.success(
+          actions.length === 1
+            ? `Updated “${actions[0].title}”`
+            : `Updated ${actions.length} tasks`,
+        )
+        router.refresh()
+      }
     } catch {
       setMessages((m) => [
         ...m,
@@ -135,7 +149,7 @@ export function ChatSidebar() {
                 Clear
               </button>
             ) : (
-              <span className="ml-auto text-[11px] text-white/35">Ask or create tasks</span>
+              <span className="ml-auto text-[11px] text-white/35">Ask, create, or act</span>
             )}
           </header>
 
@@ -143,7 +157,8 @@ export function ChatSidebar() {
             {messages.length === 0 && (
               <div className="space-y-3">
                 <p className="text-sm text-white/55">
-                  Ask about your tasks, or tell me to plan something new.
+                  Ask about your tasks, plan something new, or tell me to complete, reprioritize, or
+                  reschedule them.
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {SUGGESTIONS.map((s) => (
