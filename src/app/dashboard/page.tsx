@@ -20,6 +20,7 @@ import type { AgentType, AgentRunStatus } from '@prisma/client'
 import { tagChipClass } from '@/lib/tag-colors'
 import { AgentRunRow } from '@/components/agent-run-row'
 import { FocusStat } from '@/components/focus-stat'
+import { WeeklyReviewCard } from '@/components/weekly-review-card'
 
 export const dynamic = 'force-dynamic'
 
@@ -86,6 +87,22 @@ export default async function DashboardPage() {
         select: { completedAt: true, createdAt: true },
       }),
     ])
+
+  // Latest weekly review from the past 7 days, if one was generated.
+  const weekAgo = new Date()
+  weekAgo.setDate(weekAgo.getDate() - 7)
+  const reviewRun = await prisma.agentRun.findFirst({
+    where: {
+      userId,
+      agentType: 'BRIEFING',
+      status: 'SUCCESS',
+      createdAt: { gte: weekAgo },
+      output: { path: ['kind'], equals: 'weekly-review' },
+    },
+    orderBy: { createdAt: 'desc' },
+    select: { output: true },
+  })
+  const weeklyReview = (reviewRun?.output as { review?: string } | null)?.review ?? null
 
   const tokens = tokensAgg._sum.tokensUsed ?? 0
   const successRate = total ? Math.round((success / total) * 100) : 0
@@ -453,6 +470,8 @@ export default async function DashboardPage() {
             </div>
           )}
         </section>
+
+        <WeeklyReviewCard initial={weeklyReview} />
 
         {/* Agent stat cards */}
         <h3 className="text-sm font-semibold text-white/70">Agent activity</h3>
