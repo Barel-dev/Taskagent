@@ -20,12 +20,15 @@ function startOfDay(d: Date): number {
 
 /**
  * Pure, client-side filter for the task list/board. Matches `query`
- * case-insensitively against the title and description, narrows by a single
- * priority, and requires a tag when one is selected. Kept pure (no I/O) so it's
- * unit-testable.
+ * case-insensitively against the title, description, and any agent result or
+ * summary text on the task, narrows by a single priority, and requires a tag
+ * when one is selected. Kept pure (no I/O) so it's unit-testable.
  */
 export function filterTasks<
-  T extends Pick<TaskNodeUI, 'title' | 'description' | 'priority' | 'tags' | 'dueDate' | 'status'>,
+  T extends Pick<
+    TaskNodeUI,
+    'title' | 'description' | 'priority' | 'tags' | 'dueDate' | 'status'
+  > & { result?: string | null; summary?: string | null },
 >(tasks: T[], { query = '', priority = 'ALL', tagId = 'ALL', due = 'ALL' }: TaskFilter = {}): T[] {
   const q = query.trim().toLowerCase()
   const todayStart = startOfDay(new Date())
@@ -40,7 +43,8 @@ export function filterTasks<
       if (due === 'week' && (diff < 0 || diff > 7)) return false
     }
     if (!q) return true
-    const haystack = `${t.title} ${t.description ?? ''}`.toLowerCase()
+    const haystack =
+      `${t.title} ${t.description ?? ''} ${t.result ?? ''} ${t.summary ?? ''}`.toLowerCase()
     return haystack.includes(q)
   })
 }
