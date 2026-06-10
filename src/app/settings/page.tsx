@@ -3,12 +3,18 @@ import { redirect } from 'next/navigation'
 import { Header } from '@/components/header'
 import { ShaderBackground } from '@/components/ui/shader-background'
 import { SettingsForm } from '@/components/settings-form'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
 export default async function SettingsPage() {
   const session = await auth()
   if (!session?.user?.id) redirect('/signin')
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { briefingEmail: true },
+  })
 
   return (
     <div className="relative isolate min-h-screen">
@@ -25,11 +31,12 @@ export default async function SettingsPage() {
             Your <span className="text-violet-300">preferences</span>
           </h2>
           <p className="mt-1.5 text-sm text-white/50">
-            These are saved on this device and applied across the app.
+            Saved on this device and applied across the app — the briefing email is saved to your
+            account.
           </p>
         </header>
 
-        <SettingsForm />
+        <SettingsForm initialBriefingEmail={user?.briefingEmail ?? false} />
       </div>
     </div>
   )

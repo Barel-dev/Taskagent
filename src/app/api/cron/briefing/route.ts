@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { runBriefingAgent } from '@/lib/agents/briefing'
+import { getGoogleAccessToken, sendGmail, GoogleAuthError } from '@/lib/google'
 
 export const maxDuration = 60
 
@@ -28,9 +29,34 @@ export async function GET(req: Request) {
 
   let generated = 0
   let failed = 0
+  let emailed = 0
   for (const u of users.slice(0, 25)) {
     try {
-      await runBriefingAgent({ userId: u.userId, demo })
+      const { briefing } = await runBriefingAgent({ userId: u.userId, demo })
+
+      // Opt-in delivery: email the brief from the user's own Gmail. Quietly
+      // skipped when Google isn't connected with the gmail.send scope.
+      const user = await prisma.user.findUnique({
+        where: { id: u.userId },
+        select: { email: true, briefingEmail: true },
+      })
+      if (user?.briefingEmail && user.email && !demo) {
+        try {
+          const accessToken = await getGoogleAccessToken(u.userId)
+          await sendGmail({
+            accessToken,
+            to: user.email,
+            subject: `Your TaskAgent briefing — ${new Date().toISOString().slice(0, 10)}`,
+            body: briefing,
+          })
+          emailed++
+        } catch (err) {
+          if (!(err instanceof GoogleAuthError)) {
+            console.error('Cron briefing email failed for a user:', err)
+          }
+        }
+      }
+
       generated++
     } catch (err) {
       console.error('Cron briefing failed for a user:', err)
@@ -38,5 +64,5 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({ generated, failed, demo })
+  return NextResponse.json({ generated, failed, emailed, demo })
 }

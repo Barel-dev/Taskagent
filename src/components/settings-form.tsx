@@ -3,15 +3,16 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-// Client-side preferences, stored in localStorage and read by the rest of the
-// app (default view/sort by task-list, default priority by the task form,
-// confetti by the completion handler).
-export function SettingsForm() {
+// Preferences form. Most are on-device (localStorage, read by task-list, the
+// task form, and the completion handler); the briefing email opt-in is
+// server-backed because the morning cron needs it.
+export function SettingsForm({ initialBriefingEmail = false }: { initialBriefingEmail?: boolean }) {
   const [view, setView] = useState('list')
   const [sort, setSort] = useState('default')
   const [priority, setPriority] = useState('MEDIUM')
   const [confetti, setConfetti] = useState(true)
   const [notify, setNotify] = useState(false)
+  const [briefingEmail, setBriefingEmail] = useState(initialBriefingEmail)
 
   useEffect(() => {
     setView(localStorage.getItem('taskagent:view') ?? 'list')
@@ -45,6 +46,25 @@ export function SettingsForm() {
     }
     setNotify(true)
     persist('taskagent:notify', 'on')
+  }
+
+  // Server-backed opt-in for the morning briefing email.
+  async function toggleBriefingEmail() {
+    const next = !briefingEmail
+    setBriefingEmail(next)
+    const res = await fetch('/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ briefingEmail: next }),
+    })
+    if (!res.ok) {
+      setBriefingEmail(!next)
+      toast.error('Could not save — please try again')
+      return
+    }
+    toast.success(
+      next ? 'Morning briefing email on — make sure Google is connected' : 'Briefing email off',
+    )
   }
 
   const selectClass =
@@ -136,6 +156,13 @@ export function SettingsForm() {
           hint="Browser notifications for tasks due today or overdue, while a tab is open."
         >
           <Toggle on={notify} onClick={toggleNotify} />
+        </Row>
+
+        <Row
+          label="Morning briefing email"
+          hint="Each morning the briefing agent emails your daily brief to your inbox, from your own Gmail. Needs Google connected (Connect Google in the Email agent)."
+        >
+          <Toggle on={briefingEmail} onClick={toggleBriefingEmail} />
         </Row>
       </div>
 
