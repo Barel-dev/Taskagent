@@ -15,6 +15,7 @@ import {
 import { toast } from 'sonner'
 import type { TaskNodeUI } from '@/components/task-list'
 import { BriefingCard } from '@/components/briefing-card'
+import { DayPlanDialog } from '@/components/day-plan-dialog'
 import { formatDue, dueToneClass } from '@/lib/format-due'
 import { parseQuickAdd } from '@/lib/quick-add'
 import { confetti } from '@/lib/confetti'
@@ -47,6 +48,7 @@ export function TodayView({
   const router = useRouter()
   const [tasks, setTasks] = useState(initial)
   const [draft, setDraft] = useState('')
+  const [planOpen, setPlanOpen] = useState(false)
   useEffect(() => setTasks(initial), [initial])
 
   // "n" focuses the quick-add (ignored while typing).
@@ -143,23 +145,35 @@ export function TodayView({
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-6 py-10">
-      <header className="tl-rise">
-        <p className="text-[11px] font-medium tracking-[0.25em] text-violet-300/70 uppercase">
-          Today
-        </p>
-        <h2 className="mt-1.5 text-3xl font-semibold tracking-tight text-white">
-          {greeting}
-          {userName ? `, ${userName.split(' ')[0]}` : ''}
-        </h2>
-        <p className="mt-1.5 text-sm text-white/50">
-          {totalFocus === 0
-            ? 'Nothing needs your attention today.'
-            : `${totalFocus} thing${totalFocus === 1 ? '' : 's'} to focus on today.`}
-          {completedToday > 0 && (
-            <span className="text-emerald-300/80"> · {completedToday} done today</span>
-          )}
-        </p>
+      <header className="tl-rise flex items-end justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-medium tracking-[0.25em] text-violet-300/70 uppercase">
+            Today
+          </p>
+          <h2 className="mt-1.5 text-3xl font-semibold tracking-tight text-white">
+            {greeting}
+            {userName ? `, ${userName.split(' ')[0]}` : ''}
+          </h2>
+          <p className="mt-1.5 text-sm text-white/50">
+            {totalFocus === 0
+              ? 'Nothing needs your attention today.'
+              : `${totalFocus} thing${totalFocus === 1 ? '' : 's'} to focus on today.`}
+            {completedToday > 0 && (
+              <span className="text-emerald-300/80"> · {completedToday} done today</span>
+            )}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setPlanOpen(true)}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-violet-400/30 bg-violet-500/15 px-3 py-1.5 text-xs font-medium text-violet-200 transition-colors hover:bg-violet-500/25"
+        >
+          <CalendarClock className="h-3.5 w-3.5" />
+          Plan my day
+        </button>
       </header>
+
+      <DayPlanDialog open={planOpen} onOpenChange={setPlanOpen} />
 
       <BriefingCard initial={briefing} />
 

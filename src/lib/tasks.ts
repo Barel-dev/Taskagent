@@ -207,6 +207,26 @@ export async function duplicateTaskForUser(userId: string, taskId: string) {
 }
 
 /**
+ * Apply user-approved Day Planner blocks: set each task's time block (no
+ * calendar event involved). Scoped to the caller's tasks — foreign ids are
+ * silently ignored. Returns how many tasks were updated.
+ */
+export async function setTaskTimeBlocks(
+  userId: string,
+  items: { taskId: string; start: Date; end: Date }[],
+): Promise<number> {
+  const results = await prisma.$transaction(
+    items.map((i) =>
+      prisma.task.updateMany({
+        where: { id: i.taskId, userId },
+        data: { scheduledStart: i.start, scheduledEnd: i.end },
+      }),
+    ),
+  )
+  return results.reduce((sum, r) => sum + r.count, 0)
+}
+
+/**
  * Record the calendar block the Schedule agent created on a task the caller
  * owns. Returns false when the task isn't found / not owned by the user.
  */
