@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ChevronLeft,
@@ -84,6 +84,19 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
     localStorage.setItem('taskagent:calview', view)
   }, [view])
 
+  const goPrev = useCallback(() => {
+    if (view === 'week') setWeekOffset((w) => w - 1)
+    else setMonthOffset((m) => m - 1)
+  }, [view])
+  const goNext = useCallback(() => {
+    if (view === 'week') setWeekOffset((w) => w + 1)
+    else setMonthOffset((m) => m + 1)
+  }, [view])
+  const goToday = useCallback(() => {
+    setWeekOffset(0)
+    setMonthOffset(0)
+  }, [])
+
   // Keyboard nav: ←/→ step period, t = today, w/m = week/month. Off while a
   // task dialog is open or while typing.
   useEffect(() => {
@@ -108,7 +121,7 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [view, selected])
+  }, [selected, goPrev, goNext, goToday])
 
   const today = new Date()
   const filtered = tasks.filter(
@@ -118,19 +131,6 @@ export function Calendar({ tasks }: { tasks: TaskNodeUI[] }) {
   const unscheduled = filtered.filter((t) => !t.scheduledStart && !t.dueDate)
   const tasksOn = (day: Date) =>
     placed.filter((t) => sameDay(new Date(effectiveDate(t) as string), day))
-
-  function goPrev() {
-    if (view === 'week') setWeekOffset((w) => w - 1)
-    else setMonthOffset((m) => m - 1)
-  }
-  function goNext() {
-    if (view === 'week') setWeekOffset((w) => w + 1)
-    else setMonthOffset((m) => m + 1)
-  }
-  function goToday() {
-    setWeekOffset(0)
-    setMonthOffset(0)
-  }
 
   async function addOnDay(date: Date, rawTitle: string) {
     // Honor the quick-add priority syntax; the clicked day is the due date.

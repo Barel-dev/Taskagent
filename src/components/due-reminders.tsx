@@ -15,6 +15,21 @@ type ApiTask = {
   status: string
   dueDate: string | null
   scheduledStart: string | null
+  children?: ApiTask[]
+}
+
+// The API returns the task tree (roots with nested children); flatten it so a
+// due subtask triggers a reminder too.
+function flattenTasks(tasks: ApiTask[]): ApiTask[] {
+  const out: ApiTask[] = []
+  const walk = (list: ApiTask[]) => {
+    for (const t of list) {
+      out.push(t)
+      if (t.children?.length) walk(t.children)
+    }
+  }
+  walk(tasks)
+  return out
 }
 
 function todayKey() {
@@ -42,7 +57,7 @@ export function DueReminders() {
       const res = await fetch('/api/tasks').catch(() => null)
       if (!res?.ok) return
       const data = await res.json().catch(() => null)
-      const tasks: ApiTask[] = data?.tasks ?? []
+      const tasks: ApiTask[] = flattenTasks(data?.tasks ?? [])
 
       const notified = loadNotified()
       const today = todayKey()

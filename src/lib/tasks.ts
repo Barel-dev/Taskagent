@@ -92,12 +92,21 @@ export async function getTaskForUser(userId: string, taskId: string) {
 export async function updateTaskForUser(userId: string, taskId: string, input: UpdateTaskInput) {
   const { tagIds, ...data } = input
 
-  // Update scalar fields (if any) and confirm ownership in one go.
-  const result =
-    Object.keys(data).length > 0
-      ? await prisma.task.updateMany({ where: { id: taskId, userId }, data })
-      : { count: await prisma.task.count({ where: { id: taskId, userId } }) }
-  if (result.count === 0) return null
+  // Load the current row first: it confirms ownership and lets us detect the
+  // not-DONE → DONE transition below.
+  const before = await prisma.task.findFirst({ where: { id: taskId, userId } })
+  if (!before) return null
+
+  // Stamp/clear completedAt on status transitions when the client didn't send
+  // it, so completion analytics don't depend on every client remembering to.
+  if (data.status !== undefined && data.completedAt === undefined) {
+    if (data.status === 'DONE' && before.status !== 'DONE') data.completedAt = new Date()
+    else if (data.status !== 'DONE' && before.status === 'DONE') data.completedAt = null
+  }
+
+  if (Object.keys(data).length > 0) {
+    await prisma.task.update({ where: { id: taskId }, data })
+  }
 
   // Replace the task's tags when tagIds is provided (omit to leave unchanged).
   if (tagIds !== undefined) {
@@ -110,33 +119,46 @@ export async function updateTaskForUser(userId: string, taskId: string, input: U
     ])
   }
 
-  // Completing a recurring task spawns the next occurrence.
-  if (data.status === 'DONE') {
-    const t = await prisma.task.findUnique({ where: { id: taskId } })
-    if (t && t.recurrence !== 'NONE') {
-      await prisma.task.create({
-        data: {
-          userId,
-          title: t.title,
-          description: t.description,
-          priority: t.priority,
-          recurrence: t.recurrence,
-          parentId: t.parentId,
-          dueDate: nextOccurrence(t.dueDate ?? new Date(), t.recurrence),
-        },
-      })
-    }
+  // Completing a recurring task spawns the next occurrence — only on the
+  // transition into DONE, so re-saving an already-done task (or toggling
+  // DONE → TODO → DONE) can't create duplicates.
+  if (data.status === 'DONE' && before.status !== 'DONE' && before.recurrence !== 'NONE') {
+    await prisma.task.create({
+      data: {
+        userId,
+        title: before.title,
+        description: before.description,
+        priority: before.priority,
+        recurrence: before.recurrence,
+        parentId: before.parentId,
+        dueDate: nextOccurrence(before.dueDate ?? new Date(), before.recurrence),
+      },
+    })
   }
 
   return prisma.task.findUnique({ where: { id: taskId } })
 }
 
+function daysInMonth(year: number, monthIndex: number): number {
+  return new Date(year, monthIndex + 1, 0).getDate()
+}
+
 function nextOccurrence(base: Date, recurrence: string): Date {
   const d = new Date(base)
+  const day = d.getDate()
   if (recurrence === 'DAILY') d.setDate(d.getDate() + 1)
   else if (recurrence === 'WEEKLY') d.setDate(d.getDate() + 7)
-  else if (recurrence === 'MONTHLY') d.setMonth(d.getMonth() + 1)
-  else if (recurrence === 'YEARLY') d.setFullYear(d.getFullYear() + 1)
+  else if (recurrence === 'MONTHLY') {
+    // Clamp to the target month's length so Jan 31 → Feb 28, not Mar 3.
+    d.setDate(1)
+    d.setMonth(d.getMonth() + 1)
+    d.setDate(Math.min(day, daysInMonth(d.getFullYear(), d.getMonth())))
+  } else if (recurrence === 'YEARLY') {
+    // Same clamp for leap days: Feb 29 → Feb 28 next year.
+    d.setDate(1)
+    d.setFullYear(d.getFullYear() + 1)
+    d.setDate(Math.min(day, daysInMonth(d.getFullYear(), d.getMonth())))
+  }
   return d
 }
 

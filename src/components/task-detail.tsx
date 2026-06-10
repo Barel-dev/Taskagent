@@ -130,7 +130,6 @@ export function TaskDetail({
   const [selectedId, setSelectedId] = useState<string>(hasChildren ? children[0].id : OVERVIEW)
   const selected = children.find((c) => c.id === selectedId) ?? null
   const pr = PRIORITY[priority]
-  const due = formatDue(dueDate, task.status)
   const scheduled = task.scheduledStart
     ? new Date(task.scheduledStart).toLocaleString(undefined, {
         month: 'short',

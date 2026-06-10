@@ -5,7 +5,7 @@ import './globals.css'
 import { Providers } from '@/components/providers'
 
 export const metadata: Metadata = {
-  title: 'TaskAgent — AI task manager with autonomous agents',
+  title: { default: 'TaskAgent', template: '%s · TaskAgent' },
   description:
     'TaskAgent uses 5 specialized AI agents to break down tasks, schedule your day, send emails, and brief you each morning.',
   manifest: '/manifest.webmanifest',

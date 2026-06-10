@@ -122,11 +122,14 @@ export async function runPlanAgent(params: {
         title,
         priority,
         children: {
-          create: capped.map((s) => ({
+          // Explicit order keeps the steps in plan sequence even when rows
+          // share a createdAt timestamp (Breakdown does the same).
+          create: capped.map((s, i) => ({
             userId,
             title: s.title,
             priority: s.priority,
             estimatedMinutes: s.estimatedMinutes,
+            order: i,
           })),
         },
       },
