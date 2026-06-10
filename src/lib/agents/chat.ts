@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { Type } from '@google/genai'
-import { getGemini, GEMINI_MODEL } from '@/lib/gemini'
 import { prisma } from '@/lib/prisma'
 import { runPlanAgent } from '@/lib/agents/plan'
 import { updateTaskForUser } from '@/lib/tasks'
@@ -26,14 +25,16 @@ const actionSchema = z.object({
 
 const MAX_ACTIONS = 10
 
-const chatOutputSchema = z.object({
+export const chatOutputSchema = z.object({
   reply: z.string().min(1).max(4000),
   // Set only when the user wants a brand-new task created.
   createTaskGoal: z.string().max(500).optional(),
   actions: z.array(actionSchema).max(MAX_ACTIONS).optional(),
 })
 
-const RESPONSE_SCHEMA = {
+export type ChatOutput = z.infer<typeof chatOutputSchema>
+
+export const CHAT_RESPONSE_SCHEMA = {
   type: Type.OBJECT,
   properties: {
     reply: { type: Type.STRING, description: 'Your concise, friendly answer to the user.' },
@@ -78,7 +79,7 @@ const RESPONSE_SCHEMA = {
   propertyOrdering: ['reply', 'createTaskGoal', 'actions'],
 }
 
-const SYSTEM_PROMPT = `You are the assistant inside TaskAgent, a personal task manager. You help the user understand and act on their tasks.
+export const CHAT_SYSTEM_PROMPT = `You are the assistant inside TaskAgent, a personal task manager. You help the user understand and act on their tasks.
 
 You are given the user's current tasks, each with its id. Use them to answer read-only questions directly and specifically — what's due, what's overdue, what's high priority, counts, and what to focus on.
 
@@ -101,22 +102,19 @@ export type ChatResult = {
   actions?: ChatAction[]
 }
 
-export async function runChatAgent(params: {
-  userId: string
-  message: string
-  history?: ChatTurn[]
-  /** When true, skip Gemini and return a free placeholder reply. */
-  demo?: boolean
-}): Promise<ChatResult> {
-  const { userId, message, history = [], demo = false } = params
+export const CHAT_DEMO_REPLY =
+  'Demo mode — add a GEMINI_API_KEY and I can answer questions about your tasks, create new ones, and act on them right from chat.'
 
-  if (demo) {
-    return {
-      reply:
-        'Demo mode — add a GEMINI_API_KEY and I can answer questions about your tasks, create new ones, and act on them right from chat.',
-    }
-  }
-
+/**
+ * Build the grounding prompt for a chat turn: the user's tasks (with ids so
+ * the model can reference them in actions), the rolling conversation, and the
+ * new message.
+ */
+export async function buildChatPrompt(
+  userId: string,
+  message: string,
+  history: ChatTurn[] = [],
+): Promise<string> {
   // Read-only task context for grounding the answer.
   const tasks = await prisma.task.findMany({
     where: { userId, parentId: null },
@@ -145,7 +143,7 @@ export async function runChatAgent(params: {
     .map((h) => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.content}`)
     .join('\n')
 
-  const prompt = [
+  return [
     `Today is ${new Date().toISOString().slice(0, 10)}.`,
     `The user's tasks:\n${taskList}`,
     convo ? `Conversation so far:\n${convo}` : '',
@@ -153,22 +151,18 @@ export async function runChatAgent(params: {
   ]
     .filter(Boolean)
     .join('\n\n')
+}
 
-  const response = await getGemini().models.generateContent({
-    model: GEMINI_MODEL,
-    contents: prompt,
-    config: {
-      systemInstruction: SYSTEM_PROMPT,
-      responseMimeType: 'application/json',
-      responseSchema: RESPONSE_SCHEMA,
-    },
-  })
-
-  const text = response.text
-  if (!text) throw new Error('The assistant did not return a reply.')
-  const parsed = chatOutputSchema.parse(JSON.parse(text))
-
-  // If the user asked for a new task, let the Planner actually build it.
+/**
+ * Apply the side effects of a parsed chat turn: dispatch to the Planner when
+ * the user asked for a new task, and apply actions on existing tasks through
+ * updateTaskForUser — which re-checks ownership (a hallucinated/foreign id is
+ * silently skipped), stamps completedAt, and handles recurring tasks.
+ */
+export async function finalizeChat(
+  userId: string,
+  parsed: ChatOutput,
+): Promise<Omit<ChatResult, 'reply'>> {
   let createdTask: { id: string; title: string } | undefined
   const goal = parsed.createTaskGoal?.trim()
   if (goal) {
@@ -176,9 +170,6 @@ export async function runChatAgent(params: {
     createdTask = { id: task.id, title: task.title }
   }
 
-  // Apply requested actions through updateTaskForUser, which re-checks
-  // ownership (a hallucinated/foreign id is silently skipped), stamps
-  // completedAt, and handles recurring tasks.
   const applied: ChatAction[] = []
   for (const a of parsed.actions ?? []) {
     let data: UpdateTaskInput | null = null
@@ -193,5 +184,50 @@ export async function runChatAgent(params: {
     if (updated) applied.push({ type: a.type, taskId: a.taskId, title: updated.title })
   }
 
-  return { reply: parsed.reply, createdTask, ...(applied.length ? { actions: applied } : {}) }
+  return { createdTask, ...(applied.length ? { actions: applied } : {}) }
+}
+
+/**
+ * Incrementally decode the "reply" string from a *partial* structured-output
+ * JSON response. CHAT_RESPONSE_SCHEMA orders "reply" first, so its characters
+ * arrive before anything else — which is what lets the route stream the reply
+ * to the user while the rest of the JSON (actions etc.) is still generating.
+ * Stops cleanly at an incomplete escape sequence on a chunk boundary.
+ */
+export function extractReplyPrefix(raw: string): string {
+  const m = raw.match(/"reply"\s*:\s*"/)
+  if (!m) return ''
+  let out = ''
+  let i = (m.index ?? 0) + m[0].length
+  while (i < raw.length) {
+    const c = raw[i]
+    if (c === '"') break
+    if (c === '\\') {
+      if (i + 1 >= raw.length) break // escape split across chunks
+      const next = raw[i + 1]
+      if (next === 'u') {
+        const hex = raw.slice(i + 2, i + 6)
+        if (hex.length < 4) break
+        out += String.fromCharCode(parseInt(hex, 16))
+        i += 6
+        continue
+      }
+      const map: Record<string, string> = {
+        n: '\n',
+        t: '\t',
+        r: '\r',
+        b: '\b',
+        f: '\f',
+        '"': '"',
+        '\\': '\\',
+        '/': '/',
+      }
+      out += map[next] ?? next
+      i += 2
+      continue
+    }
+    out += c
+    i++
+  }
+  return out
 }

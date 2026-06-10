@@ -27,8 +27,8 @@ export function ChatSidebar() {
   const [sending, setSending] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const idRef = useRef(0)
-  // The assistant message currently "typing out", and how many chars are shown.
-  const [reveal, setReveal] = useState<{ id: number; n: number } | null>(null)
+  // The assistant message currently streaming in from the server.
+  const [streamingId, setStreamingId] = useState<number | null>(null)
 
   // Restore the conversation from a previous visit (kept on this device only).
   useEffect(() => {
@@ -53,22 +53,7 @@ export function ChatSidebar() {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages, sending, open, reveal])
-
-  // Typewriter reveal of the latest assistant reply.
-  useEffect(() => {
-    if (!reveal) return
-    const msg = messages.find((m) => m.id === reveal.id)
-    if (!msg || reveal.n >= msg.content.length) {
-      setReveal(null)
-      return
-    }
-    const t = setTimeout(
-      () => setReveal((r) => (r ? { ...r, n: Math.min(r.n + 3, msg.content.length) } : null)),
-      16,
-    )
-    return () => clearTimeout(t)
-  }, [reveal, messages])
+  }, [messages, sending, open, streamingId])
 
   async function sendMessage(text: string) {
     const trimmed = text.trim()
@@ -83,8 +68,10 @@ export function ChatSidebar() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: trimmed, history }),
       })
-      const data = await res.json().catch(() => null)
-      if (!res.ok) {
+
+      // Non-stream responses are errors (401/429/400) — show them as a bubble.
+      if (!res.ok || !res.headers.get('content-type')?.includes('text/event-stream')) {
+        const data = await res.json().catch(() => null)
         setMessages((m) => [
           ...m,
           {
@@ -95,21 +82,70 @@ export function ChatSidebar() {
         ])
         return
       }
+
+      // Read the SSE stream: deltas grow the bubble live; "done" carries the
+      // side effects (created task / applied actions).
       const aid = ++idRef.current
-      setMessages((m) => [...m, { id: aid, role: 'assistant', content: data.reply }])
-      setReveal({ id: aid, n: 0 }) // type it out
-      if (data.createdTask) {
-        toast.success(`Created “${data.createdTask.title}”`)
-        router.refresh()
+      setMessages((m) => [...m, { id: aid, role: 'assistant', content: '' }])
+      setStreamingId(aid)
+      const setContent = (content: string) =>
+        setMessages((m) => m.map((msg) => (msg.id === aid ? { ...msg, content } : msg)))
+
+      type StreamEvent = {
+        type: string
+        text?: string
+        error?: string
+        reply?: string
+        createdTask?: { title: string }
+        actions?: { title: string }[]
       }
-      const actions: { title: string }[] = data.actions ?? []
-      if (actions.length) {
-        toast.success(
-          actions.length === 1
-            ? `Updated “${actions[0].title}”`
-            : `Updated ${actions.length} tasks`,
-        )
-        router.refresh()
+      const reader = res.body!.getReader()
+      const decoder = new TextDecoder()
+      let buf = ''
+      let acc = ''
+      let final: StreamEvent | null = null
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buf += decoder.decode(value, { stream: true })
+        const events = buf.split('\n\n')
+        buf = events.pop() ?? ''
+        for (const evt of events) {
+          const line = evt.split('\n').find((l) => l.startsWith('data: '))
+          if (!line) continue
+          let payload: StreamEvent
+          try {
+            payload = JSON.parse(line.slice(6))
+          } catch {
+            continue
+          }
+          if (payload.type === 'delta' && payload.text) {
+            acc += payload.text
+            setContent(acc)
+          } else if (payload.type === 'done') {
+            final = payload
+          } else if (payload.type === 'error') {
+            acc = payload.error ?? 'Something went wrong. Try again.'
+            setContent(acc)
+          }
+        }
+      }
+
+      if (final) {
+        if (final.reply && final.reply !== acc) setContent(final.reply)
+        if (final.createdTask) {
+          toast.success(`Created “${final.createdTask.title}”`)
+          router.refresh()
+        }
+        if (final.actions?.length) {
+          toast.success(
+            final.actions.length === 1
+              ? `Updated “${final.actions[0].title}”`
+              : `Updated ${final.actions.length} tasks`,
+          )
+          router.refresh()
+        }
       }
     } catch {
       setMessages((m) => [
@@ -118,6 +154,7 @@ export function ChatSidebar() {
       ])
     } finally {
       setSending(false)
+      setStreamingId(null)
     }
   }
 
@@ -176,8 +213,8 @@ export function ChatSidebar() {
             )}
 
             {messages.map((m) => {
-              const revealing = reveal?.id === m.id
-              const content = revealing ? m.content.slice(0, reveal!.n) : m.content
+              const streaming = streamingId === m.id
+              const content = m.content
               return (
                 <div
                   key={m.id}
@@ -190,12 +227,12 @@ export function ChatSidebar() {
                         : 'border border-white/10 bg-white/[0.05] text-white/85'
                     }`}
                   >
-                    {m.role === 'assistant' && !revealing ? (
+                    {m.role === 'assistant' && !streaming ? (
                       <Markdown content={content} />
                     ) : (
                       <>
                         {content}
-                        {revealing && <span className="ml-px animate-pulse text-white/50">▍</span>}
+                        {streaming && <span className="ml-px animate-pulse text-white/50">▍</span>}
                       </>
                     )}
                   </div>
@@ -203,7 +240,7 @@ export function ChatSidebar() {
               )
             })}
 
-            {sending && (
+            {sending && streamingId === null && (
               <div className="flex justify-start">
                 <div className="rounded-2xl border border-white/10 bg-white/[0.05] px-3 py-2 text-sm text-white/50">
                   <span className="inline-flex gap-1">
