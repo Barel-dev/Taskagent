@@ -270,22 +270,44 @@ export function TaskList({
     URL.revokeObjectURL(url)
   }
 
-  async function clearCompleted() {
+  /**
+   * Delete with a grace window: remove the tasks from the list immediately,
+   * show an Undo toast, and only call the API after ~5s if the user didn't
+   * undo. Undo simply restores the local list — nothing was deleted yet.
+   */
+  function deleteWithUndo(ids: string[], label: string) {
+    const prev = tasks
+    const idSet = new Set(ids)
+    setTasks((ts) => ts.filter((t) => !idSet.has(t.id)))
+    let undone = false
+    const timer = setTimeout(async () => {
+      if (undone) return
+      const res = await Promise.all(
+        ids.map((id) => fetch(`/api/tasks/${id}`, { method: 'DELETE' })),
+      )
+      if (res.some((r) => !r.ok)) toast.error('Some deletes failed')
+      router.refresh()
+    }, 5200)
+    toast(label, {
+      duration: 5000,
+      action: {
+        label: 'Undo',
+        onClick: () => {
+          undone = true
+          clearTimeout(timer)
+          setTasks(prev)
+        },
+      },
+    })
+  }
+
+  function clearCompleted() {
     const done = tasks.filter((t) => t.status === 'DONE')
     if (done.length === 0) return
-    if (
-      !confirm(
-        `Delete ${done.length} completed task${done.length === 1 ? '' : 's'}? This can't be undone.`,
-      )
-    ) {
-      return
-    }
-    const results = await Promise.all(
-      done.map((t) => fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })),
+    deleteWithUndo(
+      done.map((t) => t.id),
+      `Cleared ${done.length} completed`,
     )
-    if (results.some((r) => !r.ok)) toast.error('Some tasks could not be deleted')
-    else toast.success(`Cleared ${done.length} completed`)
-    router.refresh()
   }
 
   async function moveTask(taskId: string, status: TaskNodeUI['status']) {
@@ -441,18 +463,11 @@ export function TaskList({
     setSelectedIds([])
     router.refresh()
   }
-  async function bulkDelete() {
+  function bulkDelete() {
     const ids = selectedIds
-    if (
-      !confirm(`Delete ${ids.length} task${ids.length === 1 ? '' : 's'}? This can't be undone.`)
-    ) {
-      return
-    }
-    const res = await Promise.all(ids.map((id) => fetch(`/api/tasks/${id}`, { method: 'DELETE' })))
-    if (res.some((r) => !r.ok)) toast.error('Some deletes failed')
-    else toast.success(`Deleted ${ids.length} task${ids.length === 1 ? '' : 's'}`)
+    if (!ids.length) return
     setSelectedIds([])
-    router.refresh()
+    deleteWithUndo(ids, `Deleted ${ids.length} task${ids.length === 1 ? '' : 's'}`)
   }
   // Add a tag to every selected task, keeping each one's existing tags.
   async function bulkAddTag(tagId: string) {
