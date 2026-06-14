@@ -1,110 +1,178 @@
+<div align="center">
+
 # TaskAgent
 
-An AI task manager where specialized agents don't just organize your work — they **do** it. Describe a goal, and agents plan it, break it into steps, **search the live web to actually carry tasks out**, prioritize your day, and brief you on what matters.
+### An AI task manager where agents don't just organize your work — they _do_ it.
 
-> **Live demo:** https://taskagent-amber.vercel.app
-> **Stack:** Next.js 15 · TypeScript · Prisma + Postgres (Neon) · NextAuth v5 (Google) · Google Gemini · Tailwind v4
+[![Live Demo](https://img.shields.io/badge/Live_Demo-taskagent--amber.vercel.app-000?style=flat-square&logo=vercel&logoColor=white)](https://taskagent-amber.vercel.app)
+&nbsp;
+[![Next.js 15](https://img.shields.io/badge/Next.js_15-000?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=flat-square&logo=prisma&logoColor=white)](https://www.prisma.io)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://neon.tech)
+[![Gemini](https://img.shields.io/badge/Google_Gemini-8E75B2?style=flat-square&logo=googlegemini&logoColor=white)](https://ai.google.dev)
+[![Tailwind v4](https://img.shields.io/badge/Tailwind_v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 
-<!-- Add a screenshot or GIF here: ![TaskAgent](docs/screenshot.png) -->
+**[Live demo](https://taskagent-amber.vercel.app)** · [What it does](#what-it-does) · [Agents](#meet-the-agents) · [Architecture](#architecture) · [How it works](#how-it-works) · [Getting started](#getting-started)
+
+</div>
+
+---
+
+TaskAgent is a full-stack AI productivity app built around one idea: a task list should be able to **carry tasks out**, not just hold them. You describe a goal in plain language and a roster of specialized agents plan it, break it into steps, **search the live web to actually execute it**, prioritize your day, draft and send email, book calendar time, and brief you each morning — each step gated by your approval where it touches the outside world.
+
+<!-- Drop a product screenshot or GIF here for the strongest first impression:
+     ![TaskAgent](docs/screenshot.png) -->
 
 ## What it does
 
-You sign in with Google, then work with a grid of task tiles. Open any task to reach its agents:
+- **Agents that act, not just suggest.** The Execute agent uses Gemini's live Google Search grounding to do real research and returns cited results as rich preview cards — not generic advice.
+- **A natural-language command center.** A streaming chat sidebar answers questions about your work _and_ acts on it: "mark the gym task done", "push my overdue tasks to tomorrow", "plan a trip to Lisbon" — replies stream token-by-token while the same response safely applies the action.
+- **Real Google integration, safely.** Agents draft email from your own Gmail and propose calendar slots around your real free/busy — but **nothing sends or books without an explicit click**. There is no auto-send path in the code.
+- **Runs at $0 out of the box.** With no API key set, every agent returns realistic placeholder output (demo mode), so the entire product is explorable for free; real agents switch on the moment a key is present.
 
-| Agent              | What it does                                                                                                                                                                                                      |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Plan**           | Turns a plain-language goal ("plan a trip to Lisbon") into a task with ordered subtasks.                                                                                                                          |
-| **Breakdown**      | Splits a task into 3–7 ordered, time-estimated steps.                                                                                                                                                             |
-| **Refine**         | Sharpens a vague task into a clear title, description, and acceptance criteria — you review and apply.                                                                                                            |
-| **Do it**          | **Actually performs the task** using Gemini + live Google Search, and returns real results as rich preview cards (image, title, sources).                                                                         |
-| **Do all**         | Runs _every_ subtask in sequence, sharing each result as context for the next.                                                                                                                                    |
-| **Prioritizer**    | Reweighs every open task by urgency, due date, and effort, then reorders your day — and explains why.                                                                                                             |
-| **Daily Briefing** | A short morning brief across all your tasks: what's due, what's overdue, what to focus on.                                                                                                                        |
-| **Summary**        | Rolls a whole plan up into a status briefing.                                                                                                                                                                     |
-| **Email**          | Drafts an email about a task, shows it for you to review/edit, and **sends it from your own Gmail** — but only after you click Send. Never auto-sends.                                                            |
-| **Schedule**       | Reads your Google Calendar busy times and proposes slots for a task; on your approval it **creates the calendar event** and books the time.                                                                       |
-| **Day Planner**    | "Plan my day" on the Today page: proposes time blocks for your most important open tasks around what's already scheduled — you untick what you don't want and apply the rest. No calendar required.               |
-| **Weekly Review**  | A retro of your last 7 days on the dashboard: wins, what slipped, and a suggested focus for next week.                                                                                                            |
-| **Chat**           | A **streaming** sidebar assistant that's also a command center: ask about your tasks, tell it to plan something new, or just say "mark the gym task done" / "push my overdue tasks to tomorrow" — and it does it. |
+## Meet the agents
 
-Agents **share context**: answers you give one agent (dates, budget, who's traveling) are saved to the plan and reused by the others, so they stop re-asking what's already known.
+Sign in with Google, then open any task to reach its agents. They **share context** — answers you give one agent (dates, budget, who's travelling) are saved to the plan and reused by the rest, so they stop re-asking what's already known.
 
-## Workspace & views
+| Agent                          | What it does                                                                                                                                                                                         |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Plan**                       | Turns a plain-language goal ("plan a trip to Lisbon") into a task with ordered subtasks.                                                                                                             |
+| **Breakdown**                  | Splits a task into 3–7 ordered, time-estimated steps.                                                                                                                                                |
+| **Refine**                     | Sharpens a vague task into a clear title, description, and acceptance criteria for you to review.                                                                                                    |
+| **Execute** _(Do it / Do all)_ | **Actually performs the task** via Gemini + live Google Search, returning cited results as rich cards — for a single step or every subtask in sequence, sharing each result as context for the next. |
+| **Prioritizer**                | Reweighs every open task by urgency, due date, and effort, reorders your day, and explains why.                                                                                                      |
+| **Daily Briefing**             | A short morning brief: what's due, what's overdue, what to focus on.                                                                                                                                 |
+| **Summary**                    | Rolls a whole plan — subtasks and their results — up into a status briefing.                                                                                                                         |
+| **Email**                      | Drafts an email about a task for you to review, then **sends it from your own Gmail** only after you click Send.                                                                                     |
+| **Schedule**                   | Reads your Google Calendar busy times, proposes slots, and **books the event** on approval.                                                                                                          |
+| **Day Planner**                | "Plan my day" proposes time blocks for your top tasks around what's already scheduled — untick what you don't want, apply the rest. No calendar required.                                            |
+| **Weekly Review**              | A retro of your last 7 days: wins, what slipped, and a suggested focus for next week.                                                                                                                |
+| **Chat**                       | A streaming assistant and command center over all of the above.                                                                                                                                      |
 
-- **Today / Focus page:** a time-of-day greeting plus everything that needs attention — overdue, due today, and scheduled-today — with one-click complete, snooze-to-tomorrow, a **"Plan my day"** button, and your **morning briefing**.
-- **Morning briefing, automatically:** a Vercel cron generates a fresh briefing for every active user each morning; opt in (Settings) and it's also **emailed to you from your own Gmail**.
-- **Three views:** a tile **list**, a drag-and-drop **Kanban board** (drag to change status, drag to reorder, quick-add per column), and a **calendar** (week + month grid) that plots tasks by scheduled time or due date, with drag-to-reschedule, an overdue ring on past-day chips, and keyboard navigation. Your view choice is remembered.
-- **Quick capture:** natural-language quick-add — typing `Email Dan tomorrow !high` sets the due date and priority automatically (works in the list bar, board/calendar add, and steps); plus **reusable templates** (save a task + its steps, recreate in one click), **CSV / paste import**, and a **⌘K command palette** (jump to a view, search tasks, new task, new from template, import).
-- **Inline editing everywhere:** click a tile's priority to cycle it or its due chip to pick a date; the detail edits title, description (Markdown), priority, due, and tags in place; steps can be renamed, reordered (drag), run, completed, and deleted.
-- **Organize:** colored **tags** (create, recolor, click a chip to filter, bulk-add, manage); priorities; **pin** to top; **recurring tasks** (daily / weekly / monthly / yearly that respawn the next occurrence on completion); and **manual drag-to-reorder** of top-level tasks.
-- **Find & focus:** search with **match highlighting** that also looks **inside agent results and summaries**, filters (priority / tag / due window) with one-click "N overdue · N due today" chips, **hide-done** toggle, **saved views**, sort by smart / due / priority / title / manual, and a clear-filters shortcut.
-- **Bulk actions:** multi-select tasks to set status, priority, or due date, add a tag, or delete — with select all / none, and a **5-second Undo** on deletes and clear-completed.
-- **Smart due dates:** relative labels ("Today", "Tomorrow", "2d overdue", "in 3d") with overdue/soon color highlighting.
-- **Dashboard:** task stats, a **completion streak**, an **open-work** time estimate, by-priority deep-links, **scheduled-next** list, recurring count, a 14-day activity chart, by-agent breakdown, and an **expandable recent-run drill-down** (input/output/error).
-- **Reminders & preferences:** opt-in **browser notifications** for due-soon tasks; a **settings** page (default view/sort/priority, completion confetti, reminders, reset local data); persisted chat history.
-- **Keyboard shortcuts:** `⌘K`/`Ctrl+K` palette · `n` new task · `/` search · `b` toggle list/board · `g` then `t`/`c`/`d`/`s` to navigate · `?` help; calendar `←`/`→`, `t`, `w`/`m`.
-- **Focus timer:** a per-task Pomodoro (25-min) in the detail that counts your completed focus sessions.
-- **Installable PWA:** add TaskAgent to your home screen / desktop (web manifest, branded icon, standalone display).
-- **Touches:** copy a task as Markdown, export the whole workspace as Markdown, copy a shareable task link, confetti when you finish your last task.
+## Architecture
+
+```mermaid
+flowchart TD
+    User(["User"]) -->|"Google sign-in"| Views
+
+    subgraph App ["Next.js 15 — App Router"]
+        Views["Views · List · Board · Calendar · Today"]
+        Chat["Streaming chat command center"]
+        Routes["API routes · shared agentRoute wrapper"]
+    end
+
+    Views --> Routes
+    Chat -->|"SSE stream"| Routes
+    Routes --> Agents
+
+    subgraph Agents ["Agent layer · 12 specialized Gemini agents"]
+        direction LR
+        G1["Plan · Breakdown · Refine · Summarize"]
+        G2["Execute · Prioritize · Day Planner"]
+        G3["Email · Schedule · Briefing · Weekly Review · Chat"]
+    end
+
+    Agents -->|"structured output + Zod"| Gemini[("Google Gemini 2.5 Flash<br/>+ Google Search grounding")]
+    Agents --> GoogleAPIs["Gmail API · Google Calendar API"]
+    Routes --> DB[("PostgreSQL · Prisma<br/>Tasks · Tags · AgentRun audit log")]
+    Agents --> DB
+    Cron["Vercel cron · daily briefing"] --> Agents
+```
+
+Agents live in `src/lib/agents/*` as plain functions; thin API routes wrap them through a single shared helper (`src/lib/agent-route.ts`) that handles auth, per-user rate limiting, validation, the demo flag, and error mapping — so each route is just its handler.
 
 ## How it works
 
-- **Agents** live in `src/lib/agents/*`. Each calls Google Gemini (`gemini-2.5-flash`) and logs an `AgentRun` row (input, output, status, tokens) — surfaced on the **/dashboard** page.
-- **"Do it"** uses Gemini's **Google Search grounding** to search the live web, then `src/lib/link-preview.ts` fetches each source's OpenGraph data so results render as rich cards.
-- **"Email"** drafts with Gemini, then sends through the **Gmail API** (`src/lib/google.ts`) using the user's stored Google OAuth token (auto-refreshed on expiry). Drafting and sending are separate endpoints — the draft route never sends.
-- **"Schedule"** reads free/busy and creates events through the **Google Calendar API** (`src/lib/google.ts`), reusing the same token helper. Proposing slots and creating the event are separate endpoints — proposing never writes to the calendar.
-- **"Chat" streams in real time** over Server-Sent Events: the structured-output JSON puts the reply field first, so its characters are decoded from the partial response and forwarded as they generate — while the same response still carries validated, ownership-checked **actions** (complete / reprioritize / reschedule) and create-task intents dispatched to the Planner.
-- **The morning cron** (`/api/cron/briefing`, scheduled in `vercel.json`, authenticated with `CRON_SECRET`) generates briefings for every user with open tasks and emails them to opted-in users via the Gmail API.
-- **Structured output** (Gemini `responseSchema`) + **Zod** validation guarantees well-formed agent results.
-- **Demo mode:** with no `GEMINI_API_KEY` set, agents return free placeholder output so the whole flow is testable at zero cost; the real agents switch on automatically once a key is present.
-- **Safety:** per-user, DB-backed rate limiting on every agent route; graceful handling of provider quota (429).
+- **Structured + validated.** Every Gemini call uses a `responseSchema` and is re-validated with **Zod**, so agent output is always well-formed before it touches the database.
+- **Execution by grounding.** The Execute agent runs Gemini with **Google Search grounding**, then `link-preview.ts` fetches each source's OpenGraph data (behind an SSRF guard) so results render as rich, cited cards.
+- **Streaming chat, the clever bit.** The chat schema puts the `reply` field first, so the route decodes that prefix out of the **partial** structured-output JSON and forwards characters over Server-Sent Events as they generate — while the _same_ response still carries ownership-checked **actions** (complete / reprioritize / reschedule) and create-task intents dispatched to the Planner.
+- **Real integrations.** Email and Schedule call the Gmail and Google Calendar APIs (`google.ts`) using the user's stored OAuth token with automatic refresh. Drafting/proposing and sending/booking are **separate endpoints** — the draft route never sends.
+- **Automatic mornings.** A Vercel cron (`/api/cron/briefing`, authenticated with `CRON_SECRET`) generates a briefing for every active user and emails opted-in users via their own Gmail.
+- **Auditable & guarded.** Agent runs are recorded in an `AgentRun` table (input, output, status, tokens) and surfaced on the dashboard; every agent route is authenticated, user-scoped, and per-user rate-limited, with graceful handling of provider quota (429).
+- **Incremental OAuth.** Base sign-in requests only `openid email profile`; the sensitive Gmail/Calendar scopes are requested on demand via an in-app "Connect Google" step.
 
-## Local setup
+## Tech stack
+
+| Layer        | Technology                                                            |
+| ------------ | --------------------------------------------------------------------- |
+| Framework    | Next.js 15 (App Router, React Server Components)                      |
+| Language     | TypeScript                                                            |
+| AI           | Google Gemini 2.5 Flash — structured output + Google Search grounding |
+| Database     | PostgreSQL (Neon) via Prisma ORM                                      |
+| Auth         | NextAuth v5 — Google OAuth, JWT sessions                              |
+| Integrations | Gmail API · Google Calendar API                                       |
+| UI           | Tailwind CSS v4 · Radix primitives · Motion · Sonner                  |
+| Validation   | Zod                                                                   |
+| Testing      | Vitest                                                                |
+| Hosting      | Vercel (cron) + Neon Postgres                                         |
+
+## Feature tour
+
+Beyond the agents, TaskAgent is a complete task workspace:
+
+- **Three views** — a tile **list**, a drag-and-drop **Kanban board**, and a **calendar** (week + month) that plots tasks by scheduled time or due date, with drag-to-reschedule.
+- **Today / Focus page** — a time-of-day greeting with everything that needs attention, one-click complete, snooze, "Plan my day", and your morning briefing.
+- **Natural-language quick capture** — typing `Email Dan tomorrow !high` sets the due date and priority automatically; plus templates, CSV/paste import, and a **⌘K command palette**.
+- **Organize** — colored tags, priorities, pin-to-top, recurring tasks (daily/weekly/monthly/yearly), and manual drag-to-reorder.
+- **Dashboard** — task stats, completion streak, open-work time estimate, a 14-day activity chart, by-agent breakdown, and a recent-run drill-down.
+
+<details>
+<summary><b>See the full feature list</b></summary>
+
+- **Quick capture:** natural-language quick-add across the list bar, board/calendar add, and steps; reusable templates (save a task + steps, recreate in one click); CSV / paste import; ⌘K palette (jump to a view, search, new task, new from template, import).
+- **Inline editing everywhere:** click a tile's priority to cycle it or its due chip to pick a date; the detail edits title, description (Markdown), priority, due, and tags in place; steps can be renamed, reordered (drag), run, completed, and deleted.
+- **Find & focus:** search with match highlighting that also looks inside agent results and summaries; filters (priority / tag / due window) with one-click "N overdue · N due today" chips; hide-done toggle; saved views; sort by smart / due / priority / title / manual.
+- **Bulk actions:** multi-select to set status, priority, or due date, add a tag, or delete — with select all / none and a **5-second Undo** on deletes and clear-completed.
+- **Smart due dates:** relative labels ("Today", "Tomorrow", "2d overdue", "in 3d") with overdue/soon highlighting.
+- **Reminders & preferences:** opt-in browser notifications for due-soon tasks; a settings page (default view/sort/priority, confetti, reminders, reset local data); persisted chat history.
+- **Keyboard shortcuts:** `⌘K` palette · `n` new task · `/` search · `b` toggle list/board · `g` then `t`/`c`/`d`/`s` to navigate · `?` help; calendar `←`/`→`, `t`, `w`/`m`.
+- **Focus timer:** a per-task 25-minute Pomodoro that counts completed focus sessions.
+- **Installable PWA:** add TaskAgent to your home screen / desktop (web manifest, branded icon, standalone display).
+- **Touches:** copy a task as Markdown, export the whole workspace as Markdown, copy a shareable task link, confetti when you finish your last task.
+
+</details>
+
+## Getting started
 
 ```bash
 git clone https://github.com/Barel-dev/Taskagent && cd Taskagent
 npm install
-cp .env.example .env.local   # then fill in the values below
+cp .env.example .env.local   # fill in the values below
 npx prisma migrate dev
 npm run dev
 ```
 
-Environment variables (`.env.local`):
+| Variable                                | Notes                                                                                                                                                                                                                                 |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                          | Postgres (Neon) connection string                                                                                                                                                                                                     |
+| `TEST_DATABASE_URL`                     | Separate Neon branch used by the test suite                                                                                                                                                                                           |
+| `AUTH_SECRET`                           | `openssl rand -base64 32`                                                                                                                                                                                                             |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Google OAuth credentials. For Email/Schedule, also enable the Gmail + Calendar APIs and add the `gmail.send`, `calendar.events`, and `calendar.freebusy` scopes on the consent screen, then grant them in-app via **Connect Google**. |
+| `GEMINI_API_KEY`                        | Free key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey) — _optional; without it, demo mode_                                                                                                                    |
+| `CRON_SECRET`                           | Random secret for the daily-briefing cron — _optional; without it the cron route stays off_                                                                                                                                           |
 
-| Var                                     | Notes                                                                                                                                                                                         |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                          | Postgres (Neon) connection string                                                                                                                                                             |
-| `TEST_DATABASE_URL`                     | Separate Neon branch, used by the test suite                                                                                                                                                  |
-| `AUTH_SECRET`                           | `openssl rand -base64 32`                                                                                                                                                                     |
-| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Google OAuth credentials. For the Email/Schedule agents, add the `gmail.send`, `calendar.events`, and `calendar.freebusy` scopes on the OAuth consent screen and sign in again to grant them. |
-| `GEMINI_API_KEY`                        | Free key from https://aistudio.google.com/apikey (optional — without it, demo mode)                                                                                                           |
-| `CRON_SECRET`                           | Random secret for the daily-briefing cron (optional — without it the cron route stays off)                                                                                                    |
+> **Tip:** skip `GEMINI_API_KEY` to run the whole app in demo mode at zero cost.
 
 ## Testing
 
 ```bash
-npm test    # Vitest — Zod validators, data layer, and every agent (Gemini mocked, $0),
-            # plus pure-function unit tests for filtering, sorting, due labels,
-            # and the natural-language quick-add parser
+npm test    # Vitest — Zod validators, the data layer, and every agent (Gemini mocked, $0),
+            # plus pure-function tests for filtering, sorting, due labels,
+            # and the natural-language quick-add parser.
 ```
 
-## Deploying (Vercel)
+## Deployment (Vercel)
 
 1. Import the repo on Vercel.
-2. Build command: `prisma migrate deploy && next build`.
-3. Add the env vars above (`GEMINI_API_KEY` included for real agents).
-4. Add `https://<your-domain>/api/auth/callback/google` to the Google OAuth redirect URIs.
+2. Set the build command to `prisma migrate deploy && next build` (migrations auto-apply on deploy).
+3. Add the environment variables above (`GEMINI_API_KEY` included for real agents).
+4. Register `https://<your-domain>/api/auth/callback/google` as a Google OAuth redirect URI.
 
-## Status
+## Engineering highlights
 
-Built and working: Plan, Breakdown, Refine, Do it (live web search), Do all, Prioritizer, Daily Briefing (on-demand + automatic morning cron + opt-in email), Summary, Email (drafts and sends via Gmail after you approve), Schedule (proposes calendar slots and books the event after you approve), Day Planner (proposes and applies today's time blocks after you approve), Weekly Review, and a streaming Chat command center — plus the agent dashboard.
-
----
-
-### Resume bullets
-
-- Built a full-stack AI task manager (Next.js 15, TypeScript, Prisma/Postgres, NextAuth) where **12 specialized agents** plan, execute, prioritize, schedule, email, brief, and review work.
-- Implemented an **agent that performs tasks autonomously** via Google Gemini with **live web-search grounding**, returning cited, rich results — with structured-output + Zod validation, shared cross-agent context, rate limiting, and an audit log.
-- Built a **streaming natural-language command center**: chat replies stream over SSE by incrementally decoding structured-output JSON, while the same response carries ownership-validated actions that complete, reprioritize, and reschedule tasks.
-- Integrated the **Gmail and Google Calendar APIs** so agents draft/send email and propose/book calendar events from the user's account, with OAuth-token auto-refresh and a mandatory human-approval step (no auto-send/auto-book path in code); a **Vercel cron** generates and emails a daily briefing to opted-in users.
-- Designed a premium, responsive UI (tile grid + detail modal) and shipped it to Vercel; backed by a Vitest suite covering validators, data layer, and all agents.
+- Built a **full-stack AI task manager** (Next.js 15, TypeScript, Prisma/Postgres, NextAuth) where **12 specialized agents** plan, execute, prioritize, schedule, email, brief, and review work.
+- Implemented an **agent that performs tasks autonomously** via Gemini with **live web-search grounding**, returning cited rich results — with structured-output + Zod validation, shared cross-agent context, per-user rate limiting, and an audit log.
+- Engineered a **streaming natural-language command center**: chat replies stream over SSE by incrementally decoding structured-output JSON, while the same response carries ownership-validated actions that complete, reprioritize, and reschedule tasks.
+- Integrated the **Gmail and Google Calendar APIs** so agents draft/send email and propose/book events from the user's account, with OAuth token auto-refresh, incremental scope consent, and a mandatory human-approval step (no auto-send/-book path in code); a **Vercel cron** emails a daily briefing to opted-in users.
+- Designed a premium, responsive UI (tile grid + detail modal, three views, command palette) and shipped it to Vercel, backed by a Vitest suite covering validators, the data layer, and all agents.
