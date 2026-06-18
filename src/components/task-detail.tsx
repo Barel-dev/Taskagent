@@ -10,6 +10,7 @@ import {
   Globe,
   Check,
   Pencil,
+  Pin,
   Trash2,
   Clock,
   LayoutGrid,
@@ -108,6 +109,7 @@ export function TaskDetail({
   const [editingDesc, setEditingDesc] = useState(false)
   const [priority, setPriorityState] = useState(task.priority)
   const [dueDate, setDueDate] = useState<TaskNodeUI['dueDate']>(task.dueDate)
+  const [pinned, setPinned] = useState<boolean>(task.pinned ?? false)
   type TagLite = { id: string; name: string; color: string }
   const [tags, setTags] = useState<TagLite[]>(task.tags ?? [])
   const [allTags, setAllTags] = useState<TagLite[]>(task.tags ?? [])
@@ -328,6 +330,20 @@ export function TaskDetail({
     if (!res.ok) return toast.error('Could not archive')
     toast.success('Task archived', { description: 'Find it under Archived.' })
     close()
+  }
+
+  async function togglePin() {
+    const next = !pinned
+    setPinned(next)
+    const res = await fetch(`/api/tasks/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pinned: next }),
+    })
+    if (!res.ok) {
+      setPinned(!next)
+      toast.error('Could not update pin')
+    }
   }
 
   function saveAsTemplate() {
@@ -706,6 +722,15 @@ export function TaskDetail({
               </Button>
               <span className="ml-auto flex items-center gap-1">
                 <FocusTimer taskId={task.id} />
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  onClick={togglePin}
+                  title={pinned ? 'Unpin' : 'Pin to top'}
+                  className={pinned ? 'text-violet-300' : 'text-white/40 hover:text-white'}
+                >
+                  <Pin className="h-3.5 w-3.5" />
+                </Button>
                 <Button
                   size="icon-sm"
                   variant="ghost"
