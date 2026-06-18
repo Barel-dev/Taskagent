@@ -36,6 +36,7 @@ import { EmailAgentDialog } from '@/components/email-agent-dialog'
 import { ScheduleAgentDialog } from '@/components/schedule-agent-dialog'
 import { RefineDialog } from '@/components/refine-dialog'
 import { FocusTimer } from '@/components/focus-timer'
+import { TaskActivity } from '@/components/task-activity'
 import { TagChips } from '@/components/tag-chip'
 import { tagChipClass } from '@/lib/tag-colors'
 import { saveTemplate } from '@/lib/templates'
@@ -844,6 +845,7 @@ export function TaskDetail({
               <div className="min-h-0 overflow-y-auto p-5">
                 {selectedId === OVERVIEW ? (
                   <OverviewPane
+                    taskId={task.id}
                     description={description || null}
                     summary={summary}
                     done={doneCount}
@@ -890,6 +892,10 @@ export function TaskDetail({
               ) : (
                 <EmptyResult onRun={() => runParent()} busy={runningParent} />
               )}
+
+              <div className="mt-6">
+                <TaskActivity taskId={task.id} />
+              </div>
             </div>
           )}
         </DialogContent>
@@ -1024,6 +1030,7 @@ function StepAdd({ onAdd }: { onAdd: (title: string) => void }) {
 
 /* ───────── Overview pane ───────── */
 function OverviewPane({
+  taskId,
   description,
   summary,
   done,
@@ -1032,6 +1039,7 @@ function OverviewPane({
   onSummarize,
   summarizing,
 }: {
+  taskId: string
   description: string | null
   summary: string | null
   done: number
@@ -1091,6 +1099,8 @@ function OverviewPane({
           </div>
         )}
       </div>
+
+      <TaskActivity taskId={taskId} />
     </div>
   )
 }

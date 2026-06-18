@@ -16,28 +16,14 @@ import {
   Repeat,
   Flame,
 } from 'lucide-react'
-import type { AgentType, AgentRunStatus } from '@prisma/client'
+import type { AgentRunStatus } from '@prisma/client'
 import { tagChipClass } from '@/lib/tag-colors'
+import { AGENT_TYPE_LABEL as TYPE_LABEL } from '@/lib/agent-labels'
 import { AgentRunRow } from '@/components/agent-run-row'
 import { FocusStat } from '@/components/focus-stat'
 import { WeeklyReviewCard } from '@/components/weekly-review-card'
 
 export const dynamic = 'force-dynamic'
-
-const TYPE_LABEL: Record<AgentType, string> = {
-  PLAN: 'Plan',
-  BREAKDOWN: 'Breakdown',
-  REFINE: 'Refine',
-  EXECUTE: 'Do it',
-  PRIORITIZER: 'Prioritizer',
-  SUMMARY: 'Summary',
-  BRIEFING: 'Daily Briefing',
-  WEEKLY_REVIEW: 'Weekly Review',
-  SCHEDULE: 'Schedule',
-  DAY_PLAN: 'Day Planner',
-  EMAIL: 'Email',
-  CHAT: 'Chat',
-}
 
 const STATUS_STYLE: Record<AgentRunStatus, string> = {
   SUCCESS: 'text-emerald-300 bg-emerald-500/10',
