@@ -37,6 +37,7 @@ import { ScheduleAgentDialog } from '@/components/schedule-agent-dialog'
 import { RefineDialog } from '@/components/refine-dialog'
 import { FocusTimer } from '@/components/focus-timer'
 import { TaskActivity } from '@/components/task-activity'
+import { TaskNotes } from '@/components/task-notes'
 import { TagChips } from '@/components/tag-chip'
 import { tagChipClass } from '@/lib/tag-colors'
 import { saveTemplate } from '@/lib/templates'
@@ -893,7 +894,8 @@ export function TaskDetail({
                 <EmptyResult onRun={() => runParent()} busy={runningParent} />
               )}
 
-              <div className="mt-6">
+              <div className="mt-6 space-y-4">
+                <TaskNotes taskId={task.id} />
                 <TaskActivity taskId={task.id} />
               </div>
             </div>
@@ -1100,6 +1102,7 @@ function OverviewPane({
         )}
       </div>
 
+      <TaskNotes taskId={taskId} />
       <TaskActivity taskId={taskId} />
     </div>
   )

@@ -103,6 +103,8 @@ model Task {
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   title       String
   description String?
+  // Free-form working notes (separate from the description).
+  notes       String?    @db.Text
   status      TaskStatus @default(TODO)
   priority    Priority   @default(MEDIUM)
   pinned      Boolean    @default(false)

@@ -7,6 +7,7 @@ export const priorityEnum = z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT'])
 export const createTaskSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().max(5000).optional().nullable(),
+  notes: z.string().max(10000).optional().nullable(),
   status: taskStatusEnum.optional(),
   priority: priorityEnum.optional(),
   pinned: z.boolean().optional(),
