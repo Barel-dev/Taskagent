@@ -45,6 +45,7 @@ export type TaskNodeUI = {
   id: string
   title: string
   description: string | null
+  notes?: string | null
   status: 'TODO' | 'IN_PROGRESS' | 'DONE'
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   pinned?: boolean

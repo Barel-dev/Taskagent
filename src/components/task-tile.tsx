@@ -9,6 +9,7 @@ import {
   Circle,
   Pin,
   Repeat,
+  StickyNote,
   Check,
   X,
   CalendarClock,
@@ -231,6 +232,11 @@ export function TaskTile({
             <span className="inline-flex items-center gap-1" title="Repeats">
               <Repeat className="h-3 w-3" />
               {task.recurrence.toLowerCase()}
+            </span>
+          )}
+          {task.notes && task.notes.trim() !== '' && (
+            <span className="inline-flex items-center gap-1" title="Has notes">
+              <StickyNote className="h-3 w-3" />
             </span>
           )}
           <span className="ml-auto inline-flex items-center gap-0.5 text-violet-300/70 transition-colors group-hover:text-violet-200">
