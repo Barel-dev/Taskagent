@@ -17,11 +17,21 @@ export async function GET(_req: Request, { params }: Ctx) {
   })
   if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const runs = await prisma.agentRun.findMany({
-    where: { userId: session.user.id, taskId: id },
-    orderBy: { createdAt: 'desc' },
-    take: 25,
-    select: { id: true, agentType: true, status: true, tokensUsed: true, createdAt: true },
+  const [runs, focus] = await Promise.all([
+    prisma.agentRun.findMany({
+      where: { userId: session.user.id, taskId: id },
+      orderBy: { createdAt: 'desc' },
+      take: 25,
+      select: { id: true, agentType: true, status: true, tokensUsed: true, createdAt: true },
+    }),
+    prisma.focusSession.aggregate({
+      where: { userId: session.user.id, taskId: id },
+      _count: { _all: true },
+      _sum: { minutes: true },
+    }),
+  ])
+  return NextResponse.json({
+    runs,
+    focus: { count: focus._count._all, minutes: focus._sum.minutes ?? 0 },
   })
-  return NextResponse.json({ runs })
 }
