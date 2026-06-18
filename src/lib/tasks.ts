@@ -7,7 +7,9 @@ export type TaskNode = Task & { children: TaskNode[]; tags: TagLite[] }
 
 const STATUS_ORDER = { TODO: 0, IN_PROGRESS: 1, DONE: 2 } as const
 
-export async function listTasksForUser(userId: string): Promise<TaskNode[]> {
+// Build the full top-level task tree (subtasks nested to any depth). Archived
+// tasks are included here; callers filter by archive state.
+async function rootTasksForUser(userId: string): Promise<TaskNode[]> {
   // Fetch every task for the user and assemble the parent → children tree in
   // memory. This supports subtasks nested to any depth (a subtask can itself
   // be broken down), which fixed-depth Prisma `include`s can't express.
@@ -48,6 +50,18 @@ export async function listTasksForUser(userId: string): Promise<TaskNode[]> {
   })
 
   return roots
+}
+
+/** Active (non-archived) top-level tasks — what the main views show. */
+export async function listTasksForUser(userId: string): Promise<TaskNode[]> {
+  return (await rootTasksForUser(userId)).filter((t) => !t.archivedAt)
+}
+
+/** Archived top-level tasks, newest-archived first — for the Archive page. */
+export async function listArchivedTasksForUser(userId: string): Promise<TaskNode[]> {
+  return (await rootTasksForUser(userId))
+    .filter((t) => t.archivedAt)
+    .sort((a, b) => (b.archivedAt?.getTime() ?? 0) - (a.archivedAt?.getTime() ?? 0))
 }
 
 export async function createTaskForUser(userId: string, input: CreateTaskInput) {

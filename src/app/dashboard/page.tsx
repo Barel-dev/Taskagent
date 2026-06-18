@@ -67,7 +67,7 @@ export default async function DashboardPage() {
       select: { createdAt: true },
     }),
     prisma.task.findMany({
-      where: { userId, parentId: null },
+      where: { userId, parentId: null, archivedAt: null },
       select: {
         id: true,
         title: true,

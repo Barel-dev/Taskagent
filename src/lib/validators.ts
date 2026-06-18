@@ -45,6 +45,7 @@ export const updateTaskSchema = createTaskSchema
   .partial()
   .extend({
     completedAt: z.coerce.date().optional().nullable(),
+    archivedAt: z.coerce.date().optional().nullable(),
   })
   .refine((obj) => Object.keys(obj).length > 0, {
     message: 'At least one field is required',

@@ -117,7 +117,7 @@ export async function buildChatPrompt(
 ): Promise<string> {
   // Read-only task context for grounding the answer.
   const tasks = await prisma.task.findMany({
-    where: { userId, parentId: null },
+    where: { userId, parentId: null, archivedAt: null },
     orderBy: [{ status: 'asc' }, { dueDate: 'asc' }],
     include: { children: true },
   })

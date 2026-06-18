@@ -26,6 +26,7 @@ import {
   Link2,
   Files,
   Repeat,
+  Archive,
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -312,6 +313,17 @@ export function TaskDetail({
     const res = await fetch(`/api/tasks/${task.id}/duplicate`, { method: 'POST' })
     if (!res.ok) return toast.error('Could not duplicate')
     toast.success('Task duplicated')
+    close()
+  }
+
+  async function archive() {
+    const res = await fetch(`/api/tasks/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ archivedAt: new Date().toISOString() }),
+    })
+    if (!res.ok) return toast.error('Could not archive')
+    toast.success('Task archived', { description: 'Find it under Archived.' })
     close()
   }
 
@@ -726,6 +738,15 @@ export function TaskDetail({
                   className="text-white/40 hover:text-white"
                 >
                   <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  onClick={archive}
+                  title="Archive"
+                  className="text-white/40 hover:text-white"
+                >
+                  <Archive className="h-3.5 w-3.5" />
                 </Button>
                 <Button
                   size="icon-sm"
