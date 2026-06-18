@@ -58,6 +58,7 @@ model User {
   tasks         Task[]
   tags          Tag[]
   agentRuns     AgentRun[]
+  focusSessions FocusSession[]
   createdAt     DateTime  @default(now())
 }
 
@@ -144,7 +145,8 @@ model Task {
   parent           Task?   @relation("Subtasks", fields: [parentId], references: [id], onDelete: Cascade)
   children         Task[]  @relation("Subtasks")
 
-  tags TaskTag[]
+  tags          TaskTag[]
+  focusSessions FocusSession[]
 
   @@index([userId, status])
   @@index([userId, dueDate])
@@ -195,4 +197,19 @@ model AgentRun {
   completedAt DateTime?
 
   @@index([userId, createdAt])
+}
+
+// A completed focus (Pomodoro) session, persisted so focus time is durable and
+// cross-device and can power the dashboard's focus analytics.
+model FocusSession {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId    String?
+  task      Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  minutes   Int      @default(25)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([taskId])
 }

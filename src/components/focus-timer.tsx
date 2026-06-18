@@ -32,9 +32,15 @@ export function FocusTimer({ taskId }: { taskId: string }) {
     const n = Number(localStorage.getItem(key) ?? 0) + 1
     localStorage.setItem(key, String(n))
     setSessions(n)
+    // Persist the session for durable, cross-device focus analytics (best-effort).
+    fetch('/api/focus', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId, minutes: FOCUS_SECONDS / 60 }),
+    }).catch(() => {})
     if (localStorage.getItem('taskagent:confetti') !== 'off') confetti()
     toast.success('Focus session complete! 🍅')
-  }, [left, running, key])
+  }, [left, running, key, taskId])
 
   const mm = String(Math.floor(left / 60)).padStart(2, '0')
   const ss = String(left % 60).padStart(2, '0')

@@ -15,12 +15,12 @@ import {
   CalendarClock,
   Repeat,
   Flame,
+  Timer,
 } from 'lucide-react'
 import type { AgentRunStatus } from '@prisma/client'
 import { tagChipClass } from '@/lib/tag-colors'
 import { AGENT_TYPE_LABEL as TYPE_LABEL } from '@/lib/agent-labels'
 import { AgentRunRow } from '@/components/agent-run-row'
-import { FocusStat } from '@/components/focus-stat'
 import { WeeklyReviewCard } from '@/components/weekly-review-card'
 
 export const dynamic = 'force-dynamic'
@@ -40,45 +40,60 @@ export default async function DashboardPage() {
   since.setHours(0, 0, 0, 0)
   since.setDate(since.getDate() - 13)
 
-  const [total, success, tokensAgg, byType, recent, last14, tasksAll, tagsRaw, completedRecent] =
-    await Promise.all([
-      prisma.agentRun.count({ where: { userId } }),
-      prisma.agentRun.count({ where: { userId, status: 'SUCCESS' } }),
-      prisma.agentRun.aggregate({ where: { userId }, _sum: { tokensUsed: true } }),
-      prisma.agentRun.groupBy({
-        by: ['agentType'],
-        where: { userId },
-        _count: { _all: true },
-        _sum: { tokensUsed: true },
-      }),
-      prisma.agentRun.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 12 }),
-      prisma.agentRun.findMany({
-        where: { userId, createdAt: { gte: since } },
-        select: { createdAt: true },
-      }),
-      prisma.task.findMany({
-        where: { userId, parentId: null },
-        select: {
-          id: true,
-          title: true,
-          status: true,
-          priority: true,
-          dueDate: true,
-          scheduledStart: true,
-          recurrence: true,
-          estimatedMinutes: true,
-          updatedAt: true,
-        },
-      }),
-      prisma.tag.findMany({
-        where: { userId },
-        select: { id: true, name: true, color: true, _count: { select: { tasks: true } } },
-      }),
-      prisma.task.findMany({
-        where: { userId, completedAt: { gte: since } },
-        select: { completedAt: true, createdAt: true },
-      }),
-    ])
+  const [
+    total,
+    success,
+    tokensAgg,
+    byType,
+    recent,
+    last14,
+    tasksAll,
+    tagsRaw,
+    completedRecent,
+    focusAgg,
+  ] = await Promise.all([
+    prisma.agentRun.count({ where: { userId } }),
+    prisma.agentRun.count({ where: { userId, status: 'SUCCESS' } }),
+    prisma.agentRun.aggregate({ where: { userId }, _sum: { tokensUsed: true } }),
+    prisma.agentRun.groupBy({
+      by: ['agentType'],
+      where: { userId },
+      _count: { _all: true },
+      _sum: { tokensUsed: true },
+    }),
+    prisma.agentRun.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 12 }),
+    prisma.agentRun.findMany({
+      where: { userId, createdAt: { gte: since } },
+      select: { createdAt: true },
+    }),
+    prisma.task.findMany({
+      where: { userId, parentId: null },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        priority: true,
+        dueDate: true,
+        scheduledStart: true,
+        recurrence: true,
+        estimatedMinutes: true,
+        updatedAt: true,
+      },
+    }),
+    prisma.tag.findMany({
+      where: { userId },
+      select: { id: true, name: true, color: true, _count: { select: { tasks: true } } },
+    }),
+    prisma.task.findMany({
+      where: { userId, completedAt: { gte: since } },
+      select: { completedAt: true, createdAt: true },
+    }),
+    prisma.focusSession.aggregate({
+      where: { userId },
+      _count: { _all: true },
+      _sum: { minutes: true },
+    }),
+  ])
 
   // Latest weekly review from the past 7 days, if one was generated.
   const weekAgo = new Date()
@@ -200,6 +215,17 @@ export default async function DashboardPage() {
         : `${openMins}m`
       : null
 
+  const focusCount = focusAgg._count._all
+  const focusMinutes = focusAgg._sum.minutes ?? 0
+  const focusHrs = Math.floor(focusMinutes / 60)
+  const focusMins = focusMinutes % 60
+  const focusLabel =
+    focusMinutes > 0
+      ? focusHrs
+        ? `${focusHrs}h${focusMins ? ` ${focusMins}m` : ''}`
+        : `${focusMins}m`
+      : null
+
   const stats = [
     { label: 'Agent runs', value: total.toLocaleString(), Icon: Zap },
     { label: 'Success rate', value: `${successRate}%`, Icon: CheckCircle2 },
@@ -287,7 +313,14 @@ export default async function DashboardPage() {
                 complete
               </div>
             )}
-            <FocusStat />
+            {focusCount > 0 && (
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/70">
+                <Timer className="h-4 w-4 text-violet-300" />
+                🍅 {focusCount} focus session
+                {focusCount === 1 ? '' : 's'}
+                {focusLabel ? ` · ~${focusLabel} focused` : ''}
+              </div>
+            )}
           </div>
           {totalTasks > 0 && (
             <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
