@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma'
 
 // The Weekly Review agent looks back at the last 7 days — what got done, what
 // slipped, how the agents were used — and writes a short, honest retro with a
-// suggested focus for the coming week. Logged as a BRIEFING run with
-// kind:'weekly-review' (same reuse pattern as the Day Planner under SCHEDULE).
+// suggested focus for the coming week. Logged as a WEEKLY_REVIEW run (the
+// output also carries kind:'weekly-review' for older dashboard queries).
 
 export type WeeklyReviewResult = { agentRunId: string; review: string }
 
@@ -44,7 +44,7 @@ export async function runWeeklyReviewAgent(params: {
   const run = await prisma.agentRun.create({
     data: {
       userId,
-      agentType: 'BRIEFING',
+      agentType: 'WEEKLY_REVIEW',
       status: 'PENDING',
       input: { kind: 'weekly-review', completed: completed.length, overdue: overdue.length, demo },
     },

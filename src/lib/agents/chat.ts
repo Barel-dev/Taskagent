@@ -9,7 +9,7 @@ import { priorityEnum, type UpdateTaskInput } from '@/lib/validators'
 // read-only questions about the user's tasks directly, dispatches to the
 // Planner when the user wants a new task, and can act on existing tasks —
 // complete them, change priority, or move due dates — when clearly asked.
-// It does not log its own AgentRun (no CHAT enum) — any task it creates is
+// Each turn is logged as a CHAT AgentRun; any task it creates is additionally
 // logged by the Planner it calls.
 
 export type ChatTurn = { role: 'user' | 'assistant'; content: string }
@@ -162,6 +162,7 @@ export async function buildChatPrompt(
 export async function finalizeChat(
   userId: string,
   parsed: ChatOutput,
+  opts: { message?: string; tokensUsed?: number } = {},
 ): Promise<Omit<ChatResult, 'reply'>> {
   let createdTask: { id: string; title: string } | undefined
   const goal = parsed.createTaskGoal?.trim()
@@ -183,6 +184,29 @@ export async function finalizeChat(
     const updated = await updateTaskForUser(userId, a.taskId, data)
     if (updated) applied.push({ type: a.type, taskId: a.taskId, title: updated.title })
   }
+
+  // Audit the chat turn so it appears in the dashboard's by-agent breakdown.
+  // A logging failure must never break the user's reply, so it's swallowed.
+  await prisma.agentRun
+    .create({
+      data: {
+        userId,
+        taskId: createdTask?.id ?? null,
+        agentType: 'CHAT',
+        status: 'SUCCESS',
+        input: opts.message ? { message: opts.message } : undefined,
+        output: {
+          reply: parsed.reply,
+          ...(createdTask ? { createdTask } : {}),
+          ...(applied.length
+            ? { actions: applied.map((act) => ({ type: act.type, title: act.title })) }
+            : {}),
+        },
+        tokensUsed: opts.tokensUsed ?? 0,
+        completedAt: new Date(),
+      },
+    })
+    .catch(() => {})
 
   return { createdTask, ...(applied.length ? { actions: applied } : {}) }
 }

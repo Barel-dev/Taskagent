@@ -20,8 +20,9 @@ enum Priority {
   URGENT
 }
 
-// Which specialized agent produced a run. Only BREAKDOWN is wired up today;
-// the rest are declared so the AgentRun log is forward-compatible.
+// Which specialized agent produced a run — one value per agent so the
+// dashboard's by-agent breakdown is accurate. (Older rows may still carry the
+// previous coarser type, e.g. Plan logged under BREAKDOWN.)
 enum AgentType {
   BREAKDOWN
   EXECUTE
@@ -29,6 +30,12 @@ enum AgentType {
   SCHEDULE
   EMAIL
   BRIEFING
+  PLAN
+  REFINE
+  SUMMARY
+  CHAT
+  DAY_PLAN
+  WEEKLY_REVIEW
 }
 
 enum AgentRunStatus {

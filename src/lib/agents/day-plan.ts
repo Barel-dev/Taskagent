@@ -90,7 +90,7 @@ export function demoDayPlan(): { summary: string; blocks: [] } {
 }
 
 /**
- * Propose today's focus blocks. Logs a SCHEDULE AgentRun like the other
+ * Propose today's focus blocks. Logs a DAY_PLAN AgentRun like the other
  * agents. Throws on failure (after recording the run as ERROR). Applying the
  * blocks is a separate, user-approved step.
  */
@@ -123,7 +123,7 @@ export async function runDayPlanAgent(params: {
   const run = await prisma.agentRun.create({
     data: {
       userId,
-      agentType: 'SCHEDULE',
+      agentType: 'DAY_PLAN',
       status: 'PENDING',
       input: { kind: 'day-plan', candidates: open.length, timeZone, demo },
     },

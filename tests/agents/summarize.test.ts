@@ -48,7 +48,7 @@ describe('summarize agent', () => {
 
     const run = await prisma.agentRun.findUnique({ where: { id: agentRunId } })
     expect(run?.status).toBe('SUCCESS')
-    expect(run?.agentType).toBe('BRIEFING')
+    expect(run?.agentType).toBe('SUMMARY')
     expect(run?.tokensUsed).toBe(90)
   })
 

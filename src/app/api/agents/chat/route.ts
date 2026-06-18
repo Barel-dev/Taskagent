@@ -74,8 +74,10 @@ export async function POST(req: Request) {
         // forward its characters as they arrive.
         let raw = ''
         let sent = 0
+        let tokensUsed = 0
         for await (const chunk of chunks) {
           raw += chunk.text ?? ''
+          if (chunk.usageMetadata?.totalTokenCount) tokensUsed = chunk.usageMetadata.totalTokenCount
           const reply = extractReplyPrefix(raw)
           if (reply.length > sent) {
             controller.enqueue(sse({ type: 'delta', text: reply.slice(sent) }))
@@ -84,7 +86,7 @@ export async function POST(req: Request) {
         }
 
         const out = chatOutputSchema.parse(JSON.parse(raw))
-        const effects = await finalizeChat(userId, out)
+        const effects = await finalizeChat(userId, out, { message, tokensUsed })
         controller.enqueue(sse({ type: 'done', reply: out.reply, ...effects }))
       } catch (err) {
         console.error('Chat stream failed:', err)

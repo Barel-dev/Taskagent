@@ -76,7 +76,7 @@ export async function runPlanAgent(params: {
   const run = await prisma.agentRun.create({
     data: {
       userId,
-      agentType: 'BREAKDOWN',
+      agentType: 'PLAN',
       status: 'PENDING',
       input: { goal, demo },
     },

@@ -36,7 +36,7 @@ export async function runSummarizeAgent(params: {
     data: {
       userId,
       taskId: task.id,
-      agentType: 'BRIEFING',
+      agentType: 'SUMMARY',
       status: 'PENDING',
       input: { taskId: task.id, title: task.title, demo },
     },

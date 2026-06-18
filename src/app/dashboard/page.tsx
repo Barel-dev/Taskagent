@@ -25,12 +25,18 @@ import { WeeklyReviewCard } from '@/components/weekly-review-card'
 export const dynamic = 'force-dynamic'
 
 const TYPE_LABEL: Record<AgentType, string> = {
-  BREAKDOWN: 'Plan / Breakdown',
+  PLAN: 'Plan',
+  BREAKDOWN: 'Breakdown',
+  REFINE: 'Refine',
   EXECUTE: 'Do it',
   PRIORITIZER: 'Prioritizer',
-  BRIEFING: 'Summary / Briefing',
+  SUMMARY: 'Summary',
+  BRIEFING: 'Daily Briefing',
+  WEEKLY_REVIEW: 'Weekly Review',
   SCHEDULE: 'Schedule',
+  DAY_PLAN: 'Day Planner',
   EMAIL: 'Email',
+  CHAT: 'Chat',
 }
 
 const STATUS_STYLE: Record<AgentRunStatus, string> = {
@@ -94,10 +100,9 @@ export default async function DashboardPage() {
   const reviewRun = await prisma.agentRun.findFirst({
     where: {
       userId,
-      agentType: 'BRIEFING',
+      agentType: 'WEEKLY_REVIEW',
       status: 'SUCCESS',
       createdAt: { gte: weekAgo },
-      output: { path: ['kind'], equals: 'weekly-review' },
     },
     orderBy: { createdAt: 'desc' },
     select: { output: true },

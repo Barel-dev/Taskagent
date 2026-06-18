@@ -2,11 +2,11 @@ import { z } from 'zod'
 import { Type } from '@google/genai'
 import type { Task } from '@prisma/client'
 import { getGemini, GEMINI_MODEL } from '@/lib/gemini'
+import { prisma } from '@/lib/prisma'
 
 // The Refine agent sharpens a vague/terse task into a clear title, description,
-// and acceptance criteria. Like the chat router, it does not log its own
-// AgentRun (the AgentType enum has no REFINE value, and we avoid an enum
-// migration); it's a pure transform the user reviews before applying.
+// and acceptance criteria. It logs a REFINE AgentRun like the other agents; the
+// result is a transform the user reviews before applying.
 
 export const refineOutputSchema = z.object({
   title: z.string().min(1).max(200),
@@ -58,26 +58,63 @@ export function demoRefine(title: string): RefineResult {
 }
 
 export async function runRefineAgent(params: {
-  task: Pick<Task, 'title' | 'description'>
+  userId: string
+  task: Pick<Task, 'id' | 'title' | 'description'>
   demo?: boolean
 }): Promise<RefineResult> {
-  const { task, demo = false } = params
-  if (demo) return demoRefine(task.title)
+  const { userId, task, demo = false } = params
 
-  const prompt =
-    `TASK: ${task.title}` + (task.description ? `\n\nCurrent details: ${task.description}` : '')
-
-  const response = await getGemini().models.generateContent({
-    model: GEMINI_MODEL,
-    contents: prompt,
-    config: {
-      systemInstruction: SYSTEM_PROMPT,
-      responseMimeType: 'application/json',
-      responseSchema: RESPONSE_SCHEMA,
+  const run = await prisma.agentRun.create({
+    data: {
+      userId,
+      taskId: task.id,
+      agentType: 'REFINE',
+      status: 'PENDING',
+      input: { taskId: task.id, title: task.title, demo },
     },
   })
 
-  const text = response.text
-  if (!text) throw new Error('The agent did not return a refinement.')
-  return refineOutputSchema.parse(JSON.parse(text))
+  try {
+    let result: RefineResult
+    let tokensUsed = 0
+
+    if (demo) {
+      result = demoRefine(task.title)
+    } else {
+      const prompt =
+        `TASK: ${task.title}` + (task.description ? `\n\nCurrent details: ${task.description}` : '')
+
+      const response = await getGemini().models.generateContent({
+        model: GEMINI_MODEL,
+        contents: prompt,
+        config: {
+          systemInstruction: SYSTEM_PROMPT,
+          responseMimeType: 'application/json',
+          responseSchema: RESPONSE_SCHEMA,
+        },
+      })
+
+      const text = response.text
+      if (!text) throw new Error('The agent did not return a refinement.')
+      result = refineOutputSchema.parse(JSON.parse(text))
+      tokensUsed = response.usageMetadata?.totalTokenCount ?? 0
+    }
+
+    await prisma.agentRun.update({
+      where: { id: run.id },
+      data: { status: 'SUCCESS', output: { demo, ...result }, tokensUsed, completedAt: new Date() },
+    })
+
+    return result
+  } catch (err) {
+    await prisma.agentRun.update({
+      where: { id: run.id },
+      data: {
+        status: 'ERROR',
+        error: err instanceof Error ? err.message : String(err),
+        completedAt: new Date(),
+      },
+    })
+    throw err
+  }
 }

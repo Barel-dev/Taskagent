@@ -9,7 +9,7 @@ export const POST = agentRoute({
   handler: async ({ userId, input, demo }) => {
     const task = await getTaskForUser(userId, input.taskId)
     if (!task) throw new AgentHttpError(404, 'Task not found')
-    const result = await runRefineAgent({ task, demo })
+    const result = await runRefineAgent({ userId, task, demo })
     return { ...result, demo }
   },
 })
