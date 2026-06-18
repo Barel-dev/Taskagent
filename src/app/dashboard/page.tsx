@@ -16,6 +16,7 @@ import {
   Repeat,
   Flame,
   Timer,
+  Archive,
 } from 'lucide-react'
 import type { AgentRunStatus } from '@prisma/client'
 import { tagChipClass } from '@/lib/tag-colors'
@@ -51,6 +52,7 @@ export default async function DashboardPage() {
     tagsRaw,
     completedRecent,
     focusAgg,
+    archivedCount,
   ] = await Promise.all([
     prisma.agentRun.count({ where: { userId } }),
     prisma.agentRun.count({ where: { userId, status: 'SUCCESS' } }),
@@ -93,6 +95,7 @@ export default async function DashboardPage() {
       _count: { _all: true },
       _sum: { minutes: true },
     }),
+    prisma.task.count({ where: { userId, parentId: null, archivedAt: { not: null } } }),
   ])
 
   // Latest weekly review from the past 7 days, if one was generated.
@@ -320,6 +323,15 @@ export default async function DashboardPage() {
                 {focusCount === 1 ? '' : 's'}
                 {focusLabel ? ` · ~${focusLabel} focused` : ''}
               </div>
+            )}
+            {archivedCount > 0 && (
+              <Link
+                href="/archive"
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/70 transition-colors hover:border-white/20 hover:text-white"
+              >
+                <Archive className="h-4 w-4 text-white/50" />
+                {archivedCount} archived
+              </Link>
             )}
           </div>
           {totalTasks > 0 && (
