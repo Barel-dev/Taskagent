@@ -8,6 +8,7 @@ import {
   CalendarDays,
   LayoutDashboard,
   Settings,
+  Archive,
   Sun,
   Hash,
   CornerDownLeft,
@@ -24,6 +25,7 @@ const NAV = [
   { label: 'Go to Tasks', href: '/tasks', Icon: ListTodo },
   { label: 'Go to Calendar', href: '/calendar', Icon: CalendarDays },
   { label: 'Go to Dashboard', href: '/dashboard', Icon: LayoutDashboard },
+  { label: 'Go to Archived', href: '/archive', Icon: Archive },
   { label: 'Go to Settings', href: '/settings', Icon: Settings },
 ]
 
