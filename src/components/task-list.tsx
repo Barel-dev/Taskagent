@@ -13,6 +13,7 @@ import {
   FileText,
   Upload,
   CheckCheck,
+  Archive,
   Trash2,
   Files,
   X,
@@ -1085,6 +1086,15 @@ export function TaskList({
             title="Set due date for selected"
             className="h-8 rounded-md border border-white/10 bg-white/5 px-2 text-xs text-white/75 [color-scheme:dark] focus:outline-none"
           />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => bulkPatch({ archivedAt: new Date().toISOString() })}
+            className="border-white/15 text-white/75 hover:bg-white/5"
+          >
+            <Archive className="mr-1 h-3.5 w-3.5" />
+            Archive
+          </Button>
           <Button
             size="sm"
             variant="outline"
