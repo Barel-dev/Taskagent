@@ -12,6 +12,7 @@ export function SettingsForm({ initialBriefingEmail = false }: { initialBriefing
   const [priority, setPriority] = useState('MEDIUM')
   const [confetti, setConfetti] = useState(true)
   const [notify, setNotify] = useState(false)
+  const [focusMinutes, setFocusMinutes] = useState('25')
   const [briefingEmail, setBriefingEmail] = useState(initialBriefingEmail)
 
   useEffect(() => {
@@ -20,6 +21,7 @@ export function SettingsForm({ initialBriefingEmail = false }: { initialBriefing
     setPriority(localStorage.getItem('taskagent:defaultPriority') ?? 'MEDIUM')
     setConfetti(localStorage.getItem('taskagent:confetti') !== 'off')
     setNotify(localStorage.getItem('taskagent:notify') === 'on')
+    setFocusMinutes(localStorage.getItem('taskagent:focusMinutes') ?? '25')
   }, [])
 
   function persist(key: string, value: string) {
@@ -87,6 +89,7 @@ export function SettingsForm({ initialBriefingEmail = false }: { initialBriefing
     setPriority('MEDIUM')
     setConfetti(true)
     setNotify(false)
+    setFocusMinutes('25')
     toast.success('Local data cleared')
   }
 
@@ -137,6 +140,22 @@ export function SettingsForm({ initialBriefingEmail = false }: { initialBriefing
             <option value="MEDIUM">Medium</option>
             <option value="HIGH">High</option>
             <option value="URGENT">Urgent</option>
+          </select>
+        </Row>
+
+        <Row label="Focus session length" hint="Length of the Pomodoro timer in the task detail.">
+          <select
+            value={focusMinutes}
+            onChange={(e) => {
+              setFocusMinutes(e.target.value)
+              persist('taskagent:focusMinutes', e.target.value)
+            }}
+            className={selectClass}
+          >
+            <option value="15">15 minutes</option>
+            <option value="25">25 minutes</option>
+            <option value="45">45 minutes</option>
+            <option value="60">60 minutes</option>
           </select>
         </Row>
 

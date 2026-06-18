@@ -5,19 +5,35 @@ import { Play, Pause, RotateCcw, Timer } from 'lucide-react'
 import { toast } from 'sonner'
 import { confetti } from '@/lib/confetti'
 
-const FOCUS_SECONDS = 25 * 60
+const DEFAULT_MIN = 25
 
-// A compact 25-minute Pomodoro for the open task. Completing a session bumps a
-// per-task counter (localStorage) and celebrates. Runs while the detail is open.
+// The Pomodoro length, configurable in Settings (taskagent:focusMinutes).
+function configuredMinutes(): number {
+  if (typeof window === 'undefined') return DEFAULT_MIN
+  const v = Number(localStorage.getItem('taskagent:focusMinutes'))
+  return Number.isFinite(v) && v >= 1 && v <= 180 ? v : DEFAULT_MIN
+}
+
+// A compact focus timer for the open task. Completing a session bumps a
+// per-task counter (localStorage), persists the session to the server for
+// durable analytics, and celebrates. Runs while the detail is open.
 export function FocusTimer({ taskId }: { taskId: string }) {
   const key = `taskagent:focus:${taskId}`
-  const [left, setLeft] = useState(FOCUS_SECONDS)
+  const [minutes, setMinutes] = useState(DEFAULT_MIN)
+  const [left, setLeft] = useState(DEFAULT_MIN * 60)
   const [running, setRunning] = useState(false)
   const [sessions, setSessions] = useState(0)
 
   useEffect(() => {
     setSessions(Number(localStorage.getItem(key) ?? 0))
   }, [key])
+
+  // Pick up the configured session length on mount.
+  useEffect(() => {
+    const m = configuredMinutes()
+    setMinutes(m)
+    setLeft(m * 60)
+  }, [])
 
   useEffect(() => {
     if (!running) return
@@ -28,7 +44,7 @@ export function FocusTimer({ taskId }: { taskId: string }) {
   useEffect(() => {
     if (left !== 0 || !running) return
     setRunning(false)
-    setLeft(FOCUS_SECONDS)
+    setLeft(minutes * 60)
     const n = Number(localStorage.getItem(key) ?? 0) + 1
     localStorage.setItem(key, String(n))
     setSessions(n)
@@ -36,11 +52,11 @@ export function FocusTimer({ taskId }: { taskId: string }) {
     fetch('/api/focus', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId, minutes: FOCUS_SECONDS / 60 }),
+      body: JSON.stringify({ taskId, minutes }),
     }).catch(() => {})
     if (localStorage.getItem('taskagent:confetti') !== 'off') confetti()
     toast.success('Focus session complete! 🍅')
-  }, [left, running, key, taskId])
+  }, [left, running, key, minutes, taskId])
 
   const mm = String(Math.floor(left / 60)).padStart(2, '0')
   const ss = String(left % 60).padStart(2, '0')
@@ -60,12 +76,12 @@ export function FocusTimer({ taskId }: { taskId: string }) {
       >
         {running ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
       </button>
-      {(running || left !== FOCUS_SECONDS) && (
+      {(running || left !== minutes * 60) && (
         <button
           type="button"
           onClick={() => {
             setRunning(false)
-            setLeft(FOCUS_SECONDS)
+            setLeft(minutes * 60)
           }}
           title="Reset"
           aria-label="Reset timer"
