@@ -15,6 +15,7 @@ export const AGENT_TYPE_LABEL: Record<AgentType, string> = {
   DAY_PLAN: 'Day Planner',
   EMAIL: 'Email',
   CHAT: 'Chat',
+  ASSESS: 'Risk check',
 }
 
 /** Label for a possibly-unknown agent-type string (falls back to the raw value). */

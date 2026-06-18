@@ -36,6 +36,7 @@ enum AgentType {
   CHAT
   DAY_PLAN
   WEEKLY_REVIEW
+  ASSESS
 }
 
 enum AgentRunStatus {

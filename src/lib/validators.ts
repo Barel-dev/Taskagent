@@ -41,6 +41,10 @@ export const refineRequestSchema = z.object({
   taskId: z.string().min(1, 'taskId is required'),
 })
 
+export const assessRequestSchema = z.object({
+  taskId: z.string().min(1, 'taskId is required'),
+})
+
 export const updateTaskSchema = createTaskSchema
   .partial()
   .extend({

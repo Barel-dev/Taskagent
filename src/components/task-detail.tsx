@@ -20,6 +20,7 @@ import {
   Plus,
   Copy,
   Wand2,
+  ShieldAlert,
   GripVertical,
   ClipboardList,
   CalendarDays,
@@ -36,6 +37,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { EmailAgentDialog } from '@/components/email-agent-dialog'
 import { ScheduleAgentDialog } from '@/components/schedule-agent-dialog'
 import { RefineDialog } from '@/components/refine-dialog'
+import { AssessDialog } from '@/components/assess-dialog'
 import { FocusTimer } from '@/components/focus-timer'
 import { TaskActivity } from '@/components/task-activity'
 import { TaskNotes } from '@/components/task-notes'
@@ -99,6 +101,7 @@ export function TaskDetail({
   const [emailOpen, setEmailOpen] = useState(false)
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const [refineOpen, setRefineOpen] = useState(false)
+  const [assessOpen, setAssessOpen] = useState(false)
   const [title, setTitle] = useState(task.title)
   const [editingTitle, setEditingTitle] = useState(false)
   const [description, setDescription] = useState(task.description ?? '')
@@ -677,6 +680,15 @@ export function TaskDetail({
               <Button
                 size="sm"
                 variant="outline"
+                onClick={() => setAssessOpen(true)}
+                className="border-white/15 text-white/75 hover:bg-white/5"
+              >
+                <ShieldAlert className="mr-1 h-3.5 w-3.5" />
+                Risks
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => setEmailOpen(true)}
                 className="border-white/15 text-white/75 hover:bg-white/5"
               >
@@ -927,6 +939,7 @@ export function TaskDetail({
       <EmailAgentDialog task={task} open={emailOpen} onOpenChange={setEmailOpen} />
       <ScheduleAgentDialog task={task} open={scheduleOpen} onOpenChange={setScheduleOpen} />
       <RefineDialog task={task} open={refineOpen} onOpenChange={setRefineOpen} />
+      <AssessDialog task={task} open={assessOpen} onOpenChange={setAssessOpen} />
     </>
   )
 }
