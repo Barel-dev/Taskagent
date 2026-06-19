@@ -25,8 +25,15 @@ const STATUS_STYLE: Record<string, string> = {
 
 // The full agent-jobs log with a by-agent filter. Reuses the dashboard's
 // AgentRunRow so a row reads identically wherever it appears.
-export function AgentActivityList({ runs }: { runs: Run[] }) {
+export function AgentActivityList({
+  runs,
+  summary,
+}: {
+  runs: Run[]
+  summary: { total: number; success: number; tokens: number }
+}) {
   const [filter, setFilter] = useState<string | null>(null)
+  const successRate = summary.total ? Math.round((summary.success / summary.total) * 100) : 0
 
   // Agent types present in the log, ordered by how often they appear.
   const counts = new Map<string, number>()
@@ -57,6 +64,14 @@ export function AgentActivityList({ runs }: { runs: Run[] }) {
           Back to dashboard
         </Link>
       </header>
+
+      {summary.total > 0 && (
+        <div className="mb-5 grid grid-cols-3 gap-3">
+          <SummaryStat label="Total runs" value={summary.total.toLocaleString()} />
+          <SummaryStat label="Success" value={`${successRate}%`} />
+          <SummaryStat label="Tokens" value={summary.tokens.toLocaleString()} />
+        </div>
+      )}
 
       {runs.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
@@ -93,6 +108,15 @@ export function AgentActivityList({ runs }: { runs: Run[] }) {
           </div>
         </>
       )}
+    </div>
+  )
+}
+
+function SummaryStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 backdrop-blur-sm">
+      <div className="text-2xl font-semibold tracking-tight text-white">{value}</div>
+      <div className="mt-0.5 text-xs text-white/50">{label}</div>
     </div>
   )
 }
