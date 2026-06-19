@@ -53,6 +53,7 @@ export default async function DashboardPage() {
     completedRecent,
     focusAgg,
     archivedCount,
+    errorRecent,
   ] = await Promise.all([
     prisma.agentRun.count({ where: { userId } }),
     prisma.agentRun.count({ where: { userId, status: 'SUCCESS' } }),
@@ -96,6 +97,7 @@ export default async function DashboardPage() {
       _sum: { minutes: true },
     }),
     prisma.task.count({ where: { userId, parentId: null, archivedAt: { not: null } } }),
+    prisma.agentRun.count({ where: { userId, status: 'ERROR', createdAt: { gte: since } } }),
   ])
 
   // Latest weekly review from the past 7 days, if one was generated.
@@ -523,11 +525,21 @@ export default async function DashboardPage() {
                 Every job your agents have run — tokens, outcomes, and history.
               </p>
             </div>
-            {total > 0 && (
-              <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/55">
-                {total.toLocaleString()} total
-              </span>
-            )}
+            <div className="flex shrink-0 items-center gap-2">
+              {errorRecent > 0 && (
+                <Link
+                  href="/activity"
+                  className="rounded-full border border-rose-400/25 bg-rose-500/10 px-2.5 py-1 text-[11px] text-rose-200 transition-colors hover:bg-rose-500/15"
+                >
+                  {errorRecent} failed
+                </Link>
+              )}
+              {total > 0 && (
+                <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/55">
+                  {total.toLocaleString()} total
+                </span>
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {stats.map((s) => (
