@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { History, CheckCircle2, XCircle, Loader2, Timer } from 'lucide-react'
-import { agentLabel } from '@/lib/agent-labels'
+import { agentLabel, agentColor } from '@/lib/agent-labels'
 
 type Run = {
   id: string
@@ -67,6 +67,7 @@ export function TaskActivity({ taskId }: { taskId: string }) {
           {runs.map((run) => (
             <li key={run.id} className="flex items-center gap-2.5 text-xs">
               <StatusIcon status={run.status} />
+              <span className={`h-2 w-2 shrink-0 rounded-full ${agentColor(run.agentType)}`} />
               <span className="text-white/75">{agentLabel(run.agentType)}</span>
               {run.tokensUsed ? (
                 <span className="text-white/30 tabular-nums">

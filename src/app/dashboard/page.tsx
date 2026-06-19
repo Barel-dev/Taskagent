@@ -20,7 +20,7 @@ import {
 } from 'lucide-react'
 import type { AgentRunStatus } from '@prisma/client'
 import { tagChipClass } from '@/lib/tag-colors'
-import { AGENT_TYPE_LABEL as TYPE_LABEL } from '@/lib/agent-labels'
+import { AGENT_TYPE_LABEL as TYPE_LABEL, agentColor } from '@/lib/agent-labels'
 import { AgentRunRow } from '@/components/agent-run-row'
 import { WeeklyReviewCard } from '@/components/weekly-review-card'
 
@@ -230,10 +230,15 @@ export default async function DashboardPage() {
       : null
 
   const stats = [
-    { label: 'Agent runs', value: total.toLocaleString(), Icon: Zap },
-    { label: 'Success rate', value: `${successRate}%`, Icon: CheckCircle2 },
-    { label: 'Tokens used', value: tokens.toLocaleString(), Icon: Coins },
-    { label: 'Agent types', value: String(byType.length), Icon: Bot },
+    { label: 'Agent runs', value: total.toLocaleString(), Icon: Zap, tint: 'text-violet-300' },
+    {
+      label: 'Success rate',
+      value: `${successRate}%`,
+      Icon: CheckCircle2,
+      tint: 'text-emerald-300',
+    },
+    { label: 'Tokens used', value: tokens.toLocaleString(), Icon: Coins, tint: 'text-amber-300' },
+    { label: 'Agent types', value: String(byType.length), Icon: Bot, tint: 'text-sky-300' },
   ]
 
   return (
@@ -509,97 +514,129 @@ export default async function DashboardPage() {
 
         <WeeklyReviewCard initial={weeklyReview} />
 
-        {/* Agent stat cards */}
-        <h3 className="text-sm font-semibold text-white/70">Agent activity</h3>
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {stats.map((s) => (
-            <div
-              key={s.label}
-              className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm"
-            >
-              <s.Icon className="h-5 w-5 text-violet-300" />
-              <div className="mt-3 text-3xl font-semibold tracking-tight text-white">{s.value}</div>
-              <div className="mt-1 text-xs text-white/50">{s.label}</div>
+        {/* Agent jobs */}
+        <section className="space-y-4">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white/80">Agent activity</h3>
+              <p className="mt-0.5 text-xs text-white/40">
+                Every job your agents have run — tokens, outcomes, and history.
+              </p>
             </div>
-          ))}
-        </div>
-
-        {total === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
-            <Bot className="mx-auto h-6 w-6 text-violet-300/60" />
-            <p className="mt-3 text-sm text-white/60">No agent runs yet.</p>
-            <p className="mt-1 text-xs text-white/40">
-              Head to your tasks and run an agent — it’ll show up here.
-            </p>
+            {total > 0 && (
+              <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/55">
+                {total.toLocaleString()} total
+              </span>
+            )}
           </div>
-        ) : (
-          <>
-            {/* Activity chart */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
-              <h3 className="text-sm font-semibold text-white/80">Activity · last 14 days</h3>
-              <div className="mt-4 flex items-end gap-1.5">
-                {dayCounts.map((c, i) => (
-                  <div key={i} className="flex flex-1 flex-col items-center gap-1">
-                    <div className="flex h-24 w-full items-end">
-                      <div
-                        className="w-full rounded-t bg-violet-400/70"
-                        style={{ height: `${Math.round((c / maxDay) * 100)}%` }}
-                        title={`${c} run${c === 1 ? '' : 's'}`}
-                      />
-                    </div>
-                    <span className="text-[9px] text-white/30 tabular-nums">
-                      {days[i].getDate()}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-2">
-              {/* By type */}
-              <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
-                <h3 className="text-sm font-semibold text-white/80">By agent</h3>
-                <div className="mt-4 space-y-3">
-                  {byTypeSorted.map((t) => {
-                    const pct = total ? Math.round((t._count._all / total) * 100) : 0
-                    return (
-                      <div key={t.agentType}>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-white/75">{TYPE_LABEL[t.agentType]}</span>
-                          <span className="text-white/45 tabular-nums">
-                            {t._count._all} run{t._count._all === 1 ? '' : 's'} ·{' '}
-                            {(t._sum.tokensUsed ?? 0).toLocaleString()} tok
-                          </span>
-                        </div>
-                        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
-                          <div
-                            className="h-full rounded-full bg-violet-400/70"
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                      </div>
-                    )
-                  })}
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {stats.map((s) => (
+              <div
+                key={s.label}
+                className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm"
+              >
+                <div className={`inline-flex rounded-lg bg-white/5 p-2 ${s.tint}`}>
+                  <s.Icon className="h-4 w-4" />
                 </div>
-              </div>
-
-              {/* Recent runs */}
-              <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
-                <h3 className="text-sm font-semibold text-white/80">Recent runs</h3>
-                <div className="mt-4 space-y-1">
-                  {recent.map((r) => (
-                    <AgentRunRow
-                      key={r.id}
-                      run={r}
-                      label={TYPE_LABEL[r.agentType]}
-                      statusClass={STATUS_STYLE[r.status]}
+                <div className="mt-3 text-3xl font-semibold tracking-tight text-white">
+                  {s.value}
+                </div>
+                <div className="mt-1 text-xs text-white/50">{s.label}</div>
+                {s.label === 'Success rate' && total > 0 && (
+                  <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-emerald-400/70"
+                      style={{ width: `${successRate}%` }}
                     />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {total === 0 ? (
+            <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
+              <Bot className="mx-auto h-6 w-6 text-violet-300/60" />
+              <p className="mt-3 text-sm text-white/60">No agent runs yet.</p>
+              <p className="mt-1 text-xs text-white/40">
+                Head to your tasks and run an agent — it’ll show up here.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Activity chart */}
+              <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+                <h3 className="text-sm font-semibold text-white/80">Activity · last 14 days</h3>
+                <div className="mt-4 flex items-end gap-1.5">
+                  {dayCounts.map((c, i) => (
+                    <div key={i} className="flex flex-1 flex-col items-center gap-1">
+                      <div className="flex h-24 w-full items-end">
+                        <div
+                          className="w-full rounded-t bg-gradient-to-t from-violet-500/40 to-violet-400/90"
+                          style={{ height: `${Math.round((c / maxDay) * 100)}%` }}
+                          title={`${c} run${c === 1 ? '' : 's'}`}
+                        />
+                      </div>
+                      <span className="text-[9px] text-white/30 tabular-nums">
+                        {days[i].getDate()}
+                      </span>
+                    </div>
                   ))}
                 </div>
               </div>
-            </div>
-          </>
-        )}
+
+              <div className="grid gap-6 lg:grid-cols-2">
+                {/* By type */}
+                <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+                  <h3 className="text-sm font-semibold text-white/80">By agent</h3>
+                  <div className="mt-4 space-y-3">
+                    {byTypeSorted.map((t) => {
+                      const pct = total ? Math.round((t._count._all / total) * 100) : 0
+                      return (
+                        <div key={t.agentType}>
+                          <div className="flex items-center gap-2 text-xs">
+                            <span
+                              className={`h-2 w-2 shrink-0 rounded-full ${agentColor(t.agentType)}`}
+                            />
+                            <span className="text-white/75">{TYPE_LABEL[t.agentType]}</span>
+                            <span className="ml-auto text-white/45 tabular-nums">
+                              {t._count._all} · {(t._sum.tokensUsed ?? 0).toLocaleString()} tok
+                            </span>
+                            <span className="w-9 shrink-0 text-right text-white/35 tabular-nums">
+                              {pct}%
+                            </span>
+                          </div>
+                          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+                            <div
+                              className={`h-full rounded-full ${agentColor(t.agentType)}`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Recent runs */}
+                <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
+                  <h3 className="text-sm font-semibold text-white/80">Recent runs</h3>
+                  <div className="mt-4 space-y-1">
+                    {recent.map((r) => (
+                      <AgentRunRow
+                        key={r.id}
+                        run={r}
+                        label={TYPE_LABEL[r.agentType]}
+                        statusClass={STATUS_STYLE[r.status]}
+                        dotClass={agentColor(r.agentType)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </section>
       </div>
     </div>
   )
