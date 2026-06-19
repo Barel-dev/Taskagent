@@ -26,6 +26,7 @@ export default async function ActivityPage() {
         status: true,
         tokensUsed: true,
         createdAt: true,
+        taskId: true,
         input: true,
         output: true,
         error: true,

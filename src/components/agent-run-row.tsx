@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
 type Run = {
@@ -32,11 +33,13 @@ export function AgentRunRow({
   label,
   statusClass,
   dotClass = 'bg-white/40',
+  taskHref,
 }: {
   run: Run
   label: string
   statusClass: string
   dotClass?: string
+  taskHref?: string
 }) {
   const [open, setOpen] = useState(false)
   const hasDetail = run.input != null || run.output != null || !!run.error
@@ -69,6 +72,14 @@ export function AgentRunRow({
       </button>
       {open && (
         <div className="mt-1 mb-2 ml-7 space-y-2 rounded-lg border border-white/10 bg-black/30 p-2 text-[11px]">
+          {taskHref && (
+            <Link
+              href={taskHref}
+              className="inline-flex items-center gap-1 font-medium text-violet-300/80 hover:text-violet-200"
+            >
+              Open task →
+            </Link>
+          )}
           {run.error && <pre className="whitespace-pre-wrap text-rose-300">{run.error}</pre>}
           {run.input != null && <Detail title="Input" data={run.input} />}
           {run.output != null && <Detail title="Output" data={run.output} />}

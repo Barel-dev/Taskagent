@@ -12,6 +12,7 @@ type Run = {
   status: string
   tokensUsed: number | null
   createdAt: string
+  taskId: string | null
   input: unknown
   output: unknown
   error: string | null
@@ -33,14 +34,20 @@ export function AgentActivityList({
   summary: { total: number; success: number; tokens: number }
 }) {
   const [filter, setFilter] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<string | null>(null)
   const successRate = summary.total ? Math.round((summary.success / summary.total) * 100) : 0
 
   // Agent types present in the log, ordered by how often they appear.
   const counts = new Map<string, number>()
   for (const r of runs) counts.set(r.agentType, (counts.get(r.agentType) ?? 0) + 1)
   const types = [...counts.keys()].sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0))
+  const successCount = runs.filter((r) => r.status === 'SUCCESS').length
+  const errorCount = runs.filter((r) => r.status === 'ERROR').length
 
-  const shown = filter ? runs.filter((r) => r.agentType === filter) : runs
+  const shown = runs.filter(
+    (r) =>
+      (filter ? r.agentType === filter : true) && (statusFilter ? r.status === statusFilter : true),
+  )
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
@@ -83,7 +90,7 @@ export function AgentActivityList({
         </div>
       ) : (
         <>
-          <div className="mb-4 flex flex-wrap gap-2">
+          <div className="mb-3 flex flex-wrap gap-2">
             <Chip active={filter === null} onClick={() => setFilter(null)}>
               All {runs.length}
             </Chip>
@@ -95,16 +102,38 @@ export function AgentActivityList({
             ))}
           </div>
 
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-white/40">Status</span>
+            <Chip active={statusFilter === null} onClick={() => setStatusFilter(null)}>
+              All
+            </Chip>
+            <Chip active={statusFilter === 'SUCCESS'} onClick={() => setStatusFilter('SUCCESS')}>
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              Success {successCount}
+            </Chip>
+            {errorCount > 0 && (
+              <Chip active={statusFilter === 'ERROR'} onClick={() => setStatusFilter('ERROR')}>
+                <span className="h-2 w-2 rounded-full bg-rose-400" />
+                Errors {errorCount}
+              </Chip>
+            )}
+          </div>
+
           <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-2 backdrop-blur-sm">
-            {shown.map((r) => (
-              <AgentRunRow
-                key={r.id}
-                run={r}
-                label={agentLabel(r.agentType)}
-                statusClass={STATUS_STYLE[r.status] ?? 'text-white/60 bg-white/10'}
-                dotClass={agentColor(r.agentType)}
-              />
-            ))}
+            {shown.length === 0 ? (
+              <p className="px-2 py-8 text-center text-sm text-white/40">No matching jobs.</p>
+            ) : (
+              shown.map((r) => (
+                <AgentRunRow
+                  key={r.id}
+                  run={r}
+                  label={agentLabel(r.agentType)}
+                  statusClass={STATUS_STYLE[r.status] ?? 'text-white/60 bg-white/10'}
+                  dotClass={agentColor(r.agentType)}
+                  taskHref={r.taskId ? `/tasks?task=${r.taskId}` : undefined}
+                />
+              ))
+            )}
           </div>
         </>
       )}
