@@ -228,7 +228,7 @@ export function TaskList({
   }, [userName])
 
   function exportCsv() {
-    const header = ['Title', 'Status', 'Priority', 'Due', 'Scheduled', 'Tags', 'Subtasks']
+    const header = ['Title', 'Status', 'Priority', 'Due', 'Scheduled', 'Tags', 'Subtasks', 'Notes']
     const rows = tasks.map((t) => [
       t.title,
       t.status,
@@ -237,6 +237,7 @@ export function TaskList({
       t.scheduledStart ? new Date(t.scheduledStart).toISOString() : '',
       (t.tags ?? []).map((x) => x.name).join('; '),
       String(t.children?.length ?? 0),
+      t.notes ?? '',
     ])
     const csv = [header, ...rows].map((r) => r.map(csvCell).join(',')).join('\n')
     download(csv, 'text/csv', 'csv')
@@ -254,6 +255,7 @@ export function TaskList({
       if (t.dueDate) meta.push(`due ${new Date(t.dueDate).toISOString().slice(0, 10)}`)
       lines.push(`_${meta.join(' · ')}_`)
       if (t.description) lines.push('', t.description)
+      if (t.notes) lines.push('', `> ${t.notes.replace(/\n/g, '\n> ')}`)
       if (t.children?.length) {
         lines.push('')
         for (const c of t.children) lines.push(`- [${c.status === 'DONE' ? 'x' : ' '}] ${c.title}`)
