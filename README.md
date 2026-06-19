@@ -90,7 +90,7 @@ Agents live in `src/lib/agents/*` as plain functions; thin API routes wrap them 
 - **Streaming chat, the clever bit.** The chat schema puts the `reply` field first, so the route decodes that prefix out of the **partial** structured-output JSON and forwards characters over Server-Sent Events as they generate — while the _same_ response still carries ownership-checked **actions** (complete / reprioritize / reschedule) and create-task intents dispatched to the Planner.
 - **Real integrations.** Email and Schedule call the Gmail and Google Calendar APIs (`google.ts`) using the user's stored OAuth token with automatic refresh. Drafting/proposing and sending/booking are **separate endpoints** — the draft route never sends.
 - **Automatic mornings.** A Vercel cron (`/api/cron/briefing`, authenticated with `CRON_SECRET`) generates a briefing for every active user and emails opted-in users via their own Gmail.
-- **Auditable & guarded.** Every agent run is recorded in an `AgentRun` table (input, output, status, tokens) and surfaced on the dashboard and in each task's activity log; every agent route is authenticated, user-scoped, and per-user rate-limited, with graceful handling of provider quota (429).
+- **Auditable & guarded.** Every agent run is recorded in an `AgentRun` table (input, output, status, tokens) and surfaced on the dashboard, a filterable **Agent activity** page, and each task's own activity log; every agent route is authenticated, user-scoped, and per-user rate-limited, with graceful handling of provider quota (429).
 - **Incremental OAuth.** Base sign-in requests only `openid email profile`; the sensitive Gmail/Calendar scopes are requested on demand via an in-app "Connect Google" step.
 
 ## Tech stack
