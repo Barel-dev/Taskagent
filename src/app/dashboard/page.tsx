@@ -620,7 +620,15 @@ export default async function DashboardPage() {
 
                 {/* Recent runs */}
                 <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 backdrop-blur-sm">
-                  <h3 className="text-sm font-semibold text-white/80">Recent runs</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-white/80">Recent runs</h3>
+                    <Link
+                      href="/activity"
+                      className="text-xs text-violet-300/80 hover:text-violet-200"
+                    >
+                      View all →
+                    </Link>
+                  </div>
                   <div className="mt-4 space-y-1">
                     {recent.map((r) => (
                       <AgentRunRow
